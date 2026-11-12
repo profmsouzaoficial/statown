@@ -61,6 +61,11 @@ atualizar a branch `deploy`; a integração Git da Vercel escuta essa branch.
 6. Em **Deployments**, faça um **Redeploy** da branch `deploy` (ou aguarde o próximo
    push). A URL de produção passa a servir o jogo.
 
+Se o workflow não conseguir atualizar a branch `deploy`, confira em
+**Settings → Actions → General → Workflow permissions** se a opção
+**Read and write permissions** está marcada. O workflow já declara
+`contents: write`, mas a configuração do repositório precisa permitir.
+
 > **Proteção de deployment:** se a URL pedir login, verifique
 > **Settings → Deployment Protection** e desative a proteção para produção. Para um
 > site que “todos podem ver”, a produção precisa ser pública.
