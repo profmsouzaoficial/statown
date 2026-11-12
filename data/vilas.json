@@ -1,0 +1,564 @@
+{
+ "vilas": [
+  {
+   "id": 1,
+   "nome": "Vila Central do Rio",
+   "perfil": "core",
+   "regiao": "Centro",
+   "descricao": "Margem norte do Rio Doce. Alta verticalizacao, comercio intenso, avenidas duplas e pracas.",
+   "populacao_inicial": 2800,
+   "renda_media_sm": 4.2,
+   "saneamento": 0.92,
+   "leitos_por_mil": 2.07,
+   "cobertura_vacinal_inicial": 0.684,
+   "cor": "#2f6fbf",
+   "anchor": [
+    116,
+    59
+   ],
+   "centroid": [
+    115.74,
+    59.5
+   ],
+   "bbox": [
+    105,
+    51,
+    125,
+    68
+   ],
+   "area_tiles": 294
+  },
+  {
+   "id": 2,
+   "nome": "Vila Ribeira Leste",
+   "perfil": "corredor",
+   "regiao": "Leste",
+   "descricao": "Longo corredor NE/Leste na margem norte: eixo rodoviario, galpoes e mata ciliar.",
+   "populacao_inicial": 2100,
+   "renda_media_sm": 2.1,
+   "saneamento": 0.68,
+   "leitos_por_mil": 1.39,
+   "cobertura_vacinal_inicial": 0.536,
+   "cor": "#3f86c9",
+   "anchor": [
+    130,
+    43
+   ],
+   "centroid": [
+    129.54,
+    42.69
+   ],
+   "bbox": [
+    114,
+    31,
+    145,
+    53
+   ],
+   "area_tiles": 494
+  },
+  {
+   "id": 3,
+   "nome": "Vila da Encosta Norte",
+   "perfil": "urbano",
+   "regiao": "Norte",
+   "descricao": "Casas de telhado vermelho em aclive, colinas rochosas ao norte.",
+   "populacao_inicial": 1400,
+   "renda_media_sm": 1.9,
+   "saneamento": 0.65,
+   "leitos_por_mil": 1.32,
+   "cobertura_vacinal_inicial": 0.517,
+   "cor": "#c96a4a",
+   "anchor": [
+    109,
+    36
+   ],
+   "centroid": [
+    108.69,
+    36.02
+   ],
+   "bbox": [
+    102,
+    30,
+    115,
+    42
+   ],
+   "area_tiles": 178
+  },
+  {
+   "id": 4,
+   "nome": "Vila das Nascentes",
+   "perfil": "urbano",
+   "regiao": "Noroeste",
+   "descricao": "Bairros extensos cortados por corregos e bosques.",
+   "populacao_inicial": 3200,
+   "renda_media_sm": 2.2,
+   "saneamento": 0.72,
+   "leitos_por_mil": 1.42,
+   "cobertura_vacinal_inicial": 0.56,
+   "cor": "#5aa86b",
+   "anchor": [
+    77,
+    34
+   ],
+   "centroid": [
+    76.58,
+    34.26
+   ],
+   "bbox": [
+    42,
+    7,
+    108,
+    62
+   ],
+   "area_tiles": 2282
+  },
+  {
+   "id": 5,
+   "nome": "Vila do Mirante",
+   "perfil": "urbano",
+   "regiao": "Centro-Norte",
+   "descricao": "Transicao urbana densa, muros de pedra, predios medios.",
+   "populacao_inicial": 1600,
+   "renda_media_sm": 3.1,
+   "saneamento": 0.85,
+   "leitos_por_mil": 1.71,
+   "cobertura_vacinal_inicial": 0.641,
+   "cor": "#c9a24a",
+   "anchor": [
+    104,
+    47
+   ],
+   "centroid": [
+    104.34,
+    47.42
+   ],
+   "bbox": [
+    95,
+    41,
+    114,
+    54
+   ],
+   "area_tiles": 227
+  },
+  {
+   "id": 6,
+   "nome": "Vila Esplanada Real",
+   "perfil": "nobre",
+   "regiao": "Centro-Oeste",
+   "descricao": "Arborizada, predios residenciais nobres, clinicas e avenidas bem tracadas.",
+   "populacao_inicial": 2200,
+   "renda_media_sm": 4.8,
+   "saneamento": 0.95,
+   "leitos_por_mil": 2.27,
+   "cobertura_vacinal_inicial": 0.703,
+   "cor": "#7d6fc9",
+   "anchor": [
+    103,
+    67
+   ],
+   "centroid": [
+    103.46,
+    66.57
+   ],
+   "bbox": [
+    94,
+    59,
+    110,
+    77
+   ],
+   "area_tiles": 225
+  },
+  {
+   "id": 7,
+   "nome": "Vila da Ilha",
+   "perfil": "ilha",
+   "regiao": "Ilha fluvial",
+   "descricao": "Cercada 100% pelo rio, 2 pontes, casas amplas, parques floridos e quiosques.",
+   "populacao_inicial": 1900,
+   "renda_media_sm": 5.2,
+   "saneamento": 0.96,
+   "leitos_por_mil": 2.4,
+   "cobertura_vacinal_inicial": 0.709,
+   "cor": "#4fb3a8",
+   "anchor": [
+    110,
+    85
+   ],
+   "centroid": [
+    109.73,
+    84.84
+   ],
+   "bbox": [
+    99,
+    72,
+    119,
+    97
+   ],
+   "area_tiles": 303
+  },
+  {
+   "id": 8,
+   "nome": "Vila Beira-Rio Oeste",
+   "perfil": "urbano",
+   "regiao": "Centro-Oeste",
+   "descricao": "Comercio e residencias mistas, orla pavimentada, trafego intenso.",
+   "populacao_inicial": 1750,
+   "renda_media_sm": 3.4,
+   "saneamento": 0.88,
+   "leitos_por_mil": 1.81,
+   "cobertura_vacinal_inicial": 0.66,
+   "cor": "#3f9fc9",
+   "anchor": [
+    96,
+    80
+   ],
+   "centroid": [
+    95.96,
+    79.84
+   ],
+   "bbox": [
+    87,
+    75,
+    103,
+    87
+   ],
+   "area_tiles": 177
+  },
+  {
+   "id": 9,
+   "nome": "Vila do Claustro",
+   "perfil": "enclave",
+   "regiao": "Centro",
+   "descricao": "Enclave compacto entre muros de pedra e portoes, alta densidade organizada.",
+   "populacao_inicial": 1100,
+   "renda_media_sm": 3.6,
+   "saneamento": 0.9,
+   "leitos_por_mil": 1.88,
+   "cobertura_vacinal_inicial": 0.672,
+   "cor": "#8a7fb5",
+   "anchor": [
+    90,
+    70
+   ],
+   "centroid": [
+    89.68,
+    69.79
+   ],
+   "bbox": [
+    82,
+    63,
+    99,
+    75
+   ],
+   "area_tiles": 224
+  },
+  {
+   "id": 10,
+   "nome": "Vila das Acacias",
+   "perfil": "urbano",
+   "regiao": "Centro-Oeste",
+   "descricao": "Grande malha residencial horizontal, escolas e avenidas.",
+   "populacao_inicial": 2900,
+   "renda_media_sm": 2.6,
+   "saneamento": 0.8,
+   "leitos_por_mil": 1.55,
+   "cobertura_vacinal_inicial": 0.61,
+   "cor": "#a8784a",
+   "anchor": [
+    68,
+    71
+   ],
+   "centroid": [
+    68.14,
+    71.37
+   ],
+   "bbox": [
+    51,
+    52,
+    80,
+    90
+   ],
+   "area_tiles": 642
+  },
+  {
+   "id": 11,
+   "nome": "Vila do Vale Distante",
+   "perfil": "rural",
+   "regiao": "Noroeste",
+   "descricao": "Casas rusticas, cercas de madeira, carrocas e pocos. Ligada por estrada com tunel.",
+   "populacao_inicial": 950,
+   "renda_media_sm": 1.4,
+   "saneamento": 0.42,
+   "leitos_por_mil": 1.16,
+   "cobertura_vacinal_inicial": 0.374,
+   "cor": "#b5a04a",
+   "anchor": [
+    27,
+    31
+   ],
+   "centroid": [
+    26.66,
+    30.54
+   ],
+   "bbox": [
+    11,
+    7,
+    40,
+    52
+   ],
+   "area_tiles": 1133
+  },
+  {
+   "id": 12,
+   "nome": "Vila da Ponte Sul",
+   "perfil": "corredor",
+   "regiao": "Sudeste",
+   "descricao": "Cabeceria sul da grande ponte, galpoes comerciais, caminhoes.",
+   "populacao_inicial": 2300,
+   "renda_media_sm": 2.0,
+   "saneamento": 0.7,
+   "leitos_por_mil": 1.35,
+   "cobertura_vacinal_inicial": 0.548,
+   "cor": "#4a8fb5",
+   "anchor": [
+    118,
+    127
+   ],
+   "centroid": [
+    117.58,
+    126.84
+   ],
+   "bbox": [
+    101,
+    101,
+    133,
+    150
+   ],
+   "area_tiles": 977
+  },
+  {
+   "id": 13,
+   "nome": "Vila Entre-Pontes",
+   "perfil": "industrial",
+   "regiao": "Sul",
+   "descricao": "Entroncamento viario pesado, oficinas e fabricas leves.",
+   "populacao_inicial": 1850,
+   "renda_media_sm": 2.5,
+   "saneamento": 0.78,
+   "leitos_por_mil": 1.52,
+   "cobertura_vacinal_inicial": 0.598,
+   "cor": "#7a8a99",
+   "anchor": [
+    91,
+    98
+   ],
+   "centroid": [
+    90.69,
+    98.19
+   ],
+   "bbox": [
+    83,
+    88,
+    96,
+    107
+   ],
+   "area_tiles": 247
+  },
+  {
+   "id": 14,
+   "nome": "Vila dos Ipes",
+   "perfil": "urbano",
+   "regiao": "Centro-Oeste",
+   "descricao": "Residencial densa de classe media-baixa, pracas de terra, comercio local.",
+   "populacao_inicial": 2400,
+   "renda_media_sm": 2.3,
+   "saneamento": 0.76,
+   "leitos_por_mil": 1.45,
+   "cobertura_vacinal_inicial": 0.585,
+   "cor": "#c98f4a",
+   "anchor": [
+    82,
+    88
+   ],
+   "centroid": [
+    81.51,
+    88.27
+   ],
+   "bbox": [
+    75,
+    78,
+    90,
+    98
+   ],
+   "area_tiles": 268
+  },
+  {
+   "id": 15,
+   "nome": "Vila do Pico",
+   "perfil": "periferia",
+   "regiao": "Sul",
+   "descricao": "Sope da grande montanha sul, bairros em expansao, cercas e trilhas.",
+   "populacao_inicial": 3100,
+   "renda_media_sm": 1.8,
+   "saneamento": 0.62,
+   "leitos_por_mil": 1.29,
+   "cobertura_vacinal_inicial": 0.498,
+   "cor": "#8a9a5a",
+   "anchor": [
+    103,
+    146
+   ],
+   "centroid": [
+    103.28,
+    146.46
+   ],
+   "bbox": [
+    79,
+    112,
+    122,
+    173
+   ],
+   "area_tiles": 1233
+  },
+  {
+   "id": 16,
+   "nome": "Vila Fabril Sudoeste",
+   "perfil": "industrial",
+   "regiao": "Sudoeste",
+   "descricao": "Polo industrial: fabricas com chaminés, caminhoes de carga e vilas operarias.",
+   "populacao_inicial": 3400,
+   "renda_media_sm": 1.7,
+   "saneamento": 0.58,
+   "leitos_por_mil": 1.26,
+   "cobertura_vacinal_inicial": 0.474,
+   "cor": "#9a6a5a",
+   "anchor": [
+    45,
+    132
+   ],
+   "centroid": [
+    44.98,
+    131.57
+   ],
+   "bbox": [
+    4,
+    106,
+    91,
+    166
+   ],
+   "area_tiles": 2143
+  },
+  {
+   "id": 17,
+   "nome": "Vila Horizonte Oeste",
+   "perfil": "periferia",
+   "regiao": "Oeste",
+   "descricao": "Casas simples, muitos pocos manuais, caminhos de terra e colinas.",
+   "populacao_inicial": 3600,
+   "renda_media_sm": 1.5,
+   "saneamento": 0.48,
+   "leitos_por_mil": 1.19,
+   "cobertura_vacinal_inicial": 0.412,
+   "cor": "#b58a5a",
+   "anchor": [
+    53,
+    89
+   ],
+   "centroid": [
+    53.21,
+    88.87
+   ],
+   "bbox": [
+    38,
+    46,
+    79,
+    117
+   ],
+   "area_tiles": 1708
+  },
+  {
+   "id": 18,
+   "nome": "Vila da Varzea Sul",
+   "perfil": "rural",
+   "regiao": "Sul",
+   "descricao": "Casas ribeirinhas, pomares; vulneravel a cheias e doencas hidricas.",
+   "populacao_inicial": 1350,
+   "renda_media_sm": 1.4,
+   "saneamento": 0.45,
+   "leitos_por_mil": 1.16,
+   "cobertura_vacinal_inicial": 0.393,
+   "cor": "#6a9a7a",
+   "anchor": [
+    78,
+    154
+   ],
+   "centroid": [
+    78.23,
+    153.9
+   ],
+   "bbox": [
+    61,
+    141,
+    100,
+    168
+   ],
+   "area_tiles": 679
+  },
+  {
+   "id": 19,
+   "nome": "Vila das Chacaras",
+   "perfil": "rural",
+   "regiao": "Leste",
+   "descricao": "Baixa densidade, sitios cercados, colmeias, pocos e florestas densas.",
+   "populacao_inicial": 850,
+   "renda_media_sm": 1.6,
+   "saneamento": 0.4,
+   "leitos_por_mil": 1.22,
+   "cobertura_vacinal_inicial": 0.362,
+   "cor": "#5a8a4a",
+   "anchor": [
+    128,
+    89
+   ],
+   "centroid": [
+    127.91,
+    88.58
+   ],
+   "bbox": [
+    111,
+    67,
+    139,
+    107
+   ],
+   "area_tiles": 720
+  },
+  {
+   "id": 20,
+   "nome": "Vila da Cachoeira Leste",
+   "perfil": "rural",
+   "regiao": "Extremo Leste",
+   "descricao": "Distrito pitoresco junto as corredeiras, ligado por estrada serrana.",
+   "populacao_inicial": 900,
+   "renda_media_sm": 1.5,
+   "saneamento": 0.44,
+   "leitos_por_mil": 1.19,
+   "cobertura_vacinal_inicial": 0.387,
+   "cor": "#4a9a95",
+   "anchor": [
+    220,
+    40
+   ],
+   "centroid": [
+    220.35,
+    40.26
+   ],
+   "bbox": [
+    210,
+    24,
+    232,
+    57
+   ],
+   "area_tiles": 586
+  }
+ ]
+}

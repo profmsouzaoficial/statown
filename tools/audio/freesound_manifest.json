@@ -1,0 +1,16 @@
+{
+  "nota": "Todos os sons abaixo sao CC0 (dominio publico) filtrados por license:\"Creative Commons 0\" no freesound.org. Baixados como preview HQ publico, sem login.",
+  "sons": [
+    {"slot": "amb_vento",      "id": 852845,  "uso": "base do mapa (vento)"},
+    {"slot": "amb_passaros",   "id": 723913,  "uso": "zona mata (passaros, loop)"},
+    {"slot": "amb_rio",        "id": 548767,  "uso": "zona rio (agua, loop)"},
+    {"slot": "amb_mercado",    "id": 88421,   "uso": "zona urbana (mercado publico BR)"},
+    {"slot": "amb_multidao",   "id": 457043,  "uso": "zona urbana (multidao)"},
+    {"slot": "amb_porto",      "id": 254130,  "uso": "zona porto"},
+    {"slot": "acc_sino",       "id": 518343,  "uso": "vila do Claustro (sino)"},
+    {"slot": "acc_galo",       "id": 435508,  "uso": "vilas rurais (galo)"},
+    {"slot": "acc_vaca",       "id": 546479,  "uso": "vilas rurais (vaca)"},
+    {"slot": "acc_bocina",     "id": 468846,  "uso": "vilas do rio (bocina de barco)"},
+    {"slot": "acc_bigorna",    "id": 386129,  "uso": "vila fabril (bigorna)"}
+  ]
+}

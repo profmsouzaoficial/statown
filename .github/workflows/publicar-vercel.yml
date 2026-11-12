@@ -1,0 +1,113 @@
+name: Publicar no Vercel
+
+# O Vercel não compila Godot. Este workflow compila o build web no GitHub Actions,
+# testa, copia o manual/figuras e envia o resultado para a branch `deploy`.
+# O projeto da Vercel fica apontado para essa branch e publica sozinho.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar-vercel
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Instalar Godot 4.7.2
+        run: |
+          set -euo pipefail
+          GODOT_ZIP="$RUNNER_TEMP/godot.zip"
+          curl -fsSL --retry 3 -o "$GODOT_ZIP" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          mkdir -p "$RUNNER_TEMP/godot"
+          unzip -q "$GODOT_ZIP" -d "$RUNNER_TEMP/godot"
+          GODOT_BIN="$(find "$RUNNER_TEMP/godot" -type f -name 'Godot_v*' -print -quit)"
+          test -n "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+          "$GODOT_BIN" --version
+
+      - name: Instalar template web sem threads
+        run: |
+          set -euo pipefail
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          cp "ci/templates/${GODOT_VERSION}.stable/web_nothreads_release.zip" "$TEMPLATE_DIR/"
+          cp "ci/templates/${GODOT_VERSION}.stable/version.txt" "$TEMPLATE_DIR/"
+          test -s "$TEMPLATE_DIR/web_nothreads_release.zip"
+
+      - name: Importar recursos
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --import
+
+      - name: Rodar testes
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script tests/test_statcore.gd
+          for scene in SmokeUI TestCamera TestAudio TestAudit TestTrafego; do
+            echo "== $scene =="
+            "$GODOT_BIN" --headless --path . "res://tests/${scene}.tscn"
+          done
+
+      - name: Exportar build web
+        run: |
+          set -euo pipefail
+          rm -rf exports/web
+          mkdir -p exports/web
+          "$GODOT_BIN" --headless --path . --export-release "Web" exports/web/index.html
+          test -s exports/web/index.html
+          test -s exports/web/index.pck
+          test -s exports/web/index.wasm
+
+      - name: Copiar manual, figuras e configuração do Vercel
+        run: |
+          set -euo pipefail
+          cp docs/manual.html exports/web/manual.html
+          rm -rf exports/web/shots
+          mkdir -p exports/web/shots
+          cp docs/shots/*.png exports/web/shots/
+          cp deploy/vercel.json exports/web/vercel.json
+          test -s exports/web/manual.html
+          test "$(find exports/web/shots -maxdepth 1 -name '*.png' | wc -l)" -ge 17
+
+      - name: Publicar branch deploy
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DEPLOY_DIR="$RUNNER_TEMP/statown-deploy"
+          rm -rf "$DEPLOY_DIR"
+          mkdir -p "$DEPLOY_DIR"
+          cp -a exports/web/. "$DEPLOY_DIR/"
+          cd "$DEPLOY_DIR"
+          git init -q -b deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "deploy: ${GITHUB_SHA::7}"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin deploy
+
+      - name: Resumo
+        run: |
+          echo "Build publicado na branch deploy." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Branch de produção da Vercel: \`deploy\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Manual e 21 figuras copiados para \`exports/web\`." >> "$GITHUB_STEP_SUMMARY"

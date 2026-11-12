@@ -1,0 +1,62 @@
+; Engine configuration file.
+; StaTown - Simulador de Bioestatistica e Epidemiologia
+; Godot 4.7
+
+config_version=5
+
+[application]
+
+config/name="StaTown"
+config/description="Simulador educacional de bioestatistica e epidemiologia - Vale do Rio Doce"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://assets/art/icon.png"
+boot_splash/bg_color=Color(0.117, 0.145, 0.188, 1)
+boot_splash/show_image=false
+
+[audio]
+
+general/default_playback_type.web=0
+
+[autoload]
+
+GameState="*res://scripts/autoload/GameState.gd"
+Vilas="*res://scripts/autoload/VilaRegistry.gd"
+Population="*res://scripts/autoload/PopulationManager.gd"
+Epidemic="*res://scripts/autoload/EpidemicManager.gd"
+Assets="*res://scripts/autoload/AssetRegistry.gd"
+RoadMask="*res://scripts/autoload/RoadMask.gd"
+UITheme="*res://scripts/ui/UIKit.gd"
+Audio="*res://scripts/autoload/AudioManager.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[filesystem]
+
+import/blender/enabled=false
+import/fbx2gltf/enabled=false
+
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+pointing/emulate_touch_from_mouse=false
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.117, 0.145, 0.188, 1)
+anti_aliasing/quality/msaa_2d=0

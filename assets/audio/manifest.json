@@ -1,0 +1,157 @@
+{
+ "ambientes": [
+  {
+   "id": "amb_parque_urbano",
+   "arquivo": "amb/amb_parque_urbano.ogg",
+   "duracao": 60.0,
+   "loop": true,
+   "licenca": "CC BY 3.0",
+   "fonte": "Freesound 118145 + 118149 (KarlSalamander)"
+  }
+ ],
+ "musicas": [],
+ "vilas": [
+  {
+   "id": 1,
+   "arquivo": "vila/vila_01.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 2,
+   "arquivo": "vila/vila_02.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 3,
+   "arquivo": "vila/vila_03.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 4,
+   "arquivo": "vila/vila_04.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 5,
+   "arquivo": "vila/vila_05.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 6,
+   "arquivo": "vila/vila_06.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 7,
+   "arquivo": "vila/vila_07.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 8,
+   "arquivo": "vila/vila_08.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 9,
+   "arquivo": "vila/vila_09.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 10,
+   "arquivo": "vila/vila_10.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 11,
+   "arquivo": "vila/vila_11.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 12,
+   "arquivo": "vila/vila_12.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 13,
+   "arquivo": "vila/vila_13.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 14,
+   "arquivo": "vila/vila_14.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 15,
+   "arquivo": "vila/vila_15.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 16,
+   "arquivo": "vila/vila_16.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 17,
+   "arquivo": "vila/vila_17.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 18,
+   "arquivo": "vila/vila_18.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 19,
+   "arquivo": "vila/vila_19.ogg",
+   "duracao": 4.2
+  },
+  {
+   "id": 20,
+   "arquivo": "vila/vila_20.ogg",
+   "duracao": 4.2
+  }
+ ],
+ "sfx": [
+  {
+   "id": "clique",
+   "arquivo": "sfx/clique.ogg"
+  },
+  {
+   "id": "abrir",
+   "arquivo": "sfx/abrir.ogg"
+  },
+  {
+   "id": "fechar",
+   "arquivo": "sfx/fechar.ogg"
+  },
+  {
+   "id": "sucesso",
+   "arquivo": "sfx/sucesso.ogg"
+  },
+  {
+   "id": "erro",
+   "arquivo": "sfx/erro.ogg"
+  },
+  {
+   "id": "moeda",
+   "arquivo": "sfx/moeda.ogg"
+  },
+  {
+   "id": "semana",
+   "arquivo": "sfx/semana.ogg"
+  },
+  {
+   "id": "alerta",
+   "arquivo": "sfx/alerta.ogg"
+  },
+  {
+   "id": "pagina",
+   "arquivo": "sfx/pagina.ogg"
+  },
+  {
+   "id": "descoberta",
+   "arquivo": "sfx/descoberta.ogg"
+  }
+ ]
+}

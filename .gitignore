@@ -1,0 +1,28 @@
+# Cache de importação e arquivos gerados pela Godot
+.godot/
+
+# Build web: gerado no CI e na exportação local; não versionar
+exports/web/
+
+# Derivados/backups de arte (o mestre e as fontes ficam versionados)
+assets/extracted/
+assets/art_backup/
+
+# Vercel CLI / deploys locais
+.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Segredos e arquivos locais
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+
+# Sistema/editor
+.DS_Store
+Thumbs.db
+*~

@@ -1,0 +1,101 @@
+[
+ {
+  "mp3": "https://cdn.freesound.org/previews/852/852845_17997500-lq.mp3",
+  "titulo": "Freesound - Looping Wind &amp; Noise by kkenny101",
+  "autor": "kkenny101",
+  "url": "https://freesound.org/s/852845/",
+  "slot": "amb_vento",
+  "id": 852845,
+  "uso": "base do mapa (vento)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/723/723913_2008500-lq.mp3",
+  "titulo": "Freesound - Forest birds - ambient seamless loop by Magnesus",
+  "autor": "Magnesus",
+  "url": "https://freesound.org/s/723913/",
+  "slot": "amb_passaros",
+  "id": 723913,
+  "uso": "zona mata (passaros, loop)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/548/548767_1474204-lq.mp3",
+  "titulo": "Freesound - Relaxing river stream running water seamless loop by steaq",
+  "autor": "steaq",
+  "url": "https://freesound.org/s/548767/",
+  "slot": "amb_rio",
+  "id": 548767,
+  "uso": "zona rio (agua, loop)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/88/88421_1133576-lq.mp3",
+  "titulo": "Freesound - AMB MERCADO PUBLICO 4 porto alegre brasil.wav by tiagobello",
+  "autor": "tiagobello",
+  "url": "https://freesound.org/s/88421/",
+  "slot": "amb_mercado",
+  "id": 88421,
+  "uso": "zona urbana (mercado publico BR)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/457/457043_9159316-lq.mp3",
+  "titulo": "Freesound - Busy Room Ambience / Small crowd / People talking in background by Breviceps",
+  "autor": "Breviceps",
+  "url": "https://freesound.org/s/457043/",
+  "slot": "amb_multidao",
+  "id": 457043,
+  "uso": "zona urbana (multidao)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/254/254130_3530854-lq.mp3",
+  "titulo": "Freesound - Harbor Ambience 2 by clif_creates",
+  "autor": "clif_creates",
+  "url": "https://freesound.org/s/254130/",
+  "slot": "amb_porto",
+  "id": 254130,
+  "uso": "zona porto"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/518/518343_9099977-lq.mp3",
+  "titulo": "Freesound - Church Bell by giordrix",
+  "autor": "giordrix",
+  "url": "https://freesound.org/s/518343/",
+  "slot": "acc_sino",
+  "id": 518343,
+  "uso": "vila do Claustro (sino)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/435/435508_1196020-lq.mp3",
+  "titulo": "Freesound - Rooster Crow 1 by BenjaminNelan",
+  "autor": "BenjaminNelan",
+  "url": "https://freesound.org/s/435508/",
+  "slot": "acc_galo",
+  "id": 435508,
+  "uso": "vilas rurais (galo)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/546/546479_11588763-lq.mp3",
+  "titulo": "Freesound - Cow Moo 2 by invertedturtle",
+  "autor": "invertedturtle",
+  "url": "https://freesound.org/s/546479/",
+  "slot": "acc_vaca",
+  "id": 546479,
+  "uso": "vilas rurais (vaca)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/468/468846_9934055-lq.mp3",
+  "titulo": "Freesound - 35_Bocina_barco.wav by ChristianAnd",
+  "autor": "ChristianAnd",
+  "url": "https://freesound.org/s/468846/",
+  "slot": "acc_bocina",
+  "id": 468846,
+  "uso": "vilas do rio (bocina de barco)"
+ },
+ {
+  "mp3": "https://cdn.freesound.org/previews/386/386129_1655965-lq.mp3",
+  "titulo": "Freesound - Anvil - Lokomo 125 kg - Hammer on 6mm steel 1 time by ldezem",
+  "autor": "ldezem",
+  "url": "https://freesound.org/s/386129/",
+  "slot": "acc_bigorna",
+  "id": 386129,
+  "uso": "vila fabril (bigorna)"
+ }
+]

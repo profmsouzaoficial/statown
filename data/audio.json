@@ -1,0 +1,196 @@
+{
+  "nota": "Mapa vila -> zona musical + acento diegetico (freesound) usado no sting. Fonte unica para o renderizador Python e para o AudioManager.",
+  "zonas": [
+    "mapa",
+    "zona_urbana",
+    "zona_rural",
+    "zona_rio",
+    "zona_mata",
+    "zona_industrial"
+  ],
+  "vilas": {
+    "1": {
+      "zona": "urbana",
+      "acento": "acc_sino",
+      "inicio": 0.0,
+      "dur": 2.6,
+      "ambiente": "amb_mercado"
+    },
+    "2": {
+      "zona": "rio",
+      "acento": "acc_bocina",
+      "inicio": 0.0,
+      "dur": 2.6,
+      "ambiente": "amb_rio"
+    },
+    "3": {
+      "zona": "mata",
+      "acento": "amb_passaros",
+      "inicio": 3.0,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "4": {
+      "zona": "mata",
+      "acento": "amb_rio",
+      "inicio": 1.0,
+      "dur": 2.6,
+      "ambiente": "amb_rio"
+    },
+    "5": {
+      "zona": "mata",
+      "acento": "amb_passaros",
+      "inicio": 9.0,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "6": {
+      "zona": "urbana",
+      "acento": "acc_sino",
+      "inicio": 4.0,
+      "dur": 2.6,
+      "ambiente": "amb_mercado"
+    },
+    "7": {
+      "zona": "rio",
+      "acento": "acc_bocina",
+      "inicio": 0.3,
+      "dur": 2.6,
+      "ambiente": "amb_porto"
+    },
+    "8": {
+      "zona": "rio",
+      "acento": "amb_rio",
+      "inicio": 3.0,
+      "dur": 2.6,
+      "ambiente": "amb_porto"
+    },
+    "9": {
+      "zona": "urbana",
+      "acento": "acc_sino",
+      "inicio": 7.5,
+      "dur": 2.6,
+      "ambiente": "amb_mercado"
+    },
+    "10": {
+      "zona": "rural",
+      "acento": "acc_galo",
+      "inicio": 0.0,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "11": {
+      "zona": "rural",
+      "acento": "acc_vaca",
+      "inicio": 0.0,
+      "dur": 2.6,
+      "ambiente": "amb_parque_urbano"
+    },
+    "12": {
+      "zona": "urbana",
+      "acento": "amb_mercado",
+      "inicio": 5.0,
+      "dur": 2.6,
+      "ambiente": "amb_mercado"
+    },
+    "13": {
+      "zona": "urbana",
+      "acento": "amb_mercado",
+      "inicio": 12.0,
+      "dur": 2.6,
+      "ambiente": "amb_mercado"
+    },
+    "14": {
+      "zona": "rural",
+      "acento": "acc_galo",
+      "inicio": 0.6,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "15": {
+      "zona": "mata",
+      "acento": "amb_passaros",
+      "inicio": 15.0,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "16": {
+      "zona": "industrial",
+      "acento": "acc_bigorna",
+      "inicio": 0.0,
+      "dur": 2.6,
+      "ambiente": "amb_parque_urbano"
+    },
+    "17": {
+      "zona": "urbana",
+      "acento": "amb_multidao",
+      "inicio": 4.0,
+      "dur": 2.6,
+      "ambiente": "amb_multidao"
+    },
+    "18": {
+      "zona": "rural",
+      "acento": "acc_vaca",
+      "inicio": 0.8,
+      "dur": 2.6,
+      "ambiente": "amb_parque_urbano"
+    },
+    "19": {
+      "zona": "rural",
+      "acento": "acc_galo",
+      "inicio": 1.2,
+      "dur": 2.6,
+      "ambiente": "amb_passaros"
+    },
+    "20": {
+      "zona": "mata",
+      "acento": "amb_rio",
+      "inicio": 5.0,
+      "dur": 2.6,
+      "ambiente": "amb_rio"
+    }
+  },
+  "vilas_acento_arquivo": {
+    "acc_sino": "acc_sino.mp3",
+    "acc_galo": "acc_galo.mp3",
+    "acc_vaca": "acc_vaca.mp3",
+    "acc_bocina": "acc_bocina.mp3",
+    "acc_bigorna": "acc_bigorna.mp3",
+    "amb_passaros": "amb_passaros.mp3",
+    "amb_rio": "amb_rio.mp3",
+    "amb_mercado": "amb_mercado.mp3",
+    "amb_multidao": "amb_multidao.mp3"
+  },
+  "minigames": {
+    "delineamentos": "mg_delineamentos",
+    "banco_dados": "mg_banco_dados",
+    "assimetria": "mg_assimetria",
+    "grafico": "mg_grafico",
+    "amostragem": "mg_amostragem",
+    "distribuicoes": "mg_distribuicoes",
+    "hipoteses": "mg_hipoteses",
+    "tendencias": "mg_tendencias",
+    "auditoria": "mg_auditoria"
+  },
+  "sfx": [
+    "clique",
+    "abrir",
+    "fechar",
+    "sucesso",
+    "erro",
+    "moeda",
+    "semana",
+    "alerta",
+    "pagina",
+    "descoberta"
+  ],
+  "ambiente_ganho_db": {
+    "_nota": "Ajuste de nivel por arquivo (medido em LUFS integrado). Sem isso o loop de passaros ficava 6 dB acima da musica.",
+    "amb_rio": 0.0,
+    "amb_passaros": -6.2,
+    "amb_mercado": 1.5,
+    "amb_multidao": 1.7,
+    "amb_porto": 1.9,
+    "amb_parque_urbano": -2.0
+  }
+}

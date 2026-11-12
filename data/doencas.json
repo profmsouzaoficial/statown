@@ -1,0 +1,148 @@
+{
+ "doencas": [
+  {
+   "id": "arbovirose",
+   "nome": "Arbovirose Valadarense",
+   "inspiracao": "Dengue / Chikungunya",
+   "cor": "#e0574a",
+   "icone": "mosquito",
+   "transmissivel": true,
+   "R0": 2.8,
+   "incubacao_se": 1.0,
+   "infeccioso_se": 1.5,
+   "cfr": {
+    "jovem": 0.004,
+    "adulto": 0.008,
+    "idoso": 0.022
+   },
+   "cfr_saturado": 0.035,
+   "sazonalidade": 0.55,
+   "peso_saneamento": 0.85,
+   "peso_mobilidade": 0.55,
+   "eficacia_vacina": 0.55,
+   "descricao": "Transmitida por vetor. Explode no periodo chuvoso e em vilas com saneamento precario e agua parada.",
+   "sintomas": "febre alta, dor atras dos olhos, exantema, prostração",
+   "biomarcador": "Plaquetas (mil/mm3)",
+   "bio_mu": {
+    "S": 260.0,
+    "E": 220.0,
+    "I": 120.0,
+    "R": 240.0
+   },
+   "bio_sd": {
+    "S": 45.0,
+    "E": 50.0,
+    "I": 45.0,
+    "R": 45.0
+   }
+  },
+  {
+   "id": "respiratoria",
+   "nome": "Virus Respiratorio Agudo",
+   "inspiracao": "Influenza / SARS-CoV-2",
+   "cor": "#4a7fd0",
+   "icone": "virus",
+   "transmissivel": true,
+   "R0": 3.6,
+   "incubacao_se": 0.5,
+   "infeccioso_se": 1.2,
+   "cfr": {
+    "jovem": 0.001,
+    "adulto": 0.008,
+    "idoso": 0.065
+   },
+   "cfr_saturado": 0.11,
+   "sazonalidade": 0.3,
+   "peso_saneamento": 0.15,
+   "peso_mobilidade": 1.0,
+   "eficacia_vacina": 0.75,
+   "descricao": "Alta transmissibilidade interpessoal, acoplada a mobilidade pendular pelas pontes. Letalidade concentrada em idosos.",
+   "sintomas": "tosse seca, febre, dispneia, mialgia",
+   "biomarcador": "Saturacao de O2 (%)",
+   "bio_mu": {
+    "S": 97.0,
+    "E": 96.0,
+    "I": 91.0,
+    "R": 96.0
+   },
+   "bio_sd": {
+    "S": 1.6,
+    "E": 2.0,
+    "I": 4.5,
+    "R": 1.8
+   }
+  },
+  {
+   "id": "enterica",
+   "nome": "Enteropatia Hidrica Aguda",
+   "inspiracao": "Cólera / Gastroenterite",
+   "cor": "#3aa88a",
+   "icone": "gota",
+   "transmissivel": true,
+   "R0": 2.4,
+   "incubacao_se": 0.6,
+   "infeccioso_se": 1.3,
+   "cfr": {
+    "jovem": 0.03,
+    "adulto": 0.015,
+    "idoso": 0.045
+   },
+   "cfr_saturado": 0.075,
+   "sazonalidade": 0.2,
+   "peso_saneamento": 1.0,
+   "peso_mobilidade": 0.35,
+   "eficacia_vacina": 0.6,
+   "descricao": "Transmissao fecal-oral por agua nao tratada. Devastadora em Criancas e idosos de vilas de baixa renda.",
+   "sintomas": "diarreia aquosa, desidratacao, vomitos",
+   "biomarcador": "Sodio serico (mEq/L)",
+   "bio_mu": {
+    "S": 139.0,
+    "E": 137.0,
+    "I": 131.0,
+    "R": 138.0
+   },
+   "bio_sd": {
+    "S": 2.5,
+    "E": 3.0,
+    "I": 5.0,
+    "R": 2.8
+   }
+  },
+  {
+   "id": "cronica",
+   "nome": "Agravo Cronico Nao-Transmissivel",
+   "inspiracao": "Hipertensao / Diabetes",
+   "cor": "#c98a3a",
+   "icone": "coracao",
+   "transmissivel": false,
+   "R0": 0.0,
+   "incubacao_se": 1.0,
+   "infeccioso_se": 1.0,
+   "cfr": {
+    "jovem": 0.0002,
+    "adulto": 0.004,
+    "idoso": 0.02
+   },
+   "cfr_saturado": 0.03,
+   "sazonalidade": 0.0,
+   "peso_saneamento": 0.3,
+   "peso_mobilidade": 0.0,
+   "eficacia_vacina": 0.0,
+   "descricao": "Sem transmissao infecciosa. A incidencia depende de idade, renda, escolaridade e estilo de vida - ideal para regressao e correlacao.",
+   "sintomas": "cefaleia, sedentarismo, glicemia alterada",
+   "biomarcador": "Pressao arterial sistolica (mmHg)",
+   "bio_mu": {
+    "S": 126.0,
+    "E": 132.0,
+    "I": 148.0,
+    "R": 138.0
+   },
+   "bio_sd": {
+    "S": 14.0,
+    "E": 15.0,
+    "I": 20.0,
+    "R": 16.0
+   }
+  }
+ ]
+}
