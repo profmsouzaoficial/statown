@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230b1120'/><path d='M7 23l6-8 4 4 8-11' stroke='%23ffc95c' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<title>StaTown — Manual do Jogador e Livro de Bioestatística</title>
+<meta name="description" content="Manual completo, ilustrado e interativo do StaTown: como jogar, como ler cada indicador e os conceitos de bioestatística e epidemiologia por trás do jogo.">
+<style>
+:root{
+  --bg:#0b1120; --bg2:#0f1729; --panel:#141e33; --panel2:#1a2740;
+  --linha:#27374f; --linha2:#33475f;
+  --texto:#e8eef8; --texto2:#a9b8cd; --texto3:#7d8ea6;
+  --ouro:#ffc95c; --ouro2:#ffb020; --teal:#4fd1b4; --azul:#54a9e0;
+  --roxo:#a98bf0; --vermelho:#ef6a5e; --verde:#5fd38a;
+  --raio:14px; --sombra:0 10px 30px rgba(0,0,0,.35);
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:
+    radial-gradient(1200px 600px at 80% -10%,rgba(84,169,224,.10),transparent 60%),
+    radial-gradient(900px 500px at -10% 10%,rgba(255,201,92,.07),transparent 60%),
+    var(--bg);
+  color:var(--texto);font-family:var(--sans);font-size:17px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--azul);text-decoration:none}
+a:hover{color:var(--ouro);text-decoration:underline}
+h1,h2,h3,h4{line-height:1.2;margin:0 0 .5em}
+h1{font-size:clamp(30px,5vw,56px);letter-spacing:-.02em}
+h2{font-size:clamp(24px,3.2vw,36px);letter-spacing:-.01em}
+h3{font-size:clamp(19px,2.2vw,24px);color:var(--ouro)}
+h4{font-size:18px;color:var(--teal)}
+p{margin:0 0 1em}
+strong{color:#fff}
+code,kbd,.mono{font-family:var(--mono);font-size:.92em}
+code{background:#0a1424;border:1px solid var(--linha);padding:.1em .4em;border-radius:6px;color:#cfe6ff}
+kbd{background:#0a1424;border:1px solid var(--linha2);border-bottom-width:3px;padding:.15em .45em;border-radius:6px;color:#fff;font-size:.85em}
+ul,ol{margin:0 0 1em;padding-left:1.35em}
+li{margin:.25em 0}
+hr{border:0;border-top:1px solid var(--linha);margin:2.5em 0}
+
+/* ---------- barra de progresso ---------- */
+#progresso{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--ouro),var(--teal));z-index:100;transition:width .08s linear}
+
+/* ---------- topo ---------- */
+header.topo{position:sticky;top:0;z-index:90;background:rgba(11,17,32,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha);display:flex;align-items:center;gap:14px;padding:10px 18px}
+.topo .marca{font-family:var(--mono);font-weight:700;color:var(--ouro);letter-spacing:.08em;font-size:15px;white-space:nowrap}
+.topo .marca span{color:var(--texto2);font-weight:400;letter-spacing:0}
+#busca{flex:1;max-width:520px;background:#0a1424;border:1px solid var(--linha2);color:var(--texto);border-radius:10px;padding:9px 12px;font-size:14px;font-family:var(--sans)}
+#busca:focus{outline:2px solid rgba(255,201,92,.35);border-color:var(--ouro)}
+.topo .acoes{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-topo{background:var(--panel);border:1px solid var(--linha2);color:var(--texto2);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+.btn-topo:hover{border-color:var(--ouro);color:var(--ouro)}
+#abrir-menu{display:none}
+
+/* ---------- layout ---------- */
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:34px;max-width:1400px;margin:0 auto;padding:0 22px 80px}
+aside.toc{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 78px);overflow:auto;padding:22px 0 30px;font-size:14px}
+aside.toc h2{font-size:12px;letter-spacing:.16em;color:var(--texto3);text-transform:uppercase;margin:0 0 10px 6px}
+aside.toc ol{list-style:none;padding:0;margin:0}
+aside.toc ol ol{padding-left:12px;border-left:1px solid var(--linha);margin:2px 0 8px 8px}
+aside.toc a{display:block;padding:5px 8px;border-radius:8px;color:var(--texto2);font-size:13.5px}
+aside.toc a:hover{background:var(--panel);color:var(--texto);text-decoration:none}
+aside.toc a.ativo{background:linear-gradient(90deg,rgba(255,201,92,.16),transparent);color:var(--ouro);border-left:2px solid var(--ouro)}
+aside.toc ol ol a{font-size:12.5px;padding:3px 8px;color:var(--texto3)}
+main{min-width:0;padding-top:10px}
+
+/* ---------- capa ---------- */
+.hero{padding:56px 0 26px;border-bottom:1px solid var(--linha);margin-bottom:40px}
+.hero .sobre{font-family:var(--mono);color:var(--teal);letter-spacing:.22em;font-size:12px;text-transform:uppercase;margin-bottom:14px}
+.hero h1{background:linear-gradient(100deg,#fff 10%,var(--ouro) 55%,var(--teal) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:clamp(18px,2.2vw,23px);color:var(--texto2);max-width:70ch;margin:14px 0 22px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.badge{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--linha2);color:var(--texto2);background:var(--panel)}
+.badge.ok{color:var(--verde);border-color:rgba(95,211,138,.4)}
+.badge.warn{color:var(--ouro);border-color:rgba(255,201,92,.4)}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.cta a{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;font-weight:600;font-size:15px;border:1px solid var(--linha2);color:var(--texto);background:var(--panel)}
+.cta a.principal{background:linear-gradient(180deg,#ffd470,#f0a92c);color:#221704;border-color:#ffd470}
+.cta a:hover{text-decoration:none;transform:translateY(-1px);filter:brightness(1.05)}
+
+/* ---------- seções ---------- */
+.cap{padding-top:26px;margin-bottom:44px;scroll-margin-top:76px}
+.cap > h2{display:flex;gap:14px;align-items:baseline;padding-bottom:12px;border-bottom:1px solid var(--linha)}
+.cap > h2 .num{font-family:var(--mono);font-size:15px;color:var(--bg2);background:var(--ouro);border-radius:8px;padding:4px 9px;letter-spacing:.05em}
+.cap h3{scroll-margin-top:80px;margin-top:2em}
+.cap h3 .num2{color:var(--texto3);font-family:var(--mono);font-size:.72em;margin-right:6px}
+.lead{font-size:19px;color:var(--texto2);max-width:72ch}
+
+/* ---------- caixas ---------- */
+.box{border-radius:var(--raio);padding:16px 18px 14px;margin:1.4em 0;border:1px solid var(--linha2);background:var(--panel);position:relative}
+.box::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.box .rot{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--texto3)}
+.box p:last-child{margin-bottom:0}
+.dica{border-color:rgba(79,209,180,.35);background:linear-gradient(180deg,rgba(79,209,180,.08),rgba(79,209,180,.02))}
+.dica::before{background:var(--teal)} .dica .rot{color:var(--teal)}
+.atencao{border-color:rgba(239,106,94,.4);background:linear-gradient(180deg,rgba(239,106,94,.09),rgba(239,106,94,.02))}
+.atencao::before{background:var(--vermelho)} .atencao .rot{color:var(--vermelho)}
+.exercicio{border-color:rgba(169,139,240,.4);background:linear-gradient(180deg,rgba(169,139,240,.09),rgba(169,139,240,.02))}
+.exercicio::before{background:var(--roxo)} .exercicio .rot{color:var(--roxo)}
+.curiosidade{border-color:rgba(255,201,92,.38);background:linear-gradient(180deg,rgba(255,201,92,.08),rgba(255,201,92,.02))}
+.curiosidade::before{background:var(--ouro)} .curiosidade .rot{color:var(--ouro)}
+.formula{border-color:rgba(84,169,224,.4);background:linear-gradient(180deg,rgba(84,169,224,.08),rgba(84,169,224,.02));font-size:16.5px}
+.formula::before{background:var(--azul)} .formula .rot{color:var(--azul)}
+.formula .eq{font-family:var(--mono);font-size:17px;line-height:1.5;color:#fff;background:#0a1424;border:1px solid var(--linha);border-radius:10px;padding:12px 14px;margin:8px 0;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.formula .onde{font-size:14px;color:var(--texto2)}
+
+/* ---------- tabelas ---------- */
+.tabela{width:100%;border-collapse:separate;border-spacing:0;margin:1.3em 0;font-size:15px;border:1px solid var(--linha);border-radius:12px;overflow:hidden}
+.tabela caption{caption-side:top;text-align:left;font-size:13px;color:var(--texto3);padding:0 0 8px;font-family:var(--mono);letter-spacing:.05em}
+.tabela th{background:var(--panel2);color:var(--texto);text-align:left;padding:10px 12px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--linha2)}
+.tabela td{padding:10px 12px;border-bottom:1px solid var(--linha);vertical-align:top;color:var(--texto2)}
+.tabela tr:last-child td{border-bottom:0}
+.tabela td:first-child{color:var(--texto);font-weight:600}
+.tabela tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.num-col{text-align:right;font-family:var(--mono);white-space:nowrap}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;border:1px solid var(--linha2);color:var(--texto2);white-space:nowrap}
+.tag.verde{color:var(--verde);border-color:rgba(95,211,138,.4)}
+.tag.vermelho{color:var(--vermelho);border-color:rgba(239,106,94,.4)}
+.tag.ouro{color:var(--ouro);border-color:rgba(255,201,92,.4)}
+.tag.azul{color:var(--azul);border-color:rgba(84,169,224,.4)}
+
+/* ---------- figuras ---------- */
+figure.shot{margin:1.8em 0;background:var(--panel);border:1px solid var(--linha);border-radius:var(--raio);overflow:hidden;box-shadow:var(--sombra)}
+.shot .moldura{position:relative;line-height:0;cursor:zoom-in;background:#05080f}
+.shot img{width:100%;height:auto;display:block;aspect-ratio:1600/900;background:#05080f}
+.shot .pin{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:rgba(11,17,32,.92);border:2px solid var(--ouro);color:var(--ouro);font-family:var(--mono);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(255,201,92,.18);pointer-events:none;line-height:1}
+.shot .pin.teal{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 4px rgba(79,209,180,.18)}
+.shot figcaption{padding:14px 16px 16px;font-size:14.5px;color:var(--texto2);line-height:1.55}
+.shot figcaption b{color:var(--texto)}
+.legenda-pins{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px 18px;margin:10px 0 0;padding:0;list-style:none}
+.legenda-pins li{font-size:13.5px;color:var(--texto2);display:flex;gap:8px;align-items:flex-start}
+.legenda-pins .n{flex:0 0 22px;height:22px;border-radius:50%;border:1.5px solid var(--ouro);color:var(--ouro);font-family:var(--mono);font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+/* ---------- lightbox ---------- */
+#lightbox{position:fixed;inset:0;background:rgba(4,8,16,.94);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;cursor:zoom-out}
+#lightbox.aberto{display:flex}
+#lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.8)}
+#lightbox .fechar{position:absolute;top:16px;right:20px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
+
+/* ---------- misc ---------- */
+.grade2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grade3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cartao{background:var(--panel);border:1px solid var(--linha);border-radius:12px;padding:16px}
+.cartao h4{margin-top:0}
+.cartao p:last-child{margin-bottom:0}
+.kpi-grande{font-family:var(--mono);font-size:30px;color:var(--ouro)}
+.ancora{color:var(--texto3);font-size:.55em;margin-left:8px;opacity:0;transition:.15s}
+h2:hover .ancora,h3:hover .ancora{opacity:1}
+.voltar-topo{position:fixed;right:18px;bottom:18px;width:44px;height:44px;border-radius:50%;background:var(--panel);border:1px solid var(--linha2);color:var(--ouro);font-size:20px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:80;box-shadow:var(--sombra)}
+.voltar-topo.on{display:flex}
+footer.rodape{border-top:1px solid var(--linha);margin-top:40px;padding:30px 0;color:var(--texto3);font-size:14px}
+footer.rodape a{color:var(--texto2)}
+.sem-resultado{color:var(--texto3);font-size:13px;padding:8px}
+
+/* ---------- responsivo ---------- */
+@media (max-width:1080px){
+  .wrap{grid-template-columns:1fr;gap:0}
+  aside.toc{position:fixed;inset:56px 0 0 0;align-self:auto;max-height:none;background:#090e1a;border-right:1px solid var(--linha);z-index:85;padding:18px;display:none;overflow:auto}
+  aside.toc.aberto{display:block}
+  #abrir-menu{display:inline-block}
+  .topo .marca span{display:none}
+  .grade2,.grade3{grid-template-columns:1fr}
+  body{font-size:16px}
+}
+@media (max-width:620px){
+  .wrap{padding:0 14px 60px}
+  .tabela{table-layout:fixed;width:100%}
+  .tabela th,.tabela td{overflow-wrap:anywhere;word-break:break-word}
+  .tabela .num-col{white-space:normal}
+  .formula .eq{white-space:pre-wrap;overflow-wrap:anywhere}
+  .hero{padding:34px 0 20px}
+  .shot .pin{width:24px;height:24px;font-size:12px}
+  .tabela{font-size:13.5px}
+  .tabela th,.tabela td{padding:8px}
+  header.topo{gap:8px;padding:8px 12px;flex-wrap:wrap}
+  .topo .acoes{display:none}
+  #abrir-menu{order:1}
+  .topo .marca{order:2;flex:1;font-size:13px}
+  #busca{order:3;flex:1 1 100%;max-width:none;font-size:13px;padding:7px 10px}
+  .btn-topo{padding:7px 9px;font-size:12px}
+  aside.toc{inset:94px 0 0 0}
+  .cap{scroll-margin-top:102px}
+  .cap h3{scroll-margin-top:104px}
+}
+
+/* ---------- impressão ---------- */
+@media print{
+  header.topo,aside.toc,#progresso,.voltar-topo,#lightbox{display:none!important}
+  .wrap{display:block;max-width:none;padding:0}
+  body{background:#fff;color:#111;font-size:11pt}
+  .cap{page-break-inside:auto}
+  .cap>h2{page-break-after:avoid}
+  figure.shot{page-break-inside:avoid;box-shadow:none}
+  .box{border:1px solid #ccc;background:#f7f7f7}
+  a{color:#0b4f9e}
+}
+</style>
+</head>
+<body>
+<div id="progresso"></div>
+
+<header class="topo">
+  <button id="abrir-menu" class="btn-topo" aria-label="Abrir sumário">☰ Sumário</button>
+  <div class="marca">STaTOWN <span>· manual do jogador</span></div>
+  <input id="busca" type="search" placeholder="Buscar no manual (ex.: prevalência, Rt, som, IC95%)…" aria-label="Buscar no manual">
+  <div class="acoes">
+    <a class="btn-topo" href="index.html" target="_blank" rel="noopener">▶ Abrir o jogo</a>
+    <button class="btn-topo" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+</header>
+
+<div class="wrap">
+<aside class="toc" id="toc">
+  <h2>Sumário</h2>
+  <ol>
+    <li><a href="#cap1">1. O que é o StaTown</a></li>
+    <li><a href="#cap2">2. Primeiros passos</a></li>
+    <li><a href="#cap3">3. A tela principal (HUD)</a></li>
+    <li><a href="#cap4">4. Controles: mouse, teclado e toque</a></li>
+    <li><a href="#cap5">5. O território e as 20 vilas</a></li>
+    <li><a href="#cap6">6. Tempo, semanas e velocidade</a></li>
+    <li><a href="#cap7">7. Os números do jogo</a>
+      <ol>
+        <li><a href="#cap7-1">7.1 Casos e população</a></li>
+        <li><a href="#cap7-2">7.2 Prevalência</a></li>
+        <li><a href="#cap7-3">7.3 Incidência</a></li>
+        <li><a href="#cap7-4">7.4 Rt</a></li>
+        <li><a href="#cap7-5">7.5 Letalidade</a></li>
+        <li><a href="#cap7-6">7.6 Óbitos naturais</a></li>
+        <li><a href="#cap7-7">7.7 Leitos e ocupação &gt; 100%</a></li>
+        <li><a href="#cap7-8">7.8 Vacinação</a></li>
+        <li><a href="#cap7-9">7.9 Por que vi 126%?</a></li>
+      </ol>
+    </li>
+    <li><a href="#cap8">8. BioLab: as seis abas</a>
+      <ol>
+        <li><a href="#cap8-1">8.1 Amostragem</a></li>
+        <li><a href="#cap8-2">8.2 Descritiva</a></li>
+        <li><a href="#cap8-3">8.3 Gráficos</a></li>
+        <li><a href="#cap8-4">8.4 Distribuições</a></li>
+        <li><a href="#cap8-5">8.5 Testes</a></li>
+        <li><a href="#cap8-6">8.6 Regressão e ROC</a></li>
+      </ol>
+    </li>
+    <li><a href="#cap9">9. Como ler cada gráfico</a></li>
+    <li><a href="#cap10">10. Os nove desafios</a></li>
+    <li><a href="#cap11">11. Revista científica</a></li>
+    <li><a href="#cap12">12. SIGA: dados e integração (interno)</a></li>
+    <li><a href="#cap13">13. Dr. Bayes e a auditoria de IA</a></li>
+    <li><a href="#cap14">14. Cenários epidemiológicos</a></li>
+    <li><a href="#cap15">15. Menu, som e acessibilidade</a></li>
+    <li><a href="#cap16">16. BioMoedas e intervenções</a></li>
+    <li><a href="#cap17">17. Tutorial: os primeiros 20 minutos</a></li>
+    <li><a href="#cap18">18. Receitas de análise</a></li>
+    <li><a href="#cap19">19. Erros comuns (e como evitá-los)</a></li>
+    <li><a href="#cap20">20. Solução de problemas</a></li>
+    <li><a href="#cap21">21. Glossário</a></li>
+    <li><a href="#cap22">22. Referências e créditos</a></li>
+    <li><a href="#cap23">23. Ficha técnica</a></li>
+  </ol>
+  <div id="busca-vazia" class="sem-resultado" style="display:none">Nenhuma seção encontrada.</div>
+</aside>
+
+<main>
+
+<!-- ==================================================== CAPA -->
+<section class="hero" id="inicio">
+  <div class="sobre">Godot 4 · jogo educativo · bioestatística &amp; epidemiologia</div>
+  <h1>StaTown:<br>manual do jogador e livro de bioestatística</h1>
+  <p class="sub">Um guia completo, ilustrado e interativo para você <strong>jogar com autonomia</strong> e, ao mesmo tempo, <strong>aprender a ler os números</strong> que o jogo coloca na sua frente. Cada tela tem um propósito científico; cada indicador tem uma fórmula e uma interpretação correta.</p>
+  <div class="badges">
+    <span class="badge ok">Versão 1.0 · 2026</span>
+    <span class="badge">20 vilas · 41.650 moradores sintéticos</span>
+    <span class="badge">6 abas no BioLab</span>
+    <span class="badge">9 desafios</span>
+    <span class="badge">6 artigos fictícios</span>
+    <span class="badge warn">Requer navegador com WebGL 2</span>
+  </div>
+  <div class="cta">
+    <a class="principal" href="#cap17">▶ Começar pelo tutorial de 20 minutos</a>
+    <a href="#cap7">Entender os indicadores</a>
+    <a href="#cap20">Não estou ouvindo o som</a>
+    <a href="index.html" target="_blank" rel="noopener">Abrir o jogo</a>
+  </div>
+</section>
+
+<div class="box dica">
+  <span class="rot">Como usar este manual</span>
+  <p>Você pode ler em três percursos diferentes — e voltar a qualquer momento pelo sumário à esquerda (no celular, toque em <strong>☰ Sumário</strong>).</p>
+  <div class="grade3" style="margin-top:10px">
+    <div class="cartao"><h4>🎮 Quero jogar</h4><p>Vá para o <a href="#cap2">capítulo 2</a>, depois o <a href="#cap17">tutorial guiado</a>. Em 20 minutos você entende o laço do jogo.</p></div>
+    <div class="cartao"><h4>📚 Quero aprender</h4><p>Comece pelo <a href="#cap7">capítulo 7</a> (indicadores) e siga para o <a href="#cap8">BioLab</a> e os <a href="#cap9">gráficos</a>.</p></div>
+    <div class="cartao"><h4>🔧 Algo não funciona</h4><p>O <a href="#cap20">capítulo 20</a> cobre som, zoom, salvamento e desempenho — incluindo o teste de som do menu.</p></div>
+  </div>
+</div>
+
+<!-- ==================================================== CAP 1 -->
+<section class="cap" id="cap1">
+  <h2><span class="num">01</span> O que é o StaTown <a class="ancora" href="#cap1">#</a></h2>
+  <p class="lead">StaTown é um jogo de simulação em que você coordena a vigilância epidemiológica de um vale fictício — o Vale do Rio Doce — com 20 vilas e cerca de 41.650 moradores sintéticos. Seu trabalho é transformar dados brutos em decisões que salvam vidas, usando os mesmos métodos estatísticos da análise de dados reais.</p>
+
+  <h3><span class="num2">1.1</span> A ideia central</h3>
+  <p>O jogo tem dois trilhos que correm em paralelo:</p>
+  <ul>
+    <li><strong>O trilho da decisão:</strong> a cada semana epidemiológica (SE), você observa indicadores, gasta BioMoedas em saneamento, vacinação, UBS e hospital, e vê o efeito na curva de casos.</li>
+    <li><strong>O trilho do método:</strong> o <a href="#cap8">BioLab</a> abre os microdados dos moradores — idade, renda, biomarcador, vacinas, estado clínico — para você estimar, testar hipóteses, ajustar modelos e ler intervalos de confiança.</li>
+  </ul>
+  <p>A ponte entre os dois é sempre a mesma pergunta: <em>“o que este número quer dizer, e o que ele <strong>não</strong> autoriza concluir?”</em>. O jogo foi desenhado para que essa pergunta seja respondida com números reais calculados pelo motor estatístico <code>StatCore</code>, e não com valores “de fachada”.</p>
+
+  <h3><span class="num2">1.2</span> O que você vai aprender</h3>
+  <table class="tabela">
+    <caption>Objetivos de aprendizagem e onde cada um aparece no jogo</caption>
+    <thead><tr><th>Competência</th><th>Onde praticar</th><th>O que você será capaz de fazer</th></tr></thead>
+    <tbody>
+      <tr><td>Amostragem e representatividade</td><td><a href="#cap8-1">BioLab › Amostragem</a> · <a href="#cap10">Desafio 05</a></td><td>Distinguir AAS, sistemática, estratificada e por conglomerados; reconhecer viés de seleção.</td></tr>
+      <tr><td>Estatística descritiva</td><td><a href="#cap8-2">BioLab › Descritiva</a> · <a href="#cap8-3">Gráficos</a></td><td>Escolher média ou mediana pela forma da distribuição; ler dispersão, assimetria e outliers.</td></tr>
+      <tr><td>Inferência e intervalos de confiança</td><td><a href="#cap8-4">Distribuições</a> · <a href="#cap8-5">Testes</a></td><td>Interpretar IC95% e p-valor sem trocar as condicionais.</td></tr>
+      <tr><td>Testes de hipótese</td><td><a href="#cap8-5">BioLab › Testes</a> · <a href="#cap10">Desafio 07</a></td><td>Escolher o teste adequado ao desenho e ao tipo de variável.</td></tr>
+      <tr><td>Regressão e curva ROC</td><td><a href="#cap8-6">BioLab › Regressão</a></td><td>Ler coeficientes, OR e AUC; comparar modelos com critério.</td></tr>
+      <tr><td>Epidemiologia</td><td><a href="#cap7">Capítulo 7</a> · <a href="#cap14">Cenários</a></td><td>Diferenciar prevalência, incidência, Rt e letalidade; entender mortalidade natural versus pela doença.</td></tr>
+      <tr><td>Leitura crítica e auditoria de IA</td><td><a href="#cap11">Revista</a> · <a href="#cap13">Dr. Bayes</a></td><td>Detectar afirmações incorretas, inclusive as escritas com confiança por um tutor artificial.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">1.3</span> As telas do jogo</h3>
+  <p>Tudo é acessível a partir do mapa. A tabela abaixo é o “mapa do mapa”: use os links para saltar ao capítulo correspondente.</p>
+  <table class="tabela">
+    <thead><tr><th>Tela / botão</th><th>Para que serve</th><th>Capítulo</th></tr></thead>
+    <tbody>
+      <tr><td>Mapa do vale</td><td>Explorar as 20 vilas, ver rótulos, selecionar uma vila e abrir o card de indicadores.</td><td><a href="#cap5">5</a></td></tr>
+      <tr><td>Painel da vila</td><td>Indicadores detalhados, séries semanais, intervenções e projeção de leitos.</td><td><a href="#cap5-3">5.3</a></td></tr>
+      <tr><td>LAB</td><td>BioLab: amostragem, descritiva, gráficos, distribuições, testes e regressão.</td><td><a href="#cap8">8</a></td></tr>
+      <tr><td>JOGOS</td><td>Nove desafios curtos, cada um isolando um conceito.</td><td><a href="#cap10">10</a></td></tr>
+      <tr><td>REVISTA</td><td>Seis artigos científicos fictícios para leitura crítica.</td><td><a href="#cap11">11</a></td></tr>
+      <tr><td>MANUAL</td><td>Abre este guia em outra aba (atalho <kbd>F1</kbd>).</td><td><a href="#cap3">3</a></td></tr>
+      <tr><td>SIGA (interno)</td><td>Relatório técnico no formato SIGA/SINAN, gerado pelo backend; não é um botão do jogo.</td><td><a href="#cap12">12</a></td></tr>
+      <tr><td>MENU</td><td>Áudio, acessibilidade, salvar/carregar, reiniciar e conquistas.</td><td><a href="#cap15">15</a></td></tr>
+      <tr><td>Trocar (no topo)</td><td>Trocar o cenário epidêmico (arbovirose, respiratória, entérica, crônica).</td><td><a href="#cap14">14</a></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box curiosidade">
+    <span class="rot">Por dentro</span>
+    <p>O jogo roda em <strong>Godot 4.7</strong>, exportado para a web (WebGL 2). A população é sintética, mas gerada com estrutura etária, renda, saneamento e escolaridade correlacionados — por isso as análises do BioLab têm variabilidade realista, e não ruído branco. Todos os cálculos passam pelo motor <code>StatCore</code>, escrito em GDScript e coberto por testes automatizados.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 2 -->
+<section class="cap" id="cap2">
+  <h2><span class="num">02</span> Primeiros passos <a class="ancora" href="#cap2">#</a></h2>
+  <p class="lead">O StaTown roda direto no navegador, sem instalação. Nesta seção você abre o jogo, libera o som, entende a tela de boas-vindas e faz a primeira semana avançar.</p>
+
+  <h3><span class="num2">2.1</span> Abrir o jogo</h3>
+  <p>No computador em que o jogo está instalado, abra o jogo em <a href="index.html" target="_blank" rel="noopener"><code>index.html</code></a> (o arquivo fica na mesma pasta deste manual). Para jogar no celular conectado à mesma rede Wi-Fi, use o endereço de rede local informado pelo servidor — por exemplo <code>http://192.168.68.110:8090</code> (o número varia conforme a máquina).</p>
+  <table class="tabela">
+    <caption>Requisitos e recomendações</caption>
+    <thead><tr><th>Item</th><th>Mínimo</th><th>Recomendado</th></tr></thead>
+    <tbody>
+      <tr><td>Navegador</td><td>Chrome, Edge, Firefox ou Safari atualizados</td><td>Chrome/Edge recentes (WebGL 2 e áudio estáveis)</td></tr>
+      <tr><td>Gráficos</td><td>WebGL 2.0</td><td>GPU com aceleração de hardware</td></tr>
+      <tr><td>Tela</td><td>1280 × 720</td><td>1600 × 900 ou maior; tela cheia</td></tr>
+      <tr><td>Memória</td><td>2 GB livres</td><td>4 GB ou mais</td></tr>
+      <tr><td>Áudio</td><td>Saída de som ativa</td><td>Fones ou caixas; volume do sistema em 50%</td></tr>
+      <tr><td>Primeiro carregamento</td><td>30–90 segundos</td><td>Depois disso o jogo abre em poucos segundos (cache)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box atencao">
+    <span class="rot">Som: o primeiro clique é obrigatório</span>
+    <p>Navegadores bloqueiam áudio até que você interaja com a página (“política de autoplay”). O StaTown só começa a tocar música e efeitos <strong>depois do seu primeiro clique</strong>. Se você abrir o jogo e não ouvir nada antes de clicar, isso é esperado. Clique uma vez e o áudio é liberado — há um <a href="#cap15-2">teste de som no menu</a> para confirmar.</p>
+  </div>
+
+  <h3><span class="num2">2.2</span> A tela de boas-vindas</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/01_boas_vindas.png" alt="Tela de boas-vindas do StaTown com quatro opções" loading="lazy">
+      <div class="pin" style="left:81.5%;top:67.8%">1</div>
+      <div class="pin teal" style="left:81.5%;top:73.8%">2</div>
+      <div class="pin teal" style="left:81.5%;top:79.4%">3</div>
+      <div class="pin teal" style="left:81.5%;top:86.5%">4</div>
+    </div>
+    <figcaption><b>Tela de abertura.</b> À esquerda, os três verbos do jogo (explorar, investigar, decidir) e as instruções de controle. À direita, os caminhos de entrada.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Começar a partida</b> — fecha a janela e libera o mapa. É o caminho normal.</li>
+    <li><span class="n">2</span><b>Conversar com o Dr. Bayes</b> — abre o tutor artificial; útil para revisar conceitos antes de jogar.</li>
+    <li><span class="n">3</span><b>Ver os desafios disponíveis</b> — leva direto ao hub dos nove minigames.</li>
+    <li><span class="n">4</span><b>Configurações</b> — fonte grande, reiniciar a partida e outras opções.</li>
+  </ul>
+
+  <h3><span class="num2">2.3</span> Seu primeiro ciclo de jogo</h3>
+  <p>O laço fundamental tem quatro passos e se repete a cada semana epidemiológica:</p>
+  <ol>
+    <li><strong>Observar:</strong> clique em uma vila no mapa e leia o card (PREV, RT, LEITOS, VAC) ou abra o painel completo com <em>Investigar</em>.</li>
+    <li><strong>Decidir:</strong> escolha uma intervenção (saneamento, vacinação, UBS ou hospital) sabendo o custo em BioMoedas.</li>
+    <li><strong>Avançar:</strong> use os botões de velocidade no topo para rodar uma ou várias semanas.</li>
+    <li><strong>Interpretar:</strong> compare o que você esperava com o que aconteceu. Se preciso, vá ao <a href="#cap8">BioLab</a> testar a hipótese com os microdados.</li>
+  </ol>
+  <div class="box dica">
+    <span class="rot">Dica de iniciante</span>
+    <p>Não gaste todas as BioMoedas na primeira semana. O jogo recompensa quem <strong>mede antes e depois</strong>: aplicar saneamento em uma vila e comparar a incidência das semanas seguintes vale mais do que espalhar intervenções sem registrar o efeito.</p>
+  </div>
+
+  <h3><span class="num2">2.4</span> Salvar e continuar depois</h3>
+  <p>O jogo salva automaticamente <strong>ao concluir um desafio</strong>. Fora isso, use <strong>MENU › PARTIDA › Salvar</strong>. O arquivo fica no armazenamento local do navegador (para o jogo web) ou em <code>user://statown_save.json</code> (versão nativa). Em <strong>Carregar</strong> você retoma a partida; em <strong>Reiniciar tudo</strong> a população, o histórico e as BioMoedas voltam ao início — essa ação pede confirmação e não pode ser desfeita.</p>
+  <div class="box atencao">
+    <span class="rot">Antes de fechar o navegador</span>
+    <p>Se você acabou de fazer uma intervenção cara ou de rodar muitas semanas, salve manualmente. Limpar os dados do site no navegador apaga o save.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 3 -->
+<section class="cap" id="cap3">
+  <h2><span class="num">03</span> A tela principal (HUD) <a class="ancora" href="#cap3">#</a></h2>
+  <p class="lead">A faixa superior concentra o relógio, o cenário e os controles globais. A faixa inferior mostra a vila selecionada e a dica de contexto. Aprender a ler essa moldura evita 80% das confusões.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/02_mapa.png" alt="Mapa do vale com o HUD anotado" loading="lazy">
+      <div class="pin" style="left:14.6%;top:3%">1</div>
+      <div class="pin" style="left:29.9%;top:3%">2</div>
+      <div class="pin" style="left:44.2%;top:3%">3</div>
+      <div class="pin" style="left:68.1%;top:3%">4</div>
+      <div class="pin" style="left:76.6%;top:3%">5</div>
+      <div class="pin" style="left:92.8%;top:3%">6</div>
+      <div class="pin" style="left:97.2%;top:24%">7</div>
+      <div class="pin teal" style="left:14%;top:93%">8</div>
+      <div class="pin teal" style="left:81%;top:95.5%">9</div>
+    </div>
+    <figcaption><b>O mapa com a moldura de interface.</b> Os números correspondem à tabela abaixo. Repare que o mapa continua visível atrás dos painéis: o jogo nunca “sai” do território. Carros, caminhões, barcos e planadores fazem parte da cena, mas não alteram os indicadores.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Semana e ano</b> — a semana epidemiológica atual (SE) e o ano de simulação.</li>
+    <li><span class="n">2</span><b>Velocidades</b> — pausa, 0,5×, 1×, 3× e 8×.</li>
+    <li><span class="n">3</span><b>Agravo ativo</b> — nome do cenário epidêmico; ao lado, o botão <em>Trocar</em>.</li>
+    <li><span class="n">4</span><b>Situação</b> — classificação global (estável, atenção, epidemia…).</li>
+    <li><span class="n">5</span><b>BioMoedas</b> — seu saldo para intervenções.</li>
+    <li><span class="n">6</span><b>Menu de telas</b> — LAB, JOGOS, REVISTA, MANUAL, MENU.</li>
+    <li><span class="n">7</span><b>Controles do mapa</b> — zoom (+/−), FIT (enquadrar), MAP (minimapa), HQ (qualidade).</li>
+    <li><span class="n">8</span><b>Card da vila selecionada</b> — PREV, RT, LEITOS, VAC e o botão <em>Investigar</em>.</li>
+    <li><span class="n">9</span><b>Dica de contexto</b> — instrução do momento (“toque em uma vila…”).</li>
+  </ul>
+
+  <h3 id="cap3-1"><span class="num2">3.1</span> O que cada elemento faz</h3>
+  <table class="tabela">
+    <thead><tr><th>Elemento</th><th>Como interagir</th><th>O que observar</th></tr></thead>
+    <tbody>
+      <tr><td>SE / ANO</td><td>Somente leitura</td><td>Cada semana avança um passo; 52 semanas = 1 ano. Use para localizar um evento no histórico.</td></tr>
+      <tr><td>Botões de velocidade</td><td>Clique</td><td><kbd>||</kbd> pausa; <kbd>&gt;</kbd> 0,5×; <kbd>&gt;&gt;</kbd> 1×; <kbd>&gt;&gt;&gt;</kbd> 3×; <kbd>&gt;&gt;&gt;&gt;</kbd> 8×. O botão ativo fica destacado.</td></tr>
+      <tr><td>Agravo / Trocar</td><td>Clique em <em>Trocar</em></td><td>Abre o <a href="#cap14">cenário epidemiológico</a>. Trocar reinicia a simulação da doença (população e moedas são mantidas).</td></tr>
+      <tr><td>Situação</td><td>Somente leitura</td><td>Resume o estado global: estável, atenção, surto, epidemia. Serve como alerta, não como diagnóstico.</td></tr>
+      <tr><td>BioMoedas</td><td>Somente leitura (ganhas em desafios/artigos)</td><td>Saldo disponível. O custo das intervenções aparece no painel da vila.</td></tr>
+      <tr><td>LAB / JOGOS / REVISTA / MANUAL / MENU</td><td>Clique</td><td>Abrem as telas dos capítulos <a href="#cap8">8</a>, <a href="#cap10">10</a>, <a href="#cap11">11</a> e <a href="#cap15">15</a>. <b>MANUAL</b> abre este guia em outra aba (ou tecle <kbd>F1</kbd>). O relatório SIGA é interno (capítulo <a href="#cap12">12</a>).</td></tr>
+      <tr><td>Zoom / FIT / MAP / HQ</td><td>Clique ou use a roda do mouse</td><td><b>FIT</b> reenquadra o vale inteiro; <b>MAP</b> mostra o minimapa; <b>HQ</b> alterna a qualidade do desenho (útil em máquinas lentas).</td></tr>
+      <tr><td>Card da vila</td><td>Clique em uma vila</td><td>Atualiza em tempo real. Clique em <em>Investigar</em> para abrir o painel completo.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box dica">
+    <span class="rot">Passe o mouse</span>
+    <p>Vários indicadores têm <strong>dica flutuante</strong> (tooltip) explicando a fórmula. No card da vila, por exemplo, passar o mouse sobre <em>PREV</em>, <em>RT</em>, <em>LEITOS</em> ou <em>VAC</em> mostra a definição. No painel da vila, o mesmo vale para <em>Ocupação dos leitos</em> — inclusive o aviso de que ela pode passar de 100%.</p>
+  </div>
+
+  <h3 id="cap3-2"><span class="num2">3.2</span> O card da vila em detalhe</h3>
+  <p>O card inferior esquerdo é sua “leitura rápida” do território. Ele traz quatro números e uma ação:</p>
+  <table class="tabela">
+    <thead><tr><th>Indicador</th><th>Definição no jogo</th><th>Faixa esperada</th><th>Leitura rápida</th></tr></thead>
+    <tbody>
+      <tr><td>PREV</td><td>Infectados ativos ÷ população viva da vila</td><td>0–100%</td><td>Quanto da vila está doente agora.</td></tr>
+      <tr><td>RT</td><td>Razão de casos novos entre semanas, ajustada pelo tempo de geração</td><td>0–6</td><td>&gt; 1: crescendo; = 1: estável; &lt; 1: caindo.</td></tr>
+      <tr><td>LEITOS</td><td>Pacientes graves (12% dos infectados) ÷ leitos disponíveis</td><td>0–900%</td><td>&gt; 100% significa superlotação — e é possível.</td></tr>
+      <tr><td>VAC</td><td>Moradores com ao menos uma dose ÷ população</td><td>0–100%</td><td>Cobertura vacinal da vila.</td></tr>
+    </tbody>
+  </table>
+  <div class="box atencao">
+    <span class="rot">Leia antes de estranhar os números</span>
+    <p><strong>Só a ocupação de leitos pode passar de 100%.</strong> Prevalência, cobertura vacinal e letalidade são proporções e ficam entre 0% e 100%. Se você vir “126%”, “197%” ou “300%”, está olhando a ocupação dos leitos (ou a projeção dela) — não a prevalência. O <a href="#cap7-9">capítulo 7.9</a> explica por que isso é intencional.</p>
+  </div>
+
+  <h3 id="cap3-3"><span class="num2">3.3</span> Manual, atalhos e o SIGA interno</h3>
+  <p>O botão <strong>MANUAL</strong>, no canto direito do HUD, abre este guia em uma nova aba do navegador. A tecla <kbd>F1</kbd> faz o mesmo. No desktop, o arquivo <code>docs/manual.html</code> é aberto no navegador padrão; na versão web, ele é servido ao lado do jogo.</p>
+  <table class="tabela">
+    <thead><tr><th>Atalho / botão</th><th>Efeito</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>F1</kbd> ou <b>MANUAL</b></td><td>Abre o manual em outra aba.</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Fecha o painel aberto, um por vez, sem sair do jogo.</td></tr>
+      <tr><td>Setas ou <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Deslocam o mapa.</td></tr>
+      <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Ampliam e reduzem o zoom.</td></tr>
+      <tr><td>Roda do mouse / pinça</td><td>Zoom contínuo; arrastar move o mapa.</td></tr>
+    </tbody>
+  </table>
+  <p>Se o navegador bloquear a nova aba, libere pop-ups para o endereço do jogo ou abra <code>manual.html</code> diretamente na barra de endereços. O manual não pausa a simulação: ele é uma página separada, e o jogo continua rodando na aba original.</p>
+  <div class="box info">
+    <span class="rot">O SIGA não é mais um botão</span>
+    <p>O relatório SIGA/SINAN passou a ser gerado pelo <strong>backend</strong>, que recebe o estado da semana e devolve o CSV assinado. O jogador não vê essa etapa. O capítulo <a href="#cap12">12</a> documenta o formato e a tela interna usada no desenvolvimento — não a procure no HUD.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 4 -->
+<section class="cap" id="cap4">
+  <h2><span class="num">04</span> Controles: mouse, teclado e toque <a class="ancora" href="#cap4">#</a></h2>
+  <p class="lead">O StaTown funciona com mouse, teclado e toque. O mapa é um objeto navegável: você pode arrastar, ampliar e voltar ao enquadramento geral sem perder a vila selecionada.</p>
+  <p>O vale é vivo: carros e caminhões percorrem as rodovias, barcos e uma balsa cruzam o Rio Doce, e duas asas-deltas e quatro parapentes circulam sobre os bairros. O voo livre é uma marca de Governador Valadares — no jogo, ele é só atmosfera e não altera nenhum indicador.</p>
+
+  <div class="grade2">
+    <div class="cartao">
+      <h4>🖱️ Mouse (computador)</h4>
+      <ul>
+        <li><strong>Arrastar</strong> (botão esquerdo): move o mapa.</li>
+        <li><strong>Roda do mouse</strong>: aproxima e afasta, centrado no cursor.</li>
+        <li><strong>Clique</strong> em uma vila: seleciona e mostra o card.</li>
+        <li><strong>Clique</strong> nos botões do HUD: abrem painéis.</li>
+        <li><strong>Passar o mouse</strong>: mostra dicas flutuantes dos indicadores.</li>
+      </ul>
+    </div>
+    <div class="cartao">
+      <h4>⌨️ Teclado</h4>
+      <ul>
+        <li><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd>: movem o mapa.</li>
+        <li><kbd>+</kbd> / <kbd>-</kbd>: zoom.</li>
+        <li><kbd>Esc</kbd>: fecha o painel aberto (quando aplicável).</li>
+        <li><kbd>Enter</kbd>: confirma a opção em foco em diálogos.</li>
+      </ul>
+      <p style="font-size:13px;color:var(--texto3);margin:8px 0 0">Os atalhos de teclado são úteis em telas grandes e para acessibilidade.</p>
+    </div>
+  </div>
+  <div class="cartao" style="margin-top:14px">
+    <h4>📱 Toque (celular e tablet)</h4>
+    <ul>
+      <li><strong>Um dedo arrastando</strong>: move o mapa.</li>
+      <li><strong>Pinça com dois dedos</strong>: zoom contínuo (aproxima e afasta).</li>
+      <li><strong>Toque</strong> em uma vila: seleciona; toque em <em>Investigar</em> para abrir o painel.</li>
+      <li><strong>Toque no HUD</strong>: os botões foram redimensionados para dedos.</li>
+      <li>Gire o aparelho para paisagem — o layout se reorganiza e ganha área útil.</li>
+    </ul>
+  </div>
+
+  <h3><span class="num2">4.1</span> Zoom, enquadramento e qualidade</h3>
+  <p>No canto direito ficam cinco controles verticais. Eles não alteram a simulação — apenas a forma de ver o território:</p>
+  <table class="tabela">
+    <thead><tr><th>Botão</th><th>Efeito</th><th>Quando usar</th></tr></thead>
+    <tbody>
+      <tr><td><b>+</b></td><td>Aproxima o mapa</td><td>Para ler rótulos e distinguir vilas próximas.</td></tr>
+      <tr><td><b>−</b></td><td>Afasta o mapa</td><td>Para ter a visão do vale inteiro.</td></tr>
+      <tr><td><b>FIT</b></td><td>Reenquadra o vale na tela</td><td>Depois de se perder no zoom.</td></tr>
+      <tr><td><b>MAP</b></td><td>Abre/fecha o minimapa</td><td>Para se localizar durante o arrasto.</td></tr>
+      <tr><td><b>HQ</b></td><td>Alterna a qualidade do desenho</td><td>Em máquinas lentas, desligue para ganhar fluidez.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box dica">
+    <span class="rot">Pinça no celular</span>
+    <p>O zoom por pinça é contínuo e independente dos botões. Se a pinça “escapar”, toque em <b>FIT</b> para voltar ao enquadramento inicial. O jogo lembra a posição do mapa enquanto você abre e fecha painéis.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 5 -->
+<section class="cap" id="cap5">
+  <h2><span class="num">05</span> O território e as 20 vilas <a class="ancora" href="#cap5">#</a></h2>
+  <p class="lead">O vale é dividido em 20 vilas com perfis diferentes de saneamento, renda, densidade e acesso. A desigualdade entre elas não é cenográfica: ela determina a força de infecção e, portanto, a curva de cada comunidade.</p>
+
+  <h3><span class="num2">5.1</span> Por que as vilas são diferentes</h3>
+  <p>Cada vila tem atributos que entram no motor epidemiológico:</p>
+  <ul>
+    <li><strong>Saneamento</strong> (0 a 1): quanto maior, menor a transmissão de doenças de veiculação hídrica e vetorial.</li>
+    <li><strong>População e densidade</strong>: mudam o número absoluto de casos e a velocidade de contato.</li>
+    <li><strong>Leitos</strong>: definem a capacidade de atendimento e o risco de superlotação.</li>
+    <li><strong>Renda média</strong>: correlacionada com saneamento, escolaridade e acesso — e por isso uma <em>variável de confundimento</em> em várias análises.</li>
+    <li><strong>Fluxos de mobilidade</strong>: ligações por estradas e pelo rio explicam a chegada do caso índice a determinadas vilas.</li>
+  </ul>
+
+  <h3><span class="num2">5.2</span> Selecionar e comparar vilas</h3>
+  <p>Clique em uma vila para ver o card rápido. Para comparar duas vilas, selecione uma, anote os números, selecione a outra e compare. No <a href="#cap8-1">BioLab › Amostragem</a> você pode filtrar por vila e no <a href="#cap8-2">Descritiva</a> agrupar por vila — é a forma correta de comparar, porque controla o tamanho da amostra.</p>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/03_mapa_zoom.png" alt="Mapa aproximado em uma vila, com rótulos e detalhes" loading="lazy">
+    </div>
+    <figcaption><b>Zoom em uma vila.</b> Aproximar revela quadras, casas, vias e o rótulo da vila. O nível de detalhe é limitado de propósito: o jogo não é um mapa geográfico real, e sim um território didático.</figcaption>
+  </figure>
+
+  <h3 id="cap5-3"><span class="num2">5.3</span> O painel da vila</h3>
+  <p>Ao clicar em <em>Investigar</em>, abre-se o painel completo. Ele é a principal interface entre a simulação e a estatística: mostra o presente, o passado recente e uma projeção.</p>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/04_vila.png" alt="Painel da vila com indicadores, intervenções, gráficos e projeção" loading="lazy">
+      <div class="pin" style="left:44%;top:14%">1</div>
+      <div class="pin" style="left:11.7%;top:30%">2</div>
+      <div class="pin" style="left:88.2%;top:30%">3</div>
+      <div class="pin teal" style="left:88.2%;top:57.8%">4</div>
+      <div class="pin" style="left:11.7%;top:47.8%">5</div>
+      <div class="pin" style="left:11.7%;top:71%">6</div>
+      <div class="pin" style="left:11.7%;top:90%">7</div>
+    </div>
+    <figcaption><b>Painel da Vila da Encosta Norte.</b> Os números são lidos em três blocos: o retrato do agora (2), as séries que explicam como se chegou aqui (5 e 6) e a projeção do que pode acontecer (7).</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Cabeçalho</b> — nome, tipo de zona, população, situação e Rt com seta de tendência.</li>
+    <li><span class="n">2</span><b>Bloco de indicadores</b> — prevalência, casos ativos, novos na semana, Rt, óbitos pela doença, recuperados, ocupação e leitos.</li>
+    <li><span class="n">3</span><b>Intervenções</b> — quatro ações com custo em BioMoedas e nível atual.</li>
+    <li><span class="n">4</span><b>Contexto e mobilidade</b> — saneamento, cobertura vacinal, leitos por mil habitantes, renda média, óbitos naturais e principais fluxos de entrada.</li>
+    <li><span class="n">5</span><b>Prevalência por semana</b> — série temporal da proporção de infectados.</li>
+    <li><span class="n">6</span><b>Novos casos por semana</b> — barras da incidência semanal.</li>
+    <li><span class="n">7</span><b>Projeção de leitos (8 semanas)</b> — cenário com Rt constante e ocupação percentual.</li>
+  </ul>
+
+  <h4>Como ler o bloco de indicadores</h4>
+  <table class="tabela">
+    <thead><tr><th>Rótulo na tela</th><th>O que é</th><th>O que significa um valor alto</th></tr></thead>
+    <tbody>
+      <tr><td>PREVALENCIA</td><td>Infectados ativos ÷ população viva</td><td>Muita gente doente ao mesmo tempo; pressão sobre o sistema.</td></tr>
+      <tr><td>CASOS ATIVOS</td><td>Contagem de infectados no momento</td><td>Número absoluto — depende do tamanho da vila.</td></tr>
+      <tr><td>NOVOS NA SEMANA</td><td>Incidência da última semana</td><td>Velocidade de entrada de novos casos.</td></tr>
+      <tr><td>RT</td><td>Razão de crescimento ajustada</td><td>&gt; 1: a epidemia cresce; muito alto: crescimento acelerado.</td></tr>
+      <tr><td>OBITOS PELA DOENCA</td><td>Mortes atribuídas ao agravo (exclui causas naturais)</td><td>Gravidade e letalidade; veja também a letalidade global.</td></tr>
+      <tr><td>RECUPERADOS</td><td>Já passaram pela infecção e se recuperaram</td><td>Imunidade acumulada (parcial, dependendo do agravo).</td></tr>
+      <tr><td>OCUPACAO DOS LEITOS</td><td>Graves (12% dos infectados) ÷ leitos</td><td>&gt; 100%: superlotação; &gt; 200%: colapso assistencial.</td></tr>
+      <tr><td>LEITOS</td><td>Capacidade instalada da vila</td><td>Quanto maior, mais pacientes graves cabem.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box atencao">
+    <span class="rot">Ocupação acima de 100% é possível</span>
+    <p>Ocupação é uma <strong>razão entre demanda e capacidade</strong>, não uma proporção de um todo. Se há 12 pacientes graves e 4 leitos, a ocupação é 300% — matematicamente correta e epidemiologicamente relevante: significa que o sistema está operando muito acima da capacidade. O jogo exibe esse valor de propósito, com legenda e dica explicando que se trata de superlotação, e não de erro de cálculo.</p>
+  </div>
+
+  <h4>Projeção de leitos</h4>
+  <p>A tabela no rodapé do painel simula as próximas 8 semanas mantendo o Rt atual. Ela mostra infectados projetados, graves esperados (12%), leitos e ocupação. É um exercício de <em>extrapolação</em>: útil para planejar, mas frágil se o Rt mudar — e ele muda quando você intervém ou quando a sazonalidade vira.</p>
+  <div class="box exercicio">
+    <span class="rot">Exercício rápido</span>
+    <p>Abra uma vila com poucos leitos e Rt &gt; 1. Olhe a coluna <em>Ocupação (%)</em> da projeção. Em quantas semanas ela passa de 100%? Agora aplique vacinação e rode 4 semanas: a projeção se confirmou? Se não, o que mudou — o Rt, a população suscetível ou a sazonalidade?</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 6 -->
+<section class="cap" id="cap6">
+  <h2><span class="num">06</span> Tempo, semanas e velocidade <a class="ancora" href="#cap6">#</a></h2>
+  <p class="lead">O tempo do jogo é discreto: cada passo é uma semana epidemiológica (SE). Entender o que acontece “entre” duas semanas é o que separa a leitura ingênua da leitura epidemiológica.</p>
+
+  <h3><span class="num2">6.1</span> O que é uma semana epidemiológica</h3>
+  <p>Na saúde pública, a SE é a unidade padrão de agregação de casos. No jogo, ao avançar uma semana:</p>
+  <ol>
+    <li>O motor calcula a força de infecção de cada vila (saneamento, mobilidade, sazonalidade, cobertura vacinal, prevalência local).</li>
+    <li>Novos expostos surgem; expostos viram infectados; infectados se recuperam ou evoluem para óbito conforme a letalidade do agravo e a ocupação de leitos.</li>
+    <li>O ciclo demográfico também roda: nascimentos e mortes naturais atualizam a população.</li>
+    <li>O histórico recebe uma linha com suscetíveis, infectados, novos casos, óbitos pela doença e ocupação.</li>
+  </ol>
+  <div class="box curiosidade">
+    <span class="rot">Detalhe técnico</span>
+    <p>O modelo é um SEIR estocástico com estrutura etária e saturação de leitos. A letalidade sobe quando a ocupação passa de 100% (pacientes graves sem leito) e varia por faixa etária: idosos morrem mais. É por isso que duas vilas com o mesmo número de casos podem ter letalidades diferentes.</p>
+  </div>
+
+  <h3><span class="num2">6.2</span> Velocidades e pausa</h3>
+  <table class="tabela">
+    <thead><tr><th>Controle</th><th>Efeito</th><th>Uso típico</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>||</kbd></td><td>Pausa a simulação</td><td>Ler com calma, comparar números, abrir o BioLab.</td></tr>
+      <tr><td><kbd>&gt;</kbd> 0,5×</td><td>Uma semana a cada ~2 s</td><td>Acompanhar o efeito de uma intervenção.</td></tr>
+      <tr><td><kbd>&gt;&gt;</kbd> 1×</td><td>Ritmo normal</td><td>Jogo padrão.</td></tr>
+      <tr><td><kbd>&gt;&gt;&gt;</kbd> 3×</td><td>Três vezes mais rápido</td><td>Ver tendências de médio prazo.</td></tr>
+      <tr><td><kbd>&gt;&gt;&gt;&gt;</kbd> 8×</td><td>Muito rápido</td><td>Simular um ano; depois pause e analise o histórico.</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Pausa automática</span>
+    <p>Em <strong>MENU › ACESSIBILIDADE</strong> existe a opção <em>Pausar automaticamente ao abrir painéis</em>. Com ela ligada, abrir o BioLab ou a Revista congela o relógio — recomendado para quem estuda os números com calma.</p>
+  </div>
+
+  <h3><span class="num2">6.3</span> Passado, presente e futuro</h3>
+  <p>O jogo trabalha com três janelas temporais, e confundi-las é uma fonte clássica de erro:</p>
+  <ul>
+    <li><strong>Passado (histórico):</strong> as séries semanais mostram o que já aconteceu. Servem para tendência e sazonalidade.</li>
+    <li><strong>Presente (indicadores):</strong> prevalência, ocupação e Rt descrevem o agora.</li>
+    <li><strong>Futuro (projeção):</strong> a tabela de 8 semanas é uma extrapolação condicionada ao Rt atual — não uma previsão garantida.</li>
+  </ul>
+  <div class="box atencao">
+    <span class="rot">Cuidado com a extrapolação</span>
+    <p>Uma projeção com Rt constante superestima casos quando a população suscetível se esgota (o crescimento desacelera naturalmente) e subestima quando há mudança sazonal. Leia a projeção como <em>cenário</em>, não como destino.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 7 -->
+<section class="cap" id="cap7">
+  <h2><span class="num">07</span> Os números do jogo <a class="ancora" href="#cap7">#</a></h2>
+  <p class="lead">Este é o coração do manual. Cada indicador do StaTown tem uma definição precisa, uma faixa possível e uma interpretação correta. Aprender isso é o que permite dizer “este número está estranho” com fundamento — e distinguir um erro real de uma razão que legitimamente passa de 100%.</p>
+
+  <div class="box dica">
+    <span class="rot">Regra de ouro</span>
+    <p>Antes de achar que um número está errado, pergunte: <strong>ele é uma proporção (parte de um todo) ou uma razão (demanda ÷ capacidade)?</strong> Proporções ficam entre 0% e 100%. Razões podem passar de 100% sem nenhum erro.</p>
+  </div>
+
+  <h3 id="cap7-1"><span class="num2">7.1</span> Casos e população: quem conta em cada conta</h3>
+  <p>O motor mantém cada morador em um de cinco estados. Esse é o alicerce de todos os indicadores:</p>
+  <table class="tabela">
+    <thead><tr><th>Estado</th><th>Significado</th><th>Entra em quais contas</th></tr></thead>
+    <tbody>
+      <tr><td>Suscetível (S)</td><td>Nunca teve a doença e pode se infectar</td><td>População viva; denominador da prevalência</td></tr>
+      <tr><td>Exposto (E)</td><td>Infectado, ainda em incubação (não transmite plenamente)</td><td>Infectados ativos; prevalência</td></tr>
+      <tr><td>Infectado (I)</td><td>Doente e transmitindo</td><td>Infectados ativos; prevalência; casos ativos</td></tr>
+      <tr><td>Recuperado (R)</td><td>Já passou pela infecção</td><td>População viva; recuperados</td></tr>
+      <tr><td>Óbito</td><td>Morreu (pela doença ou por causa natural)</td><td>Fora da população viva; entra na letalidade só se for pela doença</td></tr>
+    </tbody>
+  </table>
+  <div class="box formula">
+    <span class="rot">Definições operacionais</span>
+    <div class="eq">infectados ativos = E + I
+população viva = S + E + I + R
+casos acumulados = todos os que já entraram em E ou I</div>
+    <p class="onde">Óbitos ficam fora de “população viva”. Por isso a prevalência pode cair simplesmente porque pessoas morreram — e não porque a epidemia melhorou. Interpretar prevalência sem olhar óbitos e casos novos é um erro clássico.</p>
+  </div>
+
+  <h3 id="cap7-2"><span class="num2">7.2</span> Prevalência: quantos estão doentes agora</h3>
+  <div class="box formula">
+    <span class="rot">Fórmula</span>
+    <div class="eq">Prevalência = (E + I) ÷ população viva</div>
+    <p class="onde">Faixa: 0% a 100%. É uma <strong>proporção</strong>: o numerador é parte do denominador.</p>
+  </div>
+  <p><strong>Exemplo do jogo.</strong> A Vila da Encosta Norte tem 1.406 habitantes e 1 caso ativo. Prevalência = 1 ÷ 1.406 = 0,00071 = <strong>0,07%</strong>. É exatamente o valor exibido no painel da vila.</p>
+  <p><strong>Como interpretar.</strong> Prevalência responde “qual a fração da população que está doente neste instante?”. Ela sobe quando há muitos casos novos e cai quando as pessoas se recuperam (ou morrem). Por isso uma prevalência estável pode esconder uma epidemia ativa: entram novos casos na mesma velocidade em que outros saem.</p>
+  <div class="box atencao">
+    <span class="rot">Prevalência ≠ incidência</span>
+    <p>Prevalência é uma fotografia (quantos doentes agora). Incidência é um filme (quantos novos casos por semana). Uma pode estar baixa enquanto a outra dispara — e é justamente a incidência que antecipa o problema.</p>
+  </div>
+
+  <h3 id="cap7-3"><span class="num2">7.3</span> Incidência: quantos novos casos por semana</h3>
+  <div class="box formula">
+    <span class="rot">Fórmula</span>
+    <div class="eq">Incidência semanal = novos casos na semana ÷ população sob risco
+Incidência por 1.000 = (novos ÷ população) × 1.000</div>
+    <p class="onde">No jogo, a série “Novos casos por semana” mostra o numerador absoluto; a taxa por 1.000 é usada para comparar vilas de tamanhos diferentes.</p>
+  </div>
+  <p><strong>Por que padronizar por 1.000?</strong> Uma vila de 4.000 habitantes com 40 casos parece “pior” que uma de 400 com 20 — mas as taxas são 10 e 50 por mil, respectivamente. Comparar números absolutos entre populações de tamanhos diferentes é uma armadilha comum.</p>
+  <table class="tabela">
+    <caption>Exemplo de comparação entre duas vilas</caption>
+    <thead><tr><th>Vila</th><th class="num-col">População</th><th class="num-col">Novos casos</th><th class="num-col">Por 1.000</th><th>Leitura</th></tr></thead>
+    <tbody>
+      <tr><td>Vila A</td><td class="num-col">4.000</td><td class="num-col">40</td><td class="num-col">10</td><td>Maior número absoluto</td></tr>
+      <tr><td>Vila B</td><td class="num-col">400</td><td class="num-col">20</td><td class="num-col">50</td><td>Maior risco individual</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="cap7-4"><span class="num2">7.4</span> Rt: a epidemia está crescendo?</h3>
+  <div class="box formula">
+    <span class="rot">Fórmula usada no jogo</span>
+    <div class="eq">Rt = (novos_t ÷ novos_(t−1)) ^ (1 ÷ g)
+g = incubação + período infeccioso  (em semanas)</div>
+    <p class="onde">O expoente corrige o fato de que os casos de hoje foram gerados há algumas semanas. O resultado é limitado ao intervalo 0–6. Quando a semana anterior tem zero casos e a atual tem algum, o jogo assume 3,0 como sinal de emergência.</p>
+  </div>
+  <p><strong>Como interpretar.</strong></p>
+  <ul>
+    <li><strong>Rt &gt; 1:</strong> cada caso gera mais de um caso novo; a epidemia cresce. Quanto maior, mais rápido.</li>
+    <li><strong>Rt = 1:</strong> transmissão estável; o número de casos se mantém.</li>
+    <li><strong>Rt &lt; 1:</strong> a epidemia perde força; cada caso gera menos de um novo.</li>
+    <li><strong>Rt = 0:</strong> não há casos novos suficientes para estimar (ou a série é curta).</li>
+  </ul>
+  <div class="box curiosidade">
+    <span class="rot">Rt não é R0</span>
+    <p><strong>R0</strong> é o número básico de reprodução: quantos casos uma pessoa infectada gera em uma população totalmente suscetível, sem intervenção. A arbovirose do jogo tem R0 = 2,8. <strong>Rt</strong> é o valor efetivo no tempo, já descontando imunidade, vacinação e mudanças de comportamento. Por isso o Rt cai quando você vacina, mesmo sem alterar o R0.</p>
+  </div>
+  <div class="box atencao">
+    <span class="rot">Limite do estimador</span>
+    <p>O Rt do StaTown é um estimador simples de razão entre semanas — didático e transparente, não o método de Cori (que usa a distribuição do intervalo serial). Em séries curtas ou com números pequenos, ele oscila bastante. Use a tendência de várias semanas, não um único ponto.</p>
+  </div>
+
+  <h3 id="cap7-5"><span class="num2">7.5</span> Letalidade: das pessoas diagnosticadas, quantas morrem</h3>
+  <div class="box formula">
+    <span class="rot">Fórmula</span>
+    <div class="eq">Letalidade = óbitos pela doença ÷ casos diagnosticados (acumulados)</div>
+    <p class="onde">Faixa: 0% a 100%. Numerador e denominador vêm do mesmo universo: mortes atribuídas ao agravo e casos confirmados.</p>
+  </div>
+  <p><strong>Exemplo.</strong> Se 200 pessoas foram diagnosticadas e 7 morreram pela doença, a letalidade é 7 ÷ 200 = 3,5%. O valor de referência da arbovirose no jogo é 3,5% (a “letalidade saturada”); em condições normais, a letalidade por faixa etária é menor (0,4% em jovens, 0,8% em adultos, 2,2% em idosos).</p>
+  <p><strong>Por que a letalidade sobe quando há superlotação?</strong> Porque pacientes graves sem leito recebem menos suporte. O motor troca a letalidade basal pela letalidade saturada quando a ocupação passa de 100%. É um mecanismo didático para mostrar que capacidade assistencial é determinante de desfecho.</p>
+  <div class="box atencao">
+    <span class="rot">Não confunda</span>
+    <p><strong>Letalidade</strong> = mortes ÷ doentes. <strong>Mortalidade</strong> = mortes ÷ população total (por 1.000 ou 100.000). Uma doença rara e letal pode ter letalidade alta e mortalidade baixa. O jogo usa letalidade; com os numeradores e denominadores do relatório, é possível calcular as duas.</p>
+  </div>
+
+  <h3 id="cap7-6"><span class="num2">7.6</span> Óbitos naturais: a morte que não é da doença</h3>
+  <p>Além da epidemia, o StaTown simula o ciclo demográfico: pessoas nascem e morrem de outras causas ao longo das semanas. Essas mortes <strong>não</strong> devem entrar na letalidade da doença — e o jogo as separa explicitamente:</p>
+  <ul>
+    <li><strong>Óbitos pela doença:</strong> contam na letalidade e na gravidade do agravo.</li>
+    <li><strong>Óbitos naturais (outras causas):</strong> aparecem no bloco <em>Contexto e mobilidade</em> do painel da vila e no resumo global.</li>
+  </ul>
+  <div class="box curiosidade">
+    <span class="rot">Por que isso importa</span>
+    <p>Em uma vila pequena e envelhecida, mortes naturais podem superar as mortes pela doença. Se o jogo somasse tudo, a letalidade explodiria e você concluiria que o agravo é gravíssimo quando, na verdade, a população está envelhecendo. Separar as causas é uma lição de epidemiologia — e de honestidade dos dados.</p>
+  </div>
+
+  <h3 id="cap7-7"><span class="num2">7.7</span> Leitos e ocupação: por que 126% é possível</h3>
+  <div class="box formula">
+    <span class="rot">Fórmula</span>
+    <div class="eq">Pacientes graves = 12% dos infectados ativos
+Ocupação = pacientes graves ÷ leitos disponíveis</div>
+    <p class="onde">Faixa: 0% a 900% (limite de exibição). <strong>Não é uma proporção</strong>: o numerador não é parte do denominador.</p>
+  </div>
+  <p><strong>Exemplo.</strong> Uma vila com 1.406 habitantes, 30 infectados ativos e 2 leitos: graves = 0,12 × 30 = 3,6 → 4 pacientes; ocupação = 4 ÷ 2 = 200%. Isso não é erro: é a descrição de um sistema com o dobro de pacientes graves em relação à capacidade.</p>
+  <table class="tabela">
+    <caption>Leitura da ocupação</caption>
+    <thead><tr><th>Ocupação</th><th>Situação</th><th>Consequência no jogo</th></tr></thead>
+    <tbody>
+      <tr><td>0–70%</td><td>Folga assistencial</td><td>Letalidade basal por faixa etária.</td></tr>
+      <tr><td>70–100%</td><td>Atenção</td><td>Capacidade próxima do limite.</td></tr>
+      <tr><td>100–200%</td><td>Superlotação</td><td>Letalidade sobe para o valor saturado.</td></tr>
+      <tr><td>&gt; 200%</td><td>Colapso</td><td>Muitos pacientes graves sem leito; mortes evitáveis.</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Como reduzir a ocupação</span>
+    <p>Três caminhos: (1) reduzir infectados com vacinação e saneamento; (2) ampliar leitos com UBS e hospital; (3) ganhar tempo com intervenções precoces. O jogo recompensa a combinação — construir hospital sem conter a transmissão apenas adia o colapso.</p>
+  </div>
+
+  <h3 id="cap7-8"><span class="num2">7.8</span> Vacinação e cobertura</h3>
+  <div class="box formula">
+    <span class="rot">Definições</span>
+    <div class="eq">Cobertura = pessoas com ≥ 1 dose ÷ população
+Eficácia vacinal = redução relativa do risco de infecção (por agravo)</div>
+    <p class="onde">Cobertura é proporção (0–100%). A eficácia é um parâmetro do cenário: 55% na arbovirose, 75% na respiratória, 60% na entérica e 0% no agravo crônico.</p>
+  </div>
+  <p>Vacinar não zera a transmissão: reduz a probabilidade de infecção por contato. Com cobertura alta e eficácia de 55%, ainda há suscetíveis — e é por isso que a vacina precisa vir acompanhada de saneamento e vigilância.</p>
+  <div class="box exercicio">
+    <span class="rot">Exercício</span>
+    <p>Se a eficácia é 55% e 80% da população está vacinada, qual a fração efetivamente protegida? (Resposta: 0,55 × 0,80 = 44%.) Os outros 56% seguem suscetíveis. Isso explica por que a cobertura de 51% da Vila da Encosta Norte não impede novos casos.</p>
+  </div>
+
+  <h3 id="cap7-9"><span class="num2">7.9</span> “Por que eu vi 126%?” — o guia definitivo</h3>
+  <p>Esta foi uma das dúvidas mais importantes levantadas na revisão do jogo. A resposta curta: <strong>126% era ocupação de leitos, não prevalência</strong>. A resposta longa está na tabela abaixo.</p>
+  <table class="tabela">
+    <caption>Quem pode passar de 100% no StaTown</caption>
+    <thead><tr><th>Indicador</th><th>Tipo</th><th>Pode passar de 100%?</th><th>Por quê</th></tr></thead>
+    <tbody>
+      <tr><td>Prevalência</td><td>Proporção</td><td><span class="tag vermelho">Não</span></td><td>Infectados são parte da população viva; no máximo 100%.</td></tr>
+      <tr><td>Cobertura vacinal</td><td>Proporção</td><td><span class="tag vermelho">Não</span></td><td>Vacinados são parte da população.</td></tr>
+      <tr><td>Letalidade</td><td>Proporção</td><td><span class="tag vermelho">Não</span></td><td>Óbitos pela doença são subconjunto dos casos.</td></tr>
+      <tr><td>Ocupação de leitos</td><td>Razão</td><td><span class="tag verde">Sim</span></td><td>Pacientes graves ÷ leitos; a demanda pode exceder a capacidade.</td></tr>
+      <tr><td>Leitos por mil habitantes</td><td>Taxa</td><td><span class="tag verde">Sim</span></td><td>Não é proporção; é uma densidade (leitos ÷ população × 1.000).</td></tr>
+      <tr><td>Rt</td><td>Razão de razões</td><td><span class="tag verde">Sim</span></td><td>Pode chegar a 6 no jogo; acima de 1 indica crescimento.</td></tr>
+    </tbody>
+  </table>
+  <p>Na auditoria automatizada do jogo (52 semanas simuladas, todas as telas varridas), a maior prevalência observada foi <strong>8,2%</strong> e a maior ocupação, <strong>900%</strong> (limite de exibição). Nenhuma proporção passou de 100%. Os avisos de ocupação acima de 100% são, portanto, <em>informação</em>, não defeito.</p>
+  <div class="box atencao">
+    <span class="rot">O que fazer se ainda parecer errado</span>
+    <p>Se você vir um valor acima de 100% em um indicador que deveria ser proporção, anote: (1) a tela, (2) a vila, (3) a semana, (4) o texto exato do rótulo. Se você tiver acesso ao CSV exportado pelo backend, confira os numeradores e denominadores (capítulo <a href="#cap12">12</a>). Com esses quatro dados é possível reproduzir o cálculo e identificar a origem.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 8 -->
+<section class="cap" id="cap8">
+  <h2><span class="num">08</span> BioLab: as seis abas <a class="ancora" href="#cap8">#</a></h2>
+  <p class="lead">O Laboratório de Bioestatística é o lugar onde o jogo deixa de ser simulação e vira análise de dados. Você sorteia uma amostra dos moradores e trabalha com ela nas seis abas: Amostragem, Descritiva, Gráficos, Distribuições, Testes e Regressão.</p>
+
+  <div class="box dica">
+    <span class="rot">A regra do laboratório</span>
+    <p>Toda análise começa na aba <strong>Amostragem</strong>. Sem uma amostra definida, as outras abas mostram “dados insuficientes”. A amostra ativa aparece sempre no topo: <code>N = 300 · 0,7% de 41.801 · Aleatória simples · Vila: todas · Semente 7</code>.</p>
+  </div>
+
+  <h3 id="cap8-1"><span class="num2">8.1</span> Amostragem: de onde vêm os dados</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/05_lab_amostragem.png" alt="Aba Amostragem do BioLab com plano de amostragem e tabela de microdados" loading="lazy">
+      <div class="pin" style="left:63%;top:16.3%">1</div>
+      <div class="pin" style="left:6.7%;top:47%">2</div>
+      <div class="pin teal" style="left:92.8%;top:22%">3</div>
+    </div>
+    <figcaption><b>Aba Amostragem.</b> A esquerda, o plano; à direita, os microdados sorteados. O cabeçalho resume a amostra ativa e permite sortear outra a qualquer momento.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Cabeçalho da amostra</b> — n, fração da população, método, filtro de vila e semente. É a “certidão de origem” de todo resultado posterior.</li>
+    <li><span class="n">2</span><b>Plano de amostragem</b> — unidade de análise, método, tamanho e semente; botões para sortear e para calcular o n ideal.</li>
+    <li><span class="n">3</span><b>Microdados</b> — primeiras 60 linhas, com ID, vila, idade, faixa, sexo, renda, saneamento, vacina, biomarcador e estado epidemiológico.</li>
+  </ul>
+
+  <h4>Os quatro métodos</h4>
+  <table class="tabela">
+    <thead><tr><th>Método</th><th>Como funciona</th><th>Quando é adequado</th><th>Risco</th></tr></thead>
+    <tbody>
+      <tr><td>Aleatória simples (AAS)</td><td>Cada morador tem a mesma probabilidade de ser sorteado.</td><td>População homogênea e cadastro completo.</td><td>Pode não representar subgrupos pequenos.</td></tr>
+      <tr><td>Sistemática</td><td>Sorteia um início e toma cada k-ésimo indivíduo (k = N ÷ n).</td><td>Lista ordenada sem periodicidade.</td><td>Se a lista tiver ciclo, o viés é sistemático.</td></tr>
+      <tr><td>Estratificada por faixa etária</td><td>Divide em estratos e sorteia proporcionalmente dentro de cada um.</td><td>Quando a idade é forte determinante do desfecho.</td><td>Exige conhecer a distribuição dos estratos.</td></tr>
+      <tr><td>Por conglomerados (vilas)</td><td>Sorteia vilas inteiras e inclui todos os seus moradores.</td><td>Quando é caro visitar muitos locais.</td><td>Vilas parecidas entre si → menor precisão (efeito de desenho).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box formula">
+    <span class="rot">Tamanho ideal da amostra</span>
+    <div class="eq">n₀ = z² · p(1−p) ÷ e²
+n = n₀ ÷ (1 + (n₀ − 1) ÷ N)</div>
+    <p class="onde">Com 95% de confiança (z = 1,96), p = 0,5 (pior caso) e margem de erro e = 0,05, chega-se a n₀ ≈ 384. A segunda fórmula corrige para população finita (N). O botão <em>Calcular n ideal</em> aplica exatamente isso à população do filtro atual.</p>
+  </div>
+
+  <h4>A tabela de microdados</h4>
+  <table class="tabela">
+    <thead><tr><th>Coluna</th><th>Tipo</th><th>O que significa</th></tr></thead>
+    <tbody>
+      <tr><td>ID</td><td>Identificador</td><td>Número único do morador. Use para reproducibilidade.</td></tr>
+      <tr><td>Vila</td><td>Categórica</td><td>Vila de residência.</td></tr>
+      <tr><td>Idade</td><td>Quantitativa contínua</td><td>Anos completos.</td></tr>
+      <tr><td>Faixa</td><td>Ordinal</td><td>0–14 (Jovem), 15–59 (Adulto), 60+ (Idoso).</td></tr>
+      <tr><td>Sexo</td><td>Nominal</td><td>Feminino / Masculino.</td></tr>
+      <tr><td>Renda (SM)</td><td>Quantitativa contínua</td><td>Renda familiar em salários mínimos.</td></tr>
+      <tr><td>Saneam.</td><td>Nominal</td><td>Sim / Não — saneamento domiciliar adequado.</td></tr>
+      <tr><td>Vacina</td><td>Ordinal</td><td>Não vacinado / Parcial / Imunizado.</td></tr>
+      <tr><td>Biomarc.</td><td>Quantitativa contínua</td><td>Biomarcador clínico do agravo (ex.: plaquetas na arbovirose).</td></tr>
+      <tr><td>Estado</td><td>Nominal</td><td>Suscetível, Exposto, Infectado, Recuperado ou Óbito.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box atencao">
+    <span class="rot">Semente e reprodutibilidade</span>
+    <p>A semente controla o sorteio. <strong>Mesma semente + mesmo método + mesmo n = mesma amostra.</strong> Isso é essencial para que outra pessoa reproduza sua análise. Se você mudar a semente, muda a amostra e os resultados mudam — o que é esperado, mas precisa ser registrado.</p>
+  </div>
+  <div class="box exercicio">
+    <span class="rot">Exercício</span>
+    <p>Sorteie n = 100 e depois n = 1.000 com a mesma semente. Compare o IC95% da média de idade. O que aconteceu com a largura do intervalo? (Resposta: encolheu, aproximadamente pela raiz de n.)</p>
+  </div>
+
+  <h3 id="cap8-2"><span class="num2">8.2</span> Descritiva: resumindo a amostra</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/06_lab_descritiva.png" alt="Aba Descritiva com medidas, histograma e boxplot" loading="lazy">
+      <div class="pin" style="left:19%;top:36%">1</div>
+      <div class="pin teal" style="left:63%;top:37%">2</div>
+      <div class="pin teal" style="left:63%;top:66%">3</div>
+    </div>
+    <figcaption><b>Aba Descritiva.</b> As medidas (1) resumem a variável; o histograma (2) mostra a forma; o boxplot (3) mostra posição, dispersão e outliers.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Painel de medidas</b> — n, média, IC95%, mediana, desvio padrão, erro padrão, variância, CV, mínimo/máximo, quartis, assimetria e curtose.</li>
+    <li><span class="n">2</span><b>Histograma</b> — frequência por faixa de valores; revela assimetria e multimodalidade.</li>
+    <li><span class="n">3</span><b>Boxplot</b> — mediana, quartis, bigodes e pontos fora da faixa.</li>
+  </ul>
+
+  <h4>O que cada medida diz</h4>
+  <table class="tabela">
+    <thead><tr><th>Medida</th><th>Definição</th><th>Quando usar / cuidado</th></tr></thead>
+    <tbody>
+      <tr><td>Média</td><td>Soma ÷ n</td><td>Sensível a valores extremos; use com distribuições simétricas.</td></tr>
+      <tr><td>IC95% da média</td><td>Faixa plausível para a média populacional</td><td>Se o IC não inclui um valor de referência, há evidência contra ele.</td></tr>
+      <tr><td>Mediana</td><td>Valor que separa 50% dos dados</td><td>Robusta a outliers; preferida em renda e tempo de internação.</td></tr>
+      <tr><td>Desvio padrão</td><td>Dispersão média em torno da média</td><td>Mesma unidade da variável.</td></tr>
+      <tr><td>Erro padrão</td><td>Desvio da média amostral ÷ √n</td><td>Mede a precisão da estimativa, não a variabilidade dos indivíduos.</td></tr>
+      <tr><td>Coeficiente de variação</td><td>DP ÷ média × 100%</td><td>Compara dispersão entre variáveis de escalas diferentes.</td></tr>
+      <tr><td>Q1 / Q3 e IIQ</td><td>25º e 75º percentis; IIQ = Q3 − Q1</td><td>Base do boxplot; resistente a extremos.</td></tr>
+      <tr><td>Assimetria</td><td>Grau de torção da distribuição</td><td>&gt; 0: cauda à direita; &lt; 0: cauda à esquerda.</td></tr>
+      <tr><td>Curtose</td><td>“Achatamento” em relação à normal</td><td>&lt; 0: mais achatada; &gt; 0: mais pontuda.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box curiosidade">
+    <span class="rot">Leitura do exemplo da tela</span>
+    <p>Idade: média 36,9 anos, mediana 37,0, DP 23,0, CV 62,5%, assimetria 0,19. Média e mediana quase iguais e assimetria perto de zero indicam distribuição aproximadamente simétrica. O CV alto (62,5%) mostra grande heterogeneidade etária — o vale tem crianças e idosos em proporções relevantes.</p>
+  </div>
+
+  <div class="box atencao">
+    <span class="rot">Média ou mediana?</span>
+    <p>Se a distribuição é assimétrica (renda, biomarcador, dias de sintoma), a média “puxa” para a cauda e deixa de representar o caso típico. Nesses casos, reporte mediana e IIQ. O jogo mostra as duas justamente para você comparar.</p>
+  </div>
+
+  <h3 id="cap8-3"><span class="num2">8.3</span> Gráficos: ver antes de testar</h3>
+  <p>A aba <strong>Gráficos</strong> constrói três tipos de figura a partir de duas variáveis escolhidas:</p>
+  <table class="tabela">
+    <thead><tr><th>Tipo</th><th>Eixos</th><th>Serve para</th><th>Cuidado</th></tr></thead>
+    <tbody>
+      <tr><td>Dispersão (X vs Y)</td><td>X e Y quantitativos</td><td>Relação entre duas variáveis; detectar tendência e outliers.</td><td>Correlação não implica causalidade.</td></tr>
+      <tr><td>Barras (categorias)</td><td>Categoria + contagem/média</td><td>Comparar grupos.</td><td>Eixo Y começando em zero evita exagero visual.</td></tr>
+      <tr><td>Histograma</td><td>Uma variável quantitativa</td><td>Forma da distribuição.</td><td>O número de classes muda a aparência.</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Ordem recomendada</span>
+    <p>Primeiro olhe o gráfico, depois rode o teste. Um outlier ou uma relação não linear pode invalidar o teste que você ia usar — e o gráfico mostra isso antes.</p>
+  </div>
+
+  <h3 id="cap8-4"><span class="num2">8.4</span> Distribuições: o modelo por trás dos dados</h3>
+  <p>A aba <strong>Distribuições</strong> desenha quatro famílias e permite variar seus parâmetros. Ela não testa hipóteses: ajuda a entender o formato teórico que sustenta os testes.</p>
+  <table class="tabela">
+    <thead><tr><th>Distribuição</th><th>Parâmetros</th><th>Usada para</th><th>Exemplo no jogo</th></tr></thead>
+    <tbody>
+      <tr><td>Normal</td><td>μ (média), σ (desvio)</td><td>Variáveis contínuas simétricas; base do teste t e da regressão linear.</td><td>Biomarcador clínico.</td></tr>
+      <tr><td>t de Student</td><td>gl (graus de liberdade)</td><td>Amostras pequenas e σ desconhecido; caudas mais pesadas.</td><td>Comparação de médias com n pequeno.</td></tr>
+      <tr><td>Binomial</td><td>n, p</td><td>Contagem de sucessos em n tentativas independentes.</td><td>Número de vacinados em uma amostra.</td></tr>
+      <tr><td>Poisson</td><td>λ (taxa média)</td><td>Contagem de eventos raros em intervalo fixo.</td><td>Casos por semana em uma vila pequena.</td></tr>
+      <tr><td>Qui-quadrado</td><td>gl</td><td>Distribuição de soma de quadrados; base do teste de independência.</td><td>Tabela 2×2 de exposição e desfecho.</td></tr>
+    </tbody>
+  </table>
+  <div class="box curiosidade">
+    <span class="rot">Por que Poisson importa</span>
+    <p>Quando a incidência é baixa e a população é grande, o número de casos por semana se aproxima de uma Poisson. É por isso que o jogo usa Poisson para calcular a probabilidade de superlotação: conta “quantos graves chegam” em relação ao número de leitos.</p>
+  </div>
+
+  <h3 id="cap8-5"><span class="num2">8.5</span> Testes: comparar grupos com método</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/07_lab_testes.png" alt="Aba Testes do BioLab com escolha de desenho e variáveis" loading="lazy">
+      <div class="pin" style="left:9.5%;top:29.7%">1</div>
+      <div class="pin" style="left:9.5%;top:38.1%">2</div>
+      <div class="pin teal" style="left:70%;top:34.8%">3</div>
+    </div>
+    <figcaption><b>Aba Testes.</b> Escolha o desenho (1) e a variável resposta (2); o painel à direita (3) mostra o resultado — antes de executar, “sem saída”. O laboratório seleciona o teste adequado, executa e explica o resultado em português.</figcaption>
+  </figure>
+
+  <h4>Os seis desenhos disponíveis</h4>
+  <table class="tabela">
+    <thead><tr><th>Opção</th><th>Teste</th><th>Quando usar</th><th>Pressupostos</th></tr></thead>
+    <tbody>
+      <tr><td>2 médias independentes</td><td>t de Welch</td><td>Comparar a média de uma variável contínua entre dois grupos.</td><td>Observações independentes; aproximadamente simétrico; não exige variâncias iguais.</td></tr>
+      <tr><td>3+ médias</td><td>ANOVA + Bonferroni</td><td>Comparar médias entre três ou mais grupos.</td><td>Normalidade e homocedasticidade; correção para múltiplas comparações.</td></tr>
+      <tr><td>2 grupos, não paramétrico</td><td>Mann-Whitney</td><td>Comparar dois grupos quando a distribuição é assimétrica ou ordinal.</td><td>Independência; compara medianas/rankings.</td></tr>
+      <tr><td>3+ grupos, não paramétrico</td><td>Kruskal-Wallis</td><td>Versão não paramétrica da ANOVA.</td><td>Independência; postos.</td></tr>
+      <tr><td>Associação entre categorias</td><td>Qui-quadrado (Yates)</td><td>Tabela de contingência entre duas variáveis categóricas.</td><td>Frequências esperadas ≥ 5; senão, Fisher.</td></tr>
+      <tr><td>Proporções 2×2</td><td>OR, RR e Fisher</td><td>Estimar associação entre exposição e desfecho binário.</td><td>Células independentes; interpretar IC.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Como ler a saída</h4>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/07b_lab_teste_rodado.png" alt="Resultado de um teste t de Welch no BioLab" loading="lazy">
+      <div class="pin" style="left:29.6%;top:55.3%">1</div>
+      <div class="pin" style="left:29.6%;top:63.8%">2</div>
+      <div class="pin" style="left:29.6%;top:70.1%">3</div>
+    </div>
+    <figcaption><b>Saída de um teste.</b> A “memória de cálculo” fica sempre visível: estatística, graus de liberdade, p-valor, intervalo de confiança e tamanho de efeito.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Teste e grupos</b> — qual teste foi aplicado e quantos indivíduos há em cada grupo.</li>
+    <li><span class="n">2</span><b>Estatística e p-valor</b> — o valor calculado, os graus de liberdade e a probabilidade de observar algo tão extremo se H₀ fosse verdadeira.</li>
+    <li><span class="n">3</span><b>IC95% e tamanho de efeito</b> — a faixa plausível para a diferença e o d de Cohen (magnitude prática).</li>
+  </ul>
+
+  <div class="box formula">
+    <span class="rot">O que o p-valor é — e o que não é</span>
+    <div class="eq">p = P(dados tão extremos | H₀ verdadeira)</div>
+    <p class="onde">p <strong>não</strong> é a probabilidade de H₀ ser verdadeira, nem a probabilidade de você estar errado, nem o tamanho do efeito. p = 0,001 em uma diferença irrelevante continua sendo uma diferença irrelevante.</p>
+  </div>
+
+  <div class="box atencao">
+    <span class="rot">Cuidado com a tautologia</span>
+    <p>A tela de exemplo compara <em>idade</em> entre <em>faixas etárias</em> — o que é circular: a faixa é construída a partir da idade. O laboratório não impede esse tipo de escolha, porque parte do aprendizado é reconhecer que a pergunta não faz sentido. Antes de rodar um teste, pergunte: <strong>a exposição e o desfecho são realmente distintos?</strong></p>
+  </div>
+
+  <div class="box dica">
+    <span class="rot">Três checagens antes de comemorar um p &lt; 0,05</span>
+    <ol style="margin-bottom:0">
+      <li>O <strong>IC95%</strong> exclui o valor nulo (0 para diferenças, 1 para OR/RR)?</li>
+      <li>O <strong>tamanho de efeito</strong> é relevante na prática?</li>
+      <li>O desenho permite <strong>causalidade</strong> ou apenas associação?</li>
+    </ol>
+  </div>
+
+  <h3 id="cap8-6"><span class="num2">8.6</span> Regressão e curva ROC</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/08_lab_regressao.png" alt="Aba Regressão com curva ROC e saída do modelo logístico" loading="lazy">
+      <div class="pin" style="left:44%;top:25.8%">1</div>
+      <div class="pin" style="left:35%;top:46%">2</div>
+      <div class="pin teal" style="left:65.5%;top:54%">3</div>
+    </div>
+    <figcaption><b>Aba Regressão.</b> O modelo é ajustado e a curva ROC é desenhada; à direita, coeficientes, OR, acurácia e AUC.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Escolha e execução</b> — o seletor traz duas regressões lineares e uma logística de quatro preditores; <em>Rodar modelo</em> ajusta e desenha.</li>
+    <li><span class="n">2</span><b>Curva ROC</b> — sensibilidade × (1 − especificidade); a diagonal é o “chute”.</li>
+    <li><span class="n">3</span><b>Saída</b> — coeficientes (b), razões de chance (OR), acurácia de treino/teste, sensibilidade, especificidade e AUC.</li>
+  </ul>
+
+  <h4>Modelos disponíveis</h4>
+  <table class="tabela">
+    <thead><tr><th>Modelo</th><th>Equação</th><th>Leitura dos coeficientes</th></tr></thead>
+    <tbody>
+      <tr><td>Linear: biomarcador ~ idade</td><td>y = b₀ + b₁·idade</td><td>b₁ = variação média do biomarcador por ano de idade.</td></tr>
+      <tr><td>Linear: renda ~ idade</td><td>y = b₀ + b₁·idade</td><td>b₁ = variação média da renda por ano.</td></tr>
+      <tr><td>Logística: infectado</td><td>logito(p) = b₀ + b₁·idade/10 + b₂·renda + b₃·saneamento + b₄·doses</td><td>OR = e^b: fator de multiplicação da chance do desfecho.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box formula">
+    <span class="rot">Interpretando OR e AUC</span>
+    <div class="eq">OR = 1 → sem associação
+OR &gt; 1 → a exposição aumenta a chance do desfecho
+OR &lt; 1 → a exposição reduz a chance
+AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
+    <p class="onde">Um OR de 0,64 para saneamento significa que, mantendo os demais preditores constantes, ter saneamento multiplica a chance de infecção por 0,64 — uma redução de 36%.</p>
+  </div>
+
+  <div class="box atencao">
+    <span class="rot">Desfecho raro: o modelo pode “acertar” sem detectar ninguém</span>
+    <p>No exemplo, a prevalência é muito baixa e a amostra tem pouquíssimos infectados. A acurácia de 98,9% parece ótima, mas a sensibilidade é 0%: o modelo classificou todos como “não infectados” e acertou pela maioria. Isso é o <strong>paradoxo da acurácia</strong> em classes desbalanceadas. Quando o desfecho é raro, olhe sensibilidade, especificidade e AUC — nunca só a acurácia. Para corrigir, aumente n, filtre uma vila com surto ativo ou colete uma amostra enriquecida de casos.</p>
+  </div>
+
+  <div class="box exercicio">
+    <span class="rot">Exercício de regressão</span>
+    <p>Rode a logística com n = 300 e depois com n = 2.000. Compare os OR e a AUC. Os sinais dos coeficientes se mantêm? A magnitude muda? Um modelo com mais dados necessariamente tem AUC maior?</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 9 -->
+<section class="cap" id="cap9">
+  <h2><span class="num">09</span> Como ler cada gráfico <a class="ancora" href="#cap9">#</a></h2>
+  <p class="lead">Gráfico não é enfeite: é argumento. Um eixo truncado, uma escala trocada ou uma categoria faltando mudam a conclusão. Este capítulo ensina a ler as figuras do jogo — e a desconfiar das que aparecem por aí.</p>
+
+  <h3><span class="num2">9.1</span> O gráfico certo para cada pergunta</h3>
+  <table class="tabela">
+    <thead><tr><th>Pergunta</th><th>Gráfico</th><th>O que olhar primeiro</th></tr></thead>
+    <tbody>
+      <tr><td>Como se distribui uma variável?</td><td>Histograma</td><td>Forma (simétrica/assimétrica), centros, buracos, outliers.</td></tr>
+      <tr><td>Como dois grupos se comparam?</td><td>Boxplot ou barras com IC</td><td>Sobreposição dos intervalos e dispersão.</td></tr>
+      <tr><td>Duas variáveis caminham juntas?</td><td>Dispersão</td><td>Tendência, curvatura, pontos extremos.</td></tr>
+      <tr><td>Como algo evolui no tempo?</td><td>Linha / série temporal</td><td>Tendência, sazonalidade, quebras.</td></tr>
+      <tr><td>Como se compara categorias?</td><td>Barras</td><td>Ordem, escala, tamanho dos grupos.</td></tr>
+      <tr><td>Quão bem um teste separa doentes de sadios?</td><td>Curva ROC</td><td>AUC e o ponto de corte escolhido.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">9.2</span> Histograma</h3>
+  <p>Cada barra é uma faixa de valores; a altura é a frequência. A forma conta a história:</p>
+  <ul>
+    <li><strong>Simétrica:</strong> média ≈ mediana; o desvio padrão descreve bem a dispersão.</li>
+    <li><strong>Assimétrica à direita:</strong> cauda longa de valores altos (renda, biomarcador). Média &gt; mediana.</li>
+    <li><strong>Assimétrica à esquerda:</strong> cauda de valores baixos. Média &lt; mediana.</li>
+    <li><strong>Bimodal:</strong> dois grupos misturados (ex.: crianças e adultos). A média única esconde isso.</li>
+  </ul>
+  <div class="box atencao">
+    <span class="rot">O número de classes engana</span>
+    <p>Poucas classes escondem detalhes; muitas criam “serras” que parecem estrutura e são só ruído. No jogo, o histograma usa uma regra automática — mas desconfie de conclusões baseadas em uma única binagem.</p>
+  </div>
+
+  <h3 id="cap9-3"><span class="num2">9.3</span> Boxplot</h3>
+  <p>O boxplot mostra cinco números: mínimo (ou bigode inferior), Q1, mediana, Q3 e máximo (ou bigode superior). A caixa central contém 50% dos dados; a linha dentro dela é a mediana.</p>
+  <table class="tabela">
+    <thead><tr><th>Elemento</th><th>Significado</th><th>Leitura</th></tr></thead>
+    <tbody>
+      <tr><td>Linha central</td><td>Mediana</td><td>Valor típico, resistente a extremos.</td></tr>
+      <tr><td>Caixa</td><td>Q1 a Q3 (IIQ)</td><td>Onde estão os 50% centrais.</td></tr>
+      <tr><td>Bigodes</td><td>Até 1,5 × IIQ</td><td>Faixa “normal” de dispersão.</td></tr>
+      <tr><td>Pontos</td><td>Outliers</td><td>Valores atípicos — investigue antes de excluir.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="cap9-4"><span class="num2">9.4</span> Dispersão</h3>
+  <p>Cada ponto é um indivíduo (x, y). Procure: tendência (subida/descida), forma (reta ou curva), dispersão (nuvem apertada ou espalhada) e outliers. No jogo, a dispersão é o primeiro passo antes de calcular correlação ou ajustar regressão.</p>
+  <div class="box atencao">
+    <span class="rot">Correlação ≠ causalidade</span>
+    <p>Duas variáveis podem se mover juntas por causa de uma terceira (confundidor) ou por coincidência. No StaTown, idade influencia renda, saneamento e biomarcador ao mesmo tempo: a correlação entre renda e biomarcador pode ser, em parte, efeito da idade. Só um desenho adequado (ou um modelo ajustado) permite falar de causalidade.</p>
+  </div>
+
+  <h3><span class="num2">9.5</span> Série temporal</h3>
+  <p>Nos painéis de vila, a linha de prevalência e as barras de casos novos contam a mesma história por ângulos diferentes. Procure:</p>
+  <ul>
+    <li><strong>Tendência:</strong> subida, queda ou estabilidade ao longo das semanas.</li>
+    <li><strong>Sazonalidade:</strong> picos que se repetem em determinadas épocas.</li>
+    <li><strong>Quebras:</strong> mudanças bruscas — intervenção, troca de cenário, saturação de leitos.</li>
+    <li><strong>Defasagem:</strong> a prevalência reage depois da incidência; o Rt antecipa as duas.</li>
+  </ul>
+
+  <h3><span class="num2">9.6</span> Curva ROC</h3>
+  <p>A curva ROC cruza sensibilidade (eixo Y) e 1 − especificidade (eixo X) para todos os pontos de corte possíveis. A diagonal representa o chute; quanto mais a curva se aproxima do canto superior esquerdo, melhor a separação.</p>
+  <table class="tabela">
+    <thead><tr><th>AUC</th><th>Interpretação tradicional</th><th>Cuidado</th></tr></thead>
+    <tbody>
+      <tr><td>0,5</td><td>Sem capacidade de discriminação</td><td>Equivale a sortear.</td></tr>
+      <tr><td>0,7–0,8</td><td>Aceitável</td><td>Depende do contexto clínico.</td></tr>
+      <tr><td>0,8–0,9</td><td>Boa</td><td>Verifique calibração, não só discriminação.</td></tr>
+      <tr><td>&gt; 0,9</td><td>Excelente</td><td>Suspeite de vazamento de dados ou amostra pequena.</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Checklist de leitura de qualquer gráfico</span>
+    <ol style="margin-bottom:0">
+      <li>Título, eixos e <strong>unidades</strong> estão claros?</li>
+      <li>O eixo começa em zero? Se não, o exagero é justificado?</li>
+      <li>Qual o <strong>n</strong> e qual a fonte?</li>
+      <li>Há intervalos de confiança ou barras de erro?</li>
+      <li>A escala é linear ou logarítmica?</li>
+      <li>O gráfico mostra todos os grupos ou só os que “deram certo”?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 10 -->
+<section class="cap" id="cap10">
+  <h2><span class="num">10</span> Os nove desafios <a class="ancora" href="#cap10">#</a></h2>
+  <p class="lead">Cada desafio isola um conceito e tem seis rodadas. O aproveitamento vira BioMoedas (10 + até 60 pelo percentual de acertos), e o melhor resultado fica registrado no card. Errar não bloqueia: a explicação aparece na hora.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/09_minigames.png" alt="Hub com os nove desafios de bioestatística" loading="lazy">
+      <div class="pin" style="left:50%;top:10%">1</div>
+      <div class="pin teal" style="left:33%;top:21%">2</div>
+      <div class="pin teal" style="left:75.5%;top:36.5%">3</div>
+    </div>
+    <figcaption><b>Hub dos desafios.</b> Nove cartões, cada um com número, título, descrição, melhor aproveitamento e botão <em>Jogar</em>.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Progresso</b> — quantos dos nove já foram concluídos.</li>
+    <li><span class="n">2</span><b>Cartão do desafio</b> — conceito, descrição e recorde pessoal.</li>
+    <li><span class="n">3</span><b>Botão Jogar</b> — abre o desafio; <em>Sair</em> volta ao hub.</li>
+  </ul>
+
+  <h3><span class="num2">10.1</span> Os nove desafios, um por um</h3>
+  <table class="tabela">
+    <thead><tr><th>Nº</th><th>Desafio</th><th>Conceito central</th><th>O que você faz</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td>Detetive de Delineamentos</td><td>Desenho de estudo</td><td>Lê um relato e classifica em transversal, coorte, caso-controle ou ensaio.</td></tr>
+      <tr><td>02</td><td>Arquiteto do Banco de Dados</td><td>Tipos de variável</td><td>Classifica variáveis (nominal, ordinal, discreta, contínua) e decide a análise possível.</td></tr>
+      <tr><td>03</td><td>Mestre da Assimetria</td><td>Forma da distribuição</td><td>Olha histogramas e diz para onde a cauda aponta.</td></tr>
+      <tr><td>04</td><td>Oficina do Gráfico Perfeito</td><td>Escolha de gráfico</td><td>Associa cada pergunta ao gráfico adequado.</td></tr>
+      <tr><td>05</td><td>Missão Amostragem</td><td>Métodos e vieses</td><td>Reconhece AAS, sistemática, estratificada, conglomerados e vieses clássicos.</td></tr>
+      <tr><td>06</td><td>Roleta das Distribuições</td><td>Famílias teóricas</td><td>Decide se o caso pede normal, binomial, Poisson, t ou qui-quadrado.</td></tr>
+      <tr><td>07</td><td>Tribunal das Hipóteses</td><td>Lógica do teste</td><td>Decide sobre H₀ e rejeita as interpretações erradas do p-valor.</td></tr>
+      <tr><td>08</td><td>Caçador de Tendências</td><td>Correlação</td><td>Estima a força da relação olhando a nuvem de pontos.</td></tr>
+      <tr><td>09</td><td>Auditoria de IA</td><td>Leitura crítica</td><td>Encontra a afirmação errada (ou correta) na fala do Dr. Bayes.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">10.2</span> Exemplo comentado: Missão Amostragem</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/11_mg_amostragem.png" alt="Desafio Missão Amostragem com situação e quatro alternativas" loading="lazy">
+      <div class="pin" style="left:52%;top:16%">1</div>
+      <div class="pin" style="left:7.3%;top:25.2%">2</div>
+      <div class="pin teal" style="left:50%;top:86%">3</div>
+    </div>
+    <figcaption><b>Missão Amostragem.</b> Situação-problema, alternativas e rodapé de progresso. Cada resposta é comentada imediatamente.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Progresso</b> — rodada atual e número de acertos.</li>
+    <li><span class="n">2</span><b>Situação e alternativas</b> — leia o enunciado inteiro antes de responder; palavras como “todas as vilas sorteadas” mudam o método.</li>
+    <li><span class="n">3</span><b>Rodapé</b> — instrução do momento e feedback após a escolha.</li>
+  </ul>
+  <div class="box dica">
+    <span class="rot">Estratégia</span>
+    <p>Não tente decorar: pergunte “qual é a unidade sorteada?”. Se a unidade sorteada é o indivíduo, é AAS ou sistemática; se é o estrato, estratificada; se é a vila, conglomerados. Essa única pergunta resolve a maioria das rodadas.</p>
+  </div>
+
+  <h3><span class="num2">10.3</span> Tribunal das Hipóteses: o p-valor no banco dos réus</h3>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/17_mg_hipoteses.png" alt="Desafio Tribunal das Hipóteses" loading="lazy">
+    </div>
+    <figcaption><b>Tribunal das Hipóteses.</b> Cada rodada traz um p-valor, um contexto e a decisão correta com justificativa. O objetivo é separar “rejeitar H₀” de “provar a hipótese”.</figcaption>
+  </figure>
+
+  <div class="box curiosidade">
+    <span class="rot">Recompensas</span>
+    <p>Fórmula: <code>BioMoedas = 10 + round(60 × acertos ÷ total)</code>. Com 6 de 6, você recebe 70; com 3 de 6, 40; com 0, 10. O recorde é o melhor percentual já obtido, não a soma — repetir um desafio não acumula recorde, mas rende moedas outra vez.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 11 -->
+<section class="cap" id="cap11">
+  <h2><span class="num">11</span> Revista científica <a class="ancora" href="#cap11">#</a></h2>
+  <p class="lead">Seis artigos fictícios escritos no formato de periódico. Alguns têm erros metodológicos propositais; outros são exemplos de boa prática. Ler com ceticismo é a habilidade que a revista treina.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/12_revista.png" alt="Revista científica com lista de artigos" loading="lazy">
+    </div>
+    <figcaption><b>Revista.</b> Cada artigo traz autores, periódico, resumo, tabela de resultados e seção de limitações. Ler um artigo inédito rende 20 BioMoedas.</figcaption>
+  </figure>
+
+  <h3><span class="num2">11.1</span> Os seis artigos</h3>
+  <table class="tabela">
+    <thead><tr><th>Título</th><th>Tema estatístico</th><th>O que observar</th></tr></thead>
+    <tbody>
+      <tr><td>Saneamento básico e prevalência de arbovirose em 20 comunidades do Vale</td><td>Prevalência, comparação de grupos</td><td>Denominador correto, confundimento por renda, uso de IC.</td></tr>
+      <tr><td>Cobertura vacinal e incidência de agravo respiratório: coorte de 12 meses</td><td>Incidência, risco relativo</td><td>Definição de coorte, tempo de seguimento, perdas.</td></tr>
+      <tr><td>Acurácia de um teste rápido na atenção primária: sensibilidade, especificidade e VPP</td><td>Testes diagnósticos</td><td>Prevalência afeta o VPP; sensibilidade não é probabilidade de ter a doença.</td></tr>
+      <tr><td>Renda, escolaridade e biomarcador inflamatório: o papel da assimetria na análise</td><td>Assimetria, média vs mediana</td><td>Transformação de dados, reporte de mediana e IIQ.</td></tr>
+      <tr><td>Custo-efetividade de unidade móvel versus unidade fixa no território</td><td>Custos, desfechos, razão de custo-efetividade</td><td>Perspectiva da análise, horizonte temporal, sensibilidade.</td></tr>
+      <tr><td>Auditoria metodológica: como o p-valor foi reportado em 200 artigos</td><td>Má uso do p-valor</td><td>p-hacking, multiplicidade, ausência de tamanho de efeito.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">11.2</span> Como ler um artigo em cinco passos</h3>
+  <ol>
+    <li><strong>Pergunta:</strong> qual é a pergunta de pesquisa e qual seria a resposta ideal?</li>
+    <li><strong>Desenho:</strong> transversal, coorte, caso-controle ou ensaio? O desenho permite a conclusão que os autores tiram?</li>
+    <li><strong>População:</strong> quem foi incluído, quem ficou de fora, quantos perderam seguimento?</li>
+    <li><strong>Resultados:</strong> tamanho de efeito, IC95%, valores absolutos — não só p-valores.</li>
+    <li><strong>Limitações:</strong> os autores as declaram? Elas ameaçam a conclusão?</li>
+  </ol>
+  <div class="box atencao">
+    <span class="rot">Sinais de alerta</span>
+    <p>“p &lt; 0,05, portanto o tratamento funciona”; “tendência para significância”; “correlação de 0,9, logo causa”; amostra de conveniência apresentada como representativa; muitos desfechos testados sem correção. Encontrar esses sinais é o objetivo da revista.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 12 -->
+<section class="cap" id="cap12">
+  <h2><span class="num">12</span> SIGA: dados e integração interna <a class="ancora" href="#cap12">#</a></h2>
+  <p class="lead">O StaTown prepara a semana simulada no formato SIGA/SINAN: CSV, resumo, completude e um hash SHA-256 que prova que o arquivo não foi alterado. Nesta versão a geração é <b>interna</b> — feita pelo backend/API, não por um botão no HUD.</p>
+  <div class="box atencao">
+    <span class="rot">Por que o SIGA saiu do HUD</span>
+    <p>O relatório é uma responsabilidade de integração, não uma tarefa do jogador. Manter a geração no servidor evita que o navegador manipule o arquivo inteiro, garante a mesma versão de schema para todos e permite autenticar quem pediu o dado. A tela abaixo continua existindo no código como ferramenta de desenvolvimento e de teste; ela não é mais um caminho do jogo.</p>
+  </div>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/13_siga.png" alt="Tela interna do SIGA com prévia do CSV, resumo da semana e integridade" loading="lazy">
+      <div class="pin" style="left:12.2%;top:16.5%">1</div>
+      <div class="pin teal" style="left:84.5%;top:16%">2</div>
+      <div class="pin teal" style="left:84.5%;top:57%">3</div>
+      <div class="pin" style="left:60.5%;top:76.5%">4</div>
+    </div>
+    <figcaption><b>SIGA (tela interna de desenvolvimento).</b> À esquerda, o arquivo; à direita, o resumo da semana, a integridade e as ações de exportação. No jogo publicado, o mesmo conteúdo é produzido pelo backend.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Prévia do CSV</b> — separador <code>;</code>, cabeçalho e linhas por vila/registro.</li>
+    <li><span class="n">2</span><b>Resumo da semana</b> — SE, agravo, população, casos ativos, óbitos, prevalência e completude.</li>
+    <li><span class="n">3</span><b>Integridade</b> — hash SHA-256 do arquivo; muda se qualquer campo mudar.</li>
+    <li><span class="n">4</span><b>Ações</b> — gerar novamente, copiar, baixar CSV e baixar JSON de resumo.</li>
+  </ul>
+
+  <h3><span class="num2">12.1</span> O que o arquivo contém</h3>
+  <p>O CSV é a ponte entre o jogo e qualquer ferramenta externa (Excel, R, Python). Ele traz uma linha por registro, com identificação da semana, da vila, do agravo e os indicadores calculados. O resumo em JSON serve para quem quer só os totais, sem abrir a planilha.</p>
+  <table class="tabela">
+    <thead><tr><th>Campo</th><th>Exemplo</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>semana / ano</td><td>17 / 1</td><td>Localizar o registro no tempo.</td></tr>
+      <tr><td>vila</td><td>Vila da Encosta Norte</td><td>Agrupar e comparar.</td></tr>
+      <tr><td>populacao</td><td>1406</td><td>Denominador das taxas.</td></tr>
+      <tr><td>casos_ativos</td><td>1</td><td>Numerador da prevalência.</td></tr>
+      <tr><td>novos</td><td>0</td><td>Incidência da semana.</td></tr>
+      <tr><td>obitos</td><td>0</td><td>Letalidade e mortalidade.</td></tr>
+      <tr><td>prevalencia</td><td>0.0007</td><td>Proporção no momento.</td></tr>
+      <tr><td>ocupacao</td><td>0.06</td><td>Razão demanda/capacidade.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">12.2</span> Integridade e reprodutibilidade</h3>
+  <p>O hash SHA-256 é uma “impressão digital” do conteúdo. Duas consequências práticas:</p>
+  <ul>
+    <li><strong>Prova de não adulteração:</strong> se alguém editar uma vírgula no CSV, o hash muda por completo.</li>
+    <li><strong>Reprodutibilidade:</strong> dois colegas que gerarem o relatório na mesma semana, com o mesmo estado, obtêm o mesmo hash. Se diferirem, algo mudou entre as gerações.</li>
+  </ul>
+  <div class="box dica">
+    <span class="rot">Dica de sala de aula</span>
+    <p>Se a turma tiver acesso ao CSV exportado pela API, peça a dois grupos que gerem o relatório na mesma semana e comparem os hashes. Depois, avance uma semana e gere de novo: o hash deve mudar. Isso demonstra, na prática, o que é integridade de dados.</p>
+  </div>
+  <div class="box atencao">
+    <span class="rot">Completude não é qualidade</span>
+    <p>“100% dos campos preenchidos” não significa “dados corretos”. Um campo pode estar preenchido com valor impossível. Completude mede ausência, não veracidade — a checagem de plausibilidade é a próxima etapa.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 13 -->
+<section class="cap" id="cap13">
+  <h2><span class="num">13</span> Dr. Bayes e a auditoria de IA <a class="ancora" href="#cap13">#</a></h2>
+  <p class="lead">O Dr. Bayes é um tutor artificial que explica conceitos — e, às vezes, erra de propósito. Sua tarefa é clicar na frase incorreta e justificar por quê. É o único lugar do jogo em que a habilidade avaliada é desconfiar.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/14_bayes.png" alt="Painel do Dr. Bayes com pergunta e frases para auditar" loading="lazy">
+    </div>
+    <figcaption><b>Dr. Bayes.</b> Uma pergunta, três frases e a tarefa de apontar a que está errada. O feedback explica o erro e o conceito correto.</figcaption>
+  </figure>
+
+  <h3><span class="num2">13.1</span> Os oito temas</h3>
+  <table class="tabela">
+    <thead><tr><th>Tema</th><th>Erro que aparece</th><th>Conceito correto</th></tr></thead>
+    <tbody>
+      <tr><td>Intervalo de confiança de 95%</td><td>Dizer que há 95% de chance de o parâmetro estar naquele intervalo específico.</td><td>95% é a confiança no <em>procedimento</em>; o intervalo calculado ou contém ou não contém o valor.</td></tr>
+      <tr><td>p = 0,02</td><td>Dizer que a probabilidade de H₀ ser verdadeira é 2%.</td><td>p = P(dados tão extremos | H₀). Inverter a condicional exige priori (Bayes).</td></tr>
+      <tr><td>Correlação r = 0,71</td><td>Concluir causalidade e direção.</td><td>Correlação mede associação linear; confundidores e desenho precisam ser considerados.</td></tr>
+      <tr><td>Sensibilidade 90%, especificidade 95%</td><td>Dizer que o VPP também é 90%.</td><td>O VPP depende da prevalência; em população de 1%, a maioria dos positivos é falso-positiva.</td></tr>
+      <tr><td>R0 = 2,8</td><td>Interpretar como “cada pessoa infecta exatamente 2,8”.</td><td>É uma média em população totalmente suscetível, sem intervenção.</td></tr>
+      <tr><td>Amostragem aleatória simples</td><td>Chamá-la de “garantia de representatividade”.</td><td>Ela garante probabilidade conhecida, não ausência de viés de não resposta.</td></tr>
+      <tr><td>OR = 2,1 (IC 1,4–3,2)</td><td>Dizer que “a chance dobra com certeza”.</td><td>OR é multiplicativo e o IC importa; 2,1 é estimativa pontual, com incerteza.</td></tr>
+      <tr><td>p = 0,048 com n = 12</td><td>Tratar como achado robusto.</td><td>Com n pequeno, o resultado é frágil; reporte IC e tamanho de efeito.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box curiosidade">
+    <span class="rot">Por que “Dr. Bayes”?</span>
+    <p>O nome homenageia Thomas Bayes, cujo teorema permite inverter condicionais — exatamente o que o p-valor <strong>não</strong> faz. O personagem encarna a diferença entre “probabilidade dos dados dado H₀” e “probabilidade de H₀ dado os dados”.</p>
+  </div>
+  <div class="box dica">
+    <span class="rot">Recompensa</span>
+    <p>Cada auditoria concluída rende 12 BioMoedas. O contador de auditorias aparece no painel; repetir é permitido e ajuda a fixar os conceitos.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 14 -->
+<section class="cap" id="cap14">
+  <h2><span class="num">14</span> Cenários epidemiológicos <a class="ancora" href="#cap14">#</a></h2>
+  <p class="lead">O botão <em>Trocar</em>, no topo, abre quatro cenários com dinâmicas distintas. Trocar de cenário reinicia a simulação epidemiológica (a população e as BioMoedas são mantidas) — cada agravo responde a determinantes diferentes.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/16_cenario.png" alt="Painel de cenários epidemiológicos com quatro agravos" loading="lazy">
+      <div class="pin" style="left:16%;top:24.5%">1</div>
+      <div class="pin teal" style="left:52.5%;top:24.5%">2</div>
+      <div class="pin teal" style="left:16%;top:53.5%">3</div>
+      <div class="pin teal" style="left:52.5%;top:53.5%">4</div>
+    </div>
+    <figcaption><b>Cenários.</b> Cada cartão resume inspiração, transmissão, parâmetros, sintomas e biomarcador. O botão <em>Ativar este cenário</em> troca o agravo ativo.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Arbovirose Valadarense</b> — vetorial, sensível a saneamento e água parada.</li>
+    <li><span class="n">2</span><b>Vírus Respiratório Agudo</b> — alta transmissibilidade interpessoal; mobilidade e aglomeração.</li>
+    <li><span class="n">3</span><b>Enteropatia Hídrica Aguda</b> — fecal-oral; saneamento é o determinante dominante.</li>
+    <li><span class="n">4</span><b>Agravo Crônico Não-Transmissível</b> — sem transmissão; ideal para regressão e correlação.</li>
+  </ul>
+
+  <h3><span class="num2">14.1</span> Comparando os quatro cenários</h3>
+  <table class="tabela">
+    <thead><tr><th>Parâmetro</th><th>Arbovirose</th><th>Respiratória</th><th>Entérica</th><th>Crônica</th></tr></thead>
+    <tbody>
+      <tr><td>R0</td><td class="num-col">2,8</td><td class="num-col">3,6</td><td class="num-col">2,4</td><td class="num-col">0</td></tr>
+      <tr><td>Incubação (SE)</td><td class="num-col">1,0</td><td class="num-col">0,5</td><td class="num-col">0,6</td><td class="num-col">1,0</td></tr>
+      <tr><td>Período infeccioso (SE)</td><td class="num-col">1,5</td><td class="num-col">1,2</td><td class="num-col">1,3</td><td class="num-col">1,0</td></tr>
+      <tr><td>Letalidade saturada</td><td class="num-col">3,5%</td><td class="num-col">11,0%</td><td class="num-col">7,5%</td><td class="num-col">3,0%</td></tr>
+      <tr><td>Peso do saneamento</td><td class="num-col">0,85</td><td class="num-col">0,15</td><td class="num-col">1,00</td><td class="num-col">0,30</td></tr>
+      <tr><td>Eficácia vacinal</td><td class="num-col">55%</td><td class="num-col">75%</td><td class="num-col">60%</td><td class="num-col">0%</td></tr>
+      <tr><td>Sintomas típicos</td><td>Febre alta, dor atrás dos olhos, exantema, prostração</td><td>Tosse seca, febre, dispneia, mialgia</td><td>Diarreia aquosa, desidratação, vômitos</td><td>Cefaleia, sedentarismo, glicemia alterada</td></tr>
+      <tr><td>Biomarcador</td><td>Plaquetas (mil/mm³)</td><td>Saturação de O₂ (%)</td><td>Sódio sérico (mEq/L)</td><td>Pressão arterial sistólica (mmHg)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box dica">
+    <span class="rot">Como escolher o cenário</span>
+    <ul style="margin-bottom:0">
+      <li><strong>Quer praticar intervenção?</strong> Arbovirose ou entérica: saneamento tem peso alto.</li>
+      <li><strong>Quer ver colapso rápido?</strong> Respiratória: R0 alto e letalidade alta.</li>
+      <li><strong>Quer analisar dados sem epidemia?</strong> Crônica: R0 = 0 e foco em regressão/correlação.</li>
+    </ul>
+  </div>
+  <div class="box atencao">
+    <span class="rot">Trocar reinicia a doença</span>
+    <p>Ao ativar outro cenário, a curva epidêmica, o histórico e os óbitos pela doença recomeçam. A população, as intervenções estruturais e as BioMoedas permanecem. Se quiser comparar cenários com rigor, exporte os dados antes de trocar (quando a API estiver disponível).</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 15 -->
+<section class="cap" id="cap15">
+  <h2><span class="num">15</span> Menu, som e acessibilidade <a class="ancora" href="#cap15">#</a></h2>
+  <p class="lead">O menu reúne áudio, acessibilidade, salvamento, conquistas e informações técnicas. É também onde você confirma, em segundos, se o som do jogo está funcionando.</p>
+
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/15_menu.png" alt="Menu e configurações do StaTown" loading="lazy">
+      <div class="pin" style="left:34%;top:24%">1</div>
+      <div class="pin" style="left:34%;top:44%">2</div>
+      <div class="pin teal" style="left:30%;top:62%">3</div>
+      <div class="pin teal" style="left:24%;top:70%">4</div>
+      <div class="pin teal" style="left:72%;top:27%">5</div>
+      <div class="pin" style="left:77%;top:39.5%">6</div>
+    </div>
+    <figcaption><b>Menu e configurações.</b> As mudanças de áudio e acessibilidade valem na hora; salvar e carregar ficam no bloco Partida; o cartão MANUAL DO JOGO abre este guia em outra aba.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Acessibilidade</b> — fonte grande, rótulos no mapa, pausa automática ao abrir painéis.</li>
+    <li><span class="n">2</span><b>Som e música</b> — sliders independentes de música (55%), ambiente (45%) e efeitos (70%).</li>
+    <li><span class="n">3</span><b>Testar som</b> — quatro botões (Clique, Abrir, Sucesso, Erro) que disparam efeitos reais.</li>
+    <li><span class="n">4</span><b>Partida</b> — Salvar, Carregar e Reiniciar tudo.</li>
+    <li><span class="n">5</span><b>Manual do jogo</b> — abre este guia em outra aba; o mesmo que <kbd>F1</kbd>.</li>
+    <li><span class="n">6</span><b>Sobre e trilha</b> — tecnologia, créditos e descrição da trilha sonora.</li>
+  </ul>
+
+  <h3 id="cap15-2"><span class="num2">15.1</span> Teste de som: o diagnóstico em 5 segundos</h3>
+  <p>Se você não está ouvindo o jogo, siga esta ordem:</p>
+  <ol>
+    <li>Clique uma vez na página (política de autoplay do navegador).</li>
+    <li>Abra <strong>MENU › SOM &amp; MÚSICA</strong> e confira se <em>Silenciar tudo</em> está desmarcado.</li>
+    <li>Pressione os quatro botões de <strong>TESTAR SOM</strong>. Se ouvir, o áudio do jogo está funcionando e o problema é de volume/mistura.</li>
+    <li>Se não ouvir nenhum, verifique o volume do sistema, a saída de áudio e se a aba não está muda (ícone de alto-falante no navegador).</li>
+  </ol>
+  <table class="tabela">
+    <thead><tr><th>Sintoma</th><th>Causa provável</th><th>Solução</th></tr></thead>
+    <tbody>
+      <tr><td>Nenhum som, nem nos botões de teste</td><td>Áudio bloqueado, aba muda ou saída errada</td><td>Clique na página, confira o mixer do sistema e a aba.</td></tr>
+      <tr><td>Teste toca, música não</td><td>Slider de música em 0 ou faixa ausente</td><td>Suba o slider <em>Música</em>; recarregue a página.</td></tr>
+      <tr><td>Música toca, efeitos não</td><td>Slider de efeitos em 0</td><td>Suba o slider <em>Efeitos</em>.</td></tr>
+      <tr><td>Som só no computador, não no celular</td><td>Modo silencioso ou volume de mídia</td><td>Desative o silencioso e aumente a mídia.</td></tr>
+    </tbody>
+  </table>
+  <div class="box curiosidade">
+    <span class="rot">Como o áudio foi corrigido</span>
+    <p>Na versão web, o Godot pode inicializar o áudio no modo <em>Sample</em>, que em alguns navegadores toca o fluxo sem produzir som audível. A correção foi forçar o modo <em>Stream</em> (<code>audio/general/default_playback_type.web = 0</code>). Se você reexportar o jogo, mantenha essa configuração — sem ela, o áudio “roda” mas fica mudo no navegador.</p>
+  </div>
+
+  <h3><span class="num2">15.2</span> Acessibilidade</h3>
+  <table class="tabela">
+    <thead><tr><th>Opção</th><th>Efeito</th><th>Para quem</th></tr></thead>
+    <tbody>
+      <tr><td>Fonte grande (A+)</td><td>Aumenta a tipografia da interface.</td><td>Telas pequenas, baixa visão, projeção em sala.</td></tr>
+      <tr><td>Mostrar rótulos das vilas no mapa</td><td>Exibe nomes permanentemente.</td><td>Quem está aprendendo a se localizar no vale.</td></tr>
+      <tr><td>Pausar automaticamente ao abrir painéis</td><td>Congela o relógio ao abrir LAB, JOGOS etc.</td><td>Estudo, análise detalhada, leitura de números.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================== CAP 16 -->
+<section class="cap" id="cap16">
+  <h2><span class="num">16</span> BioMoedas e intervenções <a class="ancora" href="#cap16">#</a></h2>
+  <p class="lead">Você começa com 150 BioMoedas. O dinheiro é escasso de propósito: cada decisão é um trade-off entre reduzir transmissão, ampliar capacidade e ganhar informação.</p>
+
+  <h3><span class="num2">16.1</span> As quatro intervenções</h3>
+  <table class="tabela">
+    <thead><tr><th>Intervenção</th><th>Custo</th><th>Efeito imediato</th><th>Efeito epidemiológico</th></tr></thead>
+    <tbody>
+      <tr><td>Saneamento</td><td class="num-col">60 B</td><td>+20 p.p. de cobertura</td><td>Reduz a força de infecção (peso alto em arbovirose e entérica) e a letalidade geral.</td></tr>
+      <tr><td>Vacinação</td><td class="num-col">80 B</td><td>+25 p.p. de cobertura</td><td>Protege suscetíveis; efeito visível em 2–3 semanas.</td></tr>
+      <tr><td>UBS</td><td class="num-col">120 B</td><td>+12 leitos</td><td>Atendimento precoce; reduz letalidade intra-hospitalar.</td></tr>
+      <tr><td>Hospital</td><td class="num-col">260 B</td><td>+45 leitos</td><td>Principal freio de saturação em surtos rápidos.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">16.2</span> Custo por leito: uma leitura de eficiência</h3>
+  <table class="tabela">
+    <thead><tr><th>Obra</th><th>Custo</th><th>Leitos</th><th>Custo por leito</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>UBS</td><td class="num-col">120 B</td><td class="num-col">12</td><td class="num-col">10,0 B</td><td>Mais barata por leito, mas capacidade menor.</td></tr>
+      <tr><td>Hospital</td><td class="num-col">260 B</td><td class="num-col">45</td><td class="num-col">5,8 B</td><td>Melhor custo por leito; exige mais capital inicial.</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Estratégia de alocação</span>
+    <p>Com 150 B iniciais, você pode comprar saneamento + vacinação (140 B) ou uma UBS (120 B). A primeira opção ataca a transmissão; a segunda ataca a capacidade. Em um surto com Rt &gt; 1, conter transmissão costuma render mais; em um surto com ocupação &gt; 100%, leitos evitam mortes imediatas.</p>
+  </div>
+
+  <h3><span class="num2">16.3</span> Como ganhar BioMoedas</h3>
+  <table class="tabela">
+    <thead><tr><th>Fonte</th><th>Valor</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>Desafio concluído</td><td>10 a 70 B</td><td>10 + 60 × aproveitamento. Repetir rende de novo.</td></tr>
+      <tr><td>Artigo lido</td><td>20 B</td><td>Uma vez por artigo; seis artigos = 120 B.</td></tr>
+      <tr><td>Auditoria do Dr. Bayes</td><td>12 B</td><td>Por auditoria concluída.</td></tr>
+      <tr><td>Saldo inicial</td><td>150 B</td><td>Definido no início da partida.</td></tr>
+    </tbody>
+  </table>
+  <div class="box exercicio">
+    <span class="rot">Exercício de gestão</span>
+    <p>Você tem 150 B e duas vilas em situação oposta: uma com Rt 2,1 e ocupação 40%; outra com Rt 0,8 e ocupação 180%. Onde investir primeiro? Justifique com os conceitos dos capítulos <a href="#cap7-4">7.4</a> e <a href="#cap7-7">7.7</a>.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 17 -->
+<section class="cap" id="cap17">
+  <h2><span class="num">17</span> Tutorial: os primeiros 20 minutos <a class="ancora" href="#cap17">#</a></h2>
+  <p class="lead">Um roteiro guiado, com pontos de checagem. Se você seguir na ordem, ao final terá jogado um ciclo completo, aplicado uma intervenção, analisado os dados e exportado um relatório.</p>
+
+  <div class="box dica">
+    <span class="rot">Antes de começar</span>
+    <p>Abra o jogo, clique uma vez na página (para liberar o som) e entre em tela cheia (<kbd>F11</kbd> no navegador). Deixe este manual aberto em outra aba para consultar quando precisar.</p>
+  </div>
+
+  <h3><span class="num2">Passo 1</span> Reconhecer a tela (2 min)</h3>
+  <p>Feche a tela de boas-vindas com <em>Começar a partida</em>. Localize no topo: semana (SE 1), ano, velocidades, agravo ativo, situação, BioMoedas e o menu LAB/JOGOS/REVISTA/MANUAL/MENU. O <b>MANUAL</b> abre este guia em outra aba; <kbd>F1</kbd> faz o mesmo.</p>
+  <p><strong>Checagem:</strong> você consegue apontar onde estão a semana e o saldo de BioMoedas sem procurar?</p>
+
+  <h3><span class="num2">Passo 2</span> Rodar três semanas (2 min)</h3>
+  <p>Clique em <kbd>&gt;&gt;</kbd> (1×) e aguarde três semanas. Observe o número de casos e a situação mudar.</p>
+  <p><strong>Checagem:</strong> a SE avançou de 3 em 3? O card da vila mudou?</p>
+
+  <h3><span class="num2">Passo 3</span> Abrir uma vila (3 min)</h3>
+  <p>Clique em uma vila no mapa e depois em <em>Investigar</em>. Leia os oito indicadores do bloco superior e o bloco <em>Contexto e mobilidade</em>.</p>
+  <p><strong>Checagem:</strong> você sabe dizer se a ocupação está acima de 100%? E se a prevalência é uma proporção?</p>
+
+  <h3><span class="num2">Passo 4</span> Aplicar uma intervenção (2 min)</h3>
+  <p>No painel da vila, escolha <strong>Saneamento</strong> (60 B) ou <strong>Vacinação</strong> (80 B). O saldo cai imediatamente e o nível da intervenção sobe.</p>
+  <p><strong>Checagem:</strong> o saldo no topo mudou? O nível atual da intervenção subiu?</p>
+
+  <h3><span class="num2">Passo 5</span> Medir o efeito (3 min)</h3>
+  <p>Volte ao mapa e rode quatro semanas em 1×. Reabra a vila e compare <em>Novos casos por semana</em> antes e depois. Olhe também o Rt.</p>
+  <p><strong>Checagem:</strong> a incidência caiu? O Rt ficou abaixo de 1? Se não, o que mais pode explicar (sazonalidade, mobilidade, cobertura insuficiente)?</p>
+
+  <h3><span class="num2">Passo 6</span> Abrir o BioLab (3 min)</h3>
+  <p>Clique em <strong>LAB</strong>. Na aba <em>Amostragem</em>, escolha n = 300 e semente 7; clique em <em>Sortear amostra</em>. Vá para <em>Descritiva</em> e leia média, mediana, IC95%, desvio padrão e assimetria da idade.</p>
+  <p><strong>Checagem:</strong> a média e a mediana estão próximas? O que a assimetria indica?</p>
+
+  <h3><span class="num2">Passo 7</span> Rodar um teste (2 min)</h3>
+  <p>Na aba <em>Testes</em>, escolha “2 grupos, não-paramétrico (Mann-Whitney)”, variável resposta <em>Idade</em> e grupo <em>Faixa etária</em>. Rode e leia o p-valor e o IC.</p>
+  <div class="box atencao" style="margin-top:10px">
+    <span class="rot">Atenção</span>
+    <p>Esse teste é circular (a faixa é derivada da idade). Use-o apenas para ver a mecânica da tela; para uma análise com sentido, escolha uma variável resposta distinta do grupo — por exemplo, <em>Biomarcador</em> por <em>Faixa etária</em>.</p>
+  </div>
+
+  <h3><span class="num2">Passo 8</span> Ver a regressão e a ROC (2 min)</h3>
+  <p>Na aba <em>Regressão</em>, rode o modelo logístico e observe os OR, a acurácia e a AUC. Lembre-se do alerta de desfecho raro: acurácia alta com sensibilidade zero não é bom desempenho.</p>
+  <p><strong>Checagem:</strong> algum OR tem IC que cruza 1? A AUC é maior que 0,7?</p>
+
+  <h3><span class="num2">Passo 9</span> Jogar um desafio (2 min)</h3>
+  <p>Abra <strong>JOGOS</strong> e jogue “Detetive de Delineamentos”. Ao final, veja o aproveitamento e as BioMoedas recebidas.</p>
+  <p><strong>Checagem:</strong> você recebeu entre 10 e 70 B? O recorde apareceu no card?</p>
+
+  <h3><span class="num2">Passo 10</span> Ler e exportar (1 min)</h3>
+  <p>Abra <strong>REVISTA</strong> e leia um artigo (20 B). Depois abra o <strong>MANUAL</strong> (ou tecle <kbd>F1</kbd>) e use o capítulo 3 como mapa da interface. Salve a partida no MENU.</p>
+  <p><strong>Checagem:</strong> o CSV abriu na planilha? O hash tem 64 caracteres hexadecimais?</p>
+
+  <div class="box exercicio">
+    <span class="rot">Missão final</span>
+    <p>Repita os passos 4–5 em duas vilas diferentes, com a mesma intervenção. Compare a queda de incidência. Se os efeitos forem diferentes, formule uma hipótese para a diferença (saneamento inicial, densidade, mobilidade, cobertura vacinal) e teste-a no BioLab.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 18 -->
+<section class="cap" id="cap18">
+  <h2><span class="num">18</span> Receitas de análise <a class="ancora" href="#cap18">#</a></h2>
+  <p class="lead">Cinco roteiros prontos para responder perguntas frequentes com o BioLab. Cada receita indica o caminho, a leitura correta e a armadilha a evitar.</p>
+
+  <h3><span class="num2">Receita A</span> Comparar a prevalência de duas vilas</h3>
+  <ol>
+    <li>Abra o painel de cada vila e anote população e casos ativos.</li>
+    <li>Calcule prevalência = casos ativos ÷ população para cada uma.</li>
+    <li>No BioLab, filtre por vila (uma de cada vez) e confira o IC95% da proporção, se disponível.</li>
+  </ol>
+  <p><strong>Leitura:</strong> compare proporções, não números absolutos. Uma vila maior pode ter mais casos e menor prevalência.</p>
+  <p><strong>Armadilha:</strong> usar “casos acumulados” no numerador — isso é incidência acumulada, não prevalência.</p>
+
+  <h3><span class="num2">Receita B</span> Vacinados se infectam menos?</h3>
+  <ol>
+    <li>No BioLab, sorteie n ≥ 1.000 (para ter casos suficientes).</li>
+    <li>Vá em <em>Testes</em>, escolha “Proporções 2×2 (OR e RR)”.</li>
+    <li>Variável resposta: <em>Infectado agora (Sim/Não)</em>; grupo: <em>Vacinado (Sim/Não)</em>.</li>
+    <li>Leia OR, RR, IC95% e o p de Fisher.</li>
+  </ol>
+  <p><strong>Leitura:</strong> OR &lt; 1 e IC excluindo 1 indicam proteção. Traduza: “a chance de infecção entre vacinados é X% da chance entre não vacinados”.</p>
+  <p><strong>Armadilha:</strong> interpretar OR como risco. OR e RR só coincidem quando o desfecho é raro.</p>
+
+  <h3><span class="num2">Receita C</span> Saneamento se associa ao biomarcador?</h3>
+  <ol>
+    <li>Em <em>Gráficos</em>, faça a dispersão de <em>Biomarcador</em> (Y) por <em>Idade</em> (X) — controle visual do confundidor.</li>
+    <li>Em <em>Testes</em>, compare o biomarcador entre <em>Saneamento</em> Sim e Não (t ou Mann-Whitney).</li>
+    <li>Em <em>Regressão</em>, rode a logística com idade, renda, saneamento e doses para ver o efeito ajustado.</li>
+  </ol>
+  <p><strong>Leitura:</strong> se a associação bruta desaparece após ajuste, provavelmente era confundimento.</p>
+  <p><strong>Armadilha:</strong> concluir causalidade de um corte transversal.</p>
+
+  <h3><span class="num2">Receita D</span> O biomarcador discrimina infectados?</h3>
+  <ol>
+    <li>Sorteie uma amostra com casos (filtre uma vila com surto ativo).</li>
+    <li>Rode a logística e observe a AUC da ROC.</li>
+    <li>Compare sensibilidade e especificidade no ponto de corte exibido.</li>
+  </ol>
+  <p><strong>Leitura:</strong> AUC de 0,5 é chute; acima de 0,8 é boa discriminação. Sensibilidade alta serve para triagem; especificidade alta, para confirmação.</p>
+  <p><strong>Armadilha:</strong> escolher o ponto de corte olhando os mesmos dados que serviram para ajustar o modelo (vazamento).</p>
+
+  <h3><span class="num2">Receita E</span> Descrever uma variável assimétrica</h3>
+  <ol>
+    <li>Em <em>Descritiva</em>, observe histograma, média, mediana, assimetria e curtose.</li>
+    <li>Se a assimetria for forte, reporte mediana e IIQ (Q1–Q3), não média e DP.</li>
+    <li>Se precisar comparar grupos, use Mann-Whitney em vez de teste t.</li>
+  </ol>
+  <p><strong>Leitura:</strong> “mediana 37 anos (IIQ 17–54)” é mais honesto que “média 36,9 ± 23,0” quando a distribuição é assimétrica.</p>
+  <p><strong>Armadilha:</strong> excluir outliers sem justificativa — eles podem ser justamente os casos graves.</p>
+
+  <div class="box dica">
+    <span class="rot">Registre o caminho</span>
+    <p>Para cada análise, anote: n, método de amostragem, semente, variáveis escolhidas e teste aplicado. Sem isso, o resultado não é reproduzível — e a reprodutibilidade é parte do método científico.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 19 -->
+<section class="cap" id="cap19">
+  <h2><span class="num">19</span> Erros comuns (e como evitá-los) <a class="ancora" href="#cap19">#</a></h2>
+  <p class="lead">Estes são os equívocos que mais aparecem em análises de dados de saúde — e que o jogo foi desenhado para expor. Reconhecê-los vale mais do que decorar fórmulas.</p>
+
+  <table class="tabela">
+    <thead><tr><th>Erro</th><th>Exemplo</th><th>Correção</th><th>Onde praticar</th></tr></thead>
+    <tbody>
+      <tr><td>Confundir prevalência e incidência</td><td>“A prevalência caiu, então a epidemia acabou.”</td><td>Olhe casos novos e Rt; a prevalência pode cair por recuperação ou morte.</td><td><a href="#cap7-2">7.2</a> · <a href="#cap7-3">7.3</a></td></tr>
+      <tr><td>Achar que toda razão é proporção</td><td>“Ocupação de 126% está errada.”</td><td>Ocupação é demanda ÷ capacidade; pode exceder 100%.</td><td><a href="#cap7-9">7.9</a></td></tr>
+      <tr><td>Inverter o p-valor</td><td>“p = 0,02 → 2% de chance de H₀ ser verdadeira.”</td><td>p = P(dados | H₀), não P(H₀ | dados).</td><td><a href="#cap8-5">8.5</a> · <a href="#cap13">13</a></td></tr>
+      <tr><td>Tratar “não significativo” como “sem efeito”</td><td>“p = 0,21, logo as vilas são iguais.”</td><td>Ausência de evidência não é evidência de ausência; veja IC e poder.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Confundir significância com relevância</td><td>“p &lt; 0,001, então é importante.”</td><td>Com n grande, diferenças mínimas ficam significativas; avalie o tamanho de efeito.</td><td><a href="#cap10">10</a> · <a href="#cap13">13</a></td></tr>
+      <tr><td>Correlação como causalidade</td><td>“Renda alta causa biomarcador alto.”</td><td>Confundidores (idade, escolaridade) e desenho precisam ser considerados.</td><td><a href="#cap9-4">9.4</a> · <a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>Ignorar o denominador</td><td>“Vila A tem mais casos, logo é pior.”</td><td>Compare taxas por 1.000 habitantes.</td><td><a href="#cap7-3">7.3</a></td></tr>
+      <tr><td>Amostra de conveniência como representativa</td><td>“Entrevistei 20 pessoas da praça e concluí sobre o vale.”</td><td>Use amostragem probabilística e declare o método.</td><td><a href="#cap8-1">8.1</a></td></tr>
+      <tr><td>VPP = sensibilidade</td><td>“Teste com 90% de sensibilidade acerta 90% dos positivos.”</td><td>VPP depende da prevalência.</td><td><a href="#cap13">13</a></td></tr>
+      <tr><td>Excluir outliers sem critério</td><td>“Tirei os 5% maiores para a média ficar bonita.”</td><td>Investigue; use medidas robustas em vez de deletar.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Comparar variável com ela mesma</td><td>Idade por faixa etária.</td><td>Pergunte se exposição e desfecho são distintos.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Acurácia em classe desbalanceada</td><td>“98,9% de acurácia” com sensibilidade 0%.</td><td>Olhe sensibilidade, especificidade e AUC.</td><td><a href="#cap8-6">8.6</a></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box curiosidade">
+    <span class="rot">O teste do “e daí?”</span>
+    <p>Antes de aceitar qualquer resultado, faça três perguntas: (1) o efeito é grande o suficiente para importar? (2) o desenho permite a conclusão? (3) o resultado se repete em outra amostra? Se alguma resposta for “não sei”, você ainda não terminou a análise.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 20 -->
+<section class="cap" id="cap20">
+  <h2><span class="num">20</span> Solução de problemas <a class="ancora" href="#cap20">#</a></h2>
+  <p class="lead">Os problemas mais comuns têm causa simples. Comece pela tabela; se nada resolver, use a seção “como reportar” para enviar informações úteis.</p>
+
+  <h3><span class="num2">20.1</span> Som</h3>
+  <table class="tabela">
+    <thead><tr><th>O que você vê</th><th>Causa</th><th>Solução</th></tr></thead>
+    <tbody>
+      <tr><td>Nenhum som ao abrir o jogo</td><td>Política de autoplay do navegador</td><td>Clique uma vez na página; o áudio é liberado.</td></tr>
+      <tr><td>Teste de som não toca</td><td>Aba muda, volume do sistema em 0 ou saída errada</td><td>Verifique o ícone de som da aba, o mixer do sistema e o dispositivo de saída.</td></tr>
+      <tr><td>Música toca, efeitos não</td><td>Slider de efeitos em 0%</td><td>MENU › SOM &amp; MÚSICA › Efeitos.</td></tr>
+      <tr><td>Efeitos tocam, música não</td><td>Slider de música em 0%</td><td>MENU › SOM &amp; MÚSICA › Música.</td></tr>
+      <tr><td>Silêncio total mesmo com tudo alto</td><td>“Silenciar tudo” marcado</td><td>Desmarque a opção.</td></tr>
+      <tr><td>Som no PC, silêncio no celular</td><td>Modo silencioso ou volume de mídia baixo</td><td>Desative o silencioso e aumente a mídia.</td></tr>
+      <tr><td>Após reexportar, ficou mudo no navegador</td><td>Playback type web voltou para “Sample”</td><td>Garanta <code>audio/general/default_playback_type.web = 0</code> no projeto e reexporte.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">20.2</span> Imagem e desempenho</h3>
+  <table class="tabela">
+    <thead><tr><th>Problema</th><th>Causa provável</th><th>Solução</th></tr></thead>
+    <tbody>
+      <tr><td>Tela preta ou “WebGL não suportado”</td><td>Aceleração de hardware desligada ou GPU antiga</td><td>Ative a aceleração no navegador; atualize os drivers; tente outro navegador.</td></tr>
+      <tr><td>Jogo lento, travando</td><td>Qualidade alta em máquina modesta</td><td>Use o botão <b>HQ</b> para reduzir a qualidade; feche outras abas.</td></tr>
+      <tr><td>Mapa borrado ao ampliar</td><td>Texturas em NEAREST (pixel art)</td><td>É intencional: o jogo usa 16 px por tile. Aproxime com FIT para reenquadrar.</td></tr>
+      <tr><td>Zoom “preso” longe do vale</td><td>Pinça ou roda acumulada</td><td>Clique em <b>FIT</b>.</td></tr>
+      <tr><td>Interface cortada em tela pequena</td><td>Janela menor que o layout mínimo</td><td>Gire para paisagem, use tela cheia ou reduza o zoom do navegador.</td></tr>
+      <tr><td>Primeiro carregamento muito lento</td><td>Download do wasm/pck (dezenas de MB)</td><td>Aguarde; depois o cache acelera. Evite limpar o cache durante o jogo.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">20.3</span> Dados e salvamento</h3>
+  <table class="tabela">
+    <thead><tr><th>Problema</th><th>Causa</th><th>Solução</th></tr></thead>
+    <tbody>
+      <tr><td>Perdi o progresso ao fechar</td><td>O jogo só salva automaticamente após desafios</td><td>Use MENU › PARTIDA › Salvar antes de sair.</td></tr>
+      <tr><td>“Carregar” não encontra partida</td><td>Save apagado ou de outra versão</td><td>Verifique se os dados do site foram limpos; saves antigos podem ser incompatíveis.</td></tr>
+      <tr><td>Números “estranhos” após carregar</td><td>Save de versão anterior</td><td>Reinicie a partida; o formato atual é a versão 4.</td></tr>
+      <tr><td>CSV com vírgulas na planilha</td><td>Separador é ponto e vírgula</td><td>Importe com separador <code>;</code> ou use “Texto para colunas”.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">20.4</span> Como reportar um problema</h3>
+  <p>Reúna estas informações — elas permitem reproduzir o caso:</p>
+  <ol>
+    <li><strong>Tela e caminho:</strong> ex.: “Painel da Vila da Encosta Norte, semana 17”.</li>
+    <li><strong>O que você esperava</strong> e <strong>o que aconteceu</strong>, com o texto exato do rótulo.</li>
+    <li><strong>Números:</strong> numerador, denominador e resultado exibido.</li>
+    <li><strong>Ambiente:</strong> navegador, versão, sistema, tela cheia ou não.</li>
+    <li><strong>Print da tela</strong> ou CSV exportado da semana.</li>
+    <li><strong>Passos para reproduzir:</strong> 1, 2, 3…</li>
+  </ol>
+  <div class="box dica">
+    <span class="rot">Antes de reportar</span>
+    <p>Confira se o valor suspeito não é ocupação de leitos (razão que pode passar de 100%) ou uma projeção. O capítulo <a href="#cap7-9">7.9</a> tem a tabela completa de quem pode ultrapassar 100%.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 21 -->
+<section class="cap" id="cap21">
+  <h2><span class="num">21</span> Glossário <a class="ancora" href="#cap21">#</a></h2>
+  <p class="lead">Definições curtas, no contexto do jogo. Clique no capítulo indicado para ver o conceito aplicado.</p>
+
+  <table class="tabela">
+    <thead><tr><th>Termo</th><th>Definição</th><th>Onde ver</th></tr></thead>
+    <tbody>
+      <tr><td>AAS (amostragem aleatória simples)</td><td>Cada indivíduo tem igual probabilidade de ser sorteado.</td><td><a href="#cap8-1">8.1</a></td></tr>
+      <tr><td>Acurácia</td><td>Proporção de classificações corretas; enganosa em classes desbalanceadas.</td><td><a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>Aleatorização</td><td>Atribuição ao acaso, base do ensaio clínico.</td><td><a href="#cap10">10</a></td></tr>
+      <tr><td>Alfa (α)</td><td>Limiar de significância; no jogo, 0,05 bilateral.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Assimetria</td><td>Torção da distribuição; positiva = cauda à direita.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>AUC</td><td>Área sob a curva ROC; mede discriminação (0,5 a 1,0).</td><td><a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>Binomial</td><td>Distribuição de número de sucessos em n tentativas com probabilidade p.</td><td><a href="#cap8-4">8.4</a></td></tr>
+      <tr><td>Boxplot</td><td>Gráfico de cinco números: mínimo, Q1, mediana, Q3, máximo.</td><td><a href="#cap9-3">9.3</a></td></tr>
+      <tr><td>Coorte</td><td>Estudo que segue expostos e não expostos no tempo.</td><td><a href="#cap10">10</a></td></tr>
+      <tr><td>Completude</td><td>Proporção de campos preenchidos; mede ausência, não veracidade.</td><td><a href="#cap12">12</a></td></tr>
+      <tr><td>Confundidor</td><td>Variável associada à exposição e ao desfecho que distorce a associação.</td><td><a href="#cap9-4">9.4</a></td></tr>
+      <tr><td>Curtose</td><td>Achatamento da distribuição em relação à normal.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Desvio padrão</td><td>Dispersão média em torno da média, na unidade da variável.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Eficácia vacinal</td><td>Redução relativa do risco de infecção conferida pela vacina.</td><td><a href="#cap7-8">7.8</a></td></tr>
+      <tr><td>Erro padrão</td><td>Desvio da média amostral ÷ √n; mede precisão da estimativa.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Especificidade</td><td>Proporção de sadios corretamente classificados como negativos.</td><td><a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>H₀ (hipótese nula)</td><td>Hipótese de ausência de efeito/diferença que o teste tenta refutar.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>IC95%</td><td>Intervalo construído por um procedimento que captura o parâmetro em 95% das repetições.</td><td><a href="#cap7-2">7.2</a> · <a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Incidência</td><td>Novos casos por unidade de tempo e população sob risco.</td><td><a href="#cap7-3">7.3</a></td></tr>
+      <tr><td>IIQ</td><td>Intervalo interquartil: Q3 − Q1.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Letalidade</td><td>Óbitos pela doença ÷ casos diagnosticados.</td><td><a href="#cap7-5">7.5</a></td></tr>
+      <tr><td>Mediana</td><td>Valor que divide os dados em 50% abaixo e 50% acima.</td><td><a href="#cap8-2">8.2</a></td></tr>
+      <tr><td>Mortalidade</td><td>Óbitos ÷ população total, por 1.000 ou 100.000.</td><td><a href="#cap7-5">7.5</a></td></tr>
+      <tr><td>Normal</td><td>Distribuição simétrica em sino, definida por μ e σ.</td><td><a href="#cap8-4">8.4</a></td></tr>
+      <tr><td>OR (odds ratio)</td><td>Razão de chances entre expostos e não expostos.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Outlier</td><td>Observação atípica; investigue antes de excluir.</td><td><a href="#cap9-3">9.3</a></td></tr>
+      <tr><td>p-valor</td><td>Probabilidade de dados tão extremos quanto os observados, se H₀ for verdadeira.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Poisson</td><td>Distribuição de contagens de eventos raros em intervalo fixo.</td><td><a href="#cap8-4">8.4</a></td></tr>
+      <tr><td>Prevalência</td><td>Infectados ativos ÷ população viva no momento.</td><td><a href="#cap7-2">7.2</a></td></tr>
+      <tr><td>Proporção</td><td>Parte ÷ todo; sempre entre 0 e 1.</td><td><a href="#cap7">7</a></td></tr>
+      <tr><td>Qui-quadrado</td><td>Teste de associação entre variáveis categóricas.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Razão</td><td>Divisão entre grandezas distintas; pode exceder 1.</td><td><a href="#cap7-9">7.9</a></td></tr>
+      <tr><td>R0</td><td>Número básico de reprodução em população totalmente suscetível.</td><td><a href="#cap7-4">7.4</a></td></tr>
+      <tr><td>ROC</td><td>Curva de sensibilidade × (1 − especificidade).</td><td><a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>RR (risco relativo)</td><td>Razão entre riscos de expostos e não expostos.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Rt</td><td>Número efetivo de reprodução no tempo; &gt;1 indica crescimento.</td><td><a href="#cap7-4">7.4</a></td></tr>
+      <tr><td>Sensibilidade</td><td>Proporção de doentes corretamente identificados pelo teste.</td><td><a href="#cap8-6">8.6</a></td></tr>
+      <tr><td>SE (semana epidemiológica)</td><td>Unidade padrão de agregação de casos.</td><td><a href="#cap6">6</a></td></tr>
+      <tr><td>SHA-256</td><td>Função hash que gera impressão digital única do arquivo.</td><td><a href="#cap12">12</a></td></tr>
+      <tr><td>Significância estatística</td><td>Resultado improvável sob H₀; não mede importância prática.</td><td><a href="#cap19">19</a></td></tr>
+      <tr><td>Sistemática (amostragem)</td><td>Sorteio do início e coleta a cada k-ésimo indivíduo.</td><td><a href="#cap8-1">8.1</a></td></tr>
+      <tr><td>Superlotação</td><td>Ocupação &gt; 100%: mais pacientes graves do que leitos.</td><td><a href="#cap7-7">7.7</a></td></tr>
+      <tr><td>t de Student</td><td>Teste/distribuição para médias com variância desconhecida.</td><td><a href="#cap8-5">8.5</a></td></tr>
+      <tr><td>Transversal</td><td>Estudo que mede exposição e desfecho no mesmo momento.</td><td><a href="#cap10">10</a></td></tr>
+      <tr><td>VPP</td><td>Valor preditivo positivo: probabilidade de ter a doença dado teste positivo.</td><td><a href="#cap13">13</a></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================== CAP 22 -->
+<section class="cap" id="cap22">
+  <h2><span class="num">22</span> Referências e créditos <a class="ancora" href="#cap22">#</a></h2>
+  <p class="lead">O StaTown é um jogo, mas os métodos que ele ensina são os da literatura. As referências abaixo sustentam as definições e interpretações usadas no manual.</p>
+
+  <h3><span class="num2">22.1</span> Métodos e epidemiologia</h3>
+  <ul>
+    <li>ROTHMAN, K. J.; GREENLAND, S.; LASH, T. L. <em>Modern Epidemiology</em>. 3. ed. Filadélfia: Lippincott Williams &amp; Wilkins, 2008.</li>
+    <li>GORDIS, L. <em>Epidemiology</em>. 5. ed. Filadélfia: Elsevier Saunders, 2014.</li>
+    <li>ALTMAN, D. G. <em>Practical Statistics for Medical Research</em>. Londres: Chapman &amp; Hall/CRC, 1991.</li>
+    <li>HOSMER, D. W.; LEMESHOW, S.; STURDIVANT, R. X. <em>Applied Logistic Regression</em>. 3. ed. Hoboken: Wiley, 2013.</li>
+    <li>CORI, A.; FERGUSON, N. M.; FRASER, C.; CAUCHEMEZ, S. A new framework and software to estimate time-varying reproduction numbers during epidemics. <em>American Journal of Epidemiology</em>, v. 178, n. 9, p. 1505–1512, 2013.</li>
+    <li>CENTERS FOR DISEASE CONTROL AND PREVENTION. <em>Principles of Epidemiology in Public Health Practice</em>. 3. ed. Atlanta: CDC, 2006.</li>
+  </ul>
+
+  <h3><span class="num2">22.2</span> Leitura crítica e reporte</h3>
+  <ul>
+    <li>VON ELM, E. et al. The Strengthening the Reporting of Observational Studies in Epidemiology (STROBE) statement. <em>The Lancet</em>, v. 370, n. 9596, p. 1453–1457, 2007.</li>
+    <li>SCHULZ, K. F.; ALTMAN, D. G.; MOHER, D. CONSORT 2010 statement: updated guidelines for reporting parallel group randomised trials. <em>BMJ</em>, v. 340, c332, 2010.</li>
+    <li>WASSERSTEIN, R. L.; LAZAR, N. A. The ASA statement on p-values: context, process, and purpose. <em>The American Statistician</em>, v. 70, n. 2, p. 129–133, 2016.</li>
+    <li>GREENLAND, S. et al. Statistical tests, P values, confidence intervals, and power: a guide to misinterpretations. <em>European Journal of Epidemiology</em>, v. 31, n. 4, p. 337–350, 2016.</li>
+  </ul>
+
+  <h3><span class="num2">22.3</span> Créditos de tecnologia e assets</h3>
+  <table class="tabela">
+    <thead><tr><th>Item</th><th>Origem</th><th>Licença</th></tr></thead>
+    <tbody>
+      <tr><td>Engine</td><td>Godot Engine 4.7</td><td>MIT</td></tr>
+      <tr><td>Arte de tiles e personagens</td><td>Kenney (kenney.nl)</td><td>CC0</td></tr>
+      <tr><td>Ambiências e efeitos</td><td>freesound.org (prévias CC0)</td><td>CC0</td></tr>
+      <tr><td>Fontes Silkscreen, Rubik e VT323</td><td>Google Fonts / autores originais</td><td>SIL Open Font License 1.1</td></tr>
+      <tr><td>Mapa do vale</td><td>Arte original do projeto, derivada de imagem gerada e tratada para pixel art</td><td>Uso educacional no projeto</td></tr>
+    </tbody>
+  </table>
+  <div class="box dica">
+    <span class="rot">Como citar este manual</span>
+    <p>STaTOWN. <em>Manual do jogador e livro de bioestatística</em>. Versão 1.0. 2026. Documento HTML interativo, distribuído com o jogo.</p>
+  </div>
+</section>
+
+<!-- ==================================================== CAP 23 -->
+<section class="cap" id="cap23">
+  <h2><span class="num">23</span> Ficha técnica <a class="ancora" href="#cap23">#</a></h2>
+  <p class="lead">Os detalhes que ajudam a usar, manter e auditar o jogo.</p>
+
+  <table class="tabela">
+    <thead><tr><th>Item</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Título</td><td>StaTown — Vale do Rio Doce</td></tr>
+      <tr><td>Gênero</td><td>Simulação educacional de vigilância epidemiológica</td></tr>
+      <tr><td>Engine</td><td>Godot 4.7 (GDScript)</td></tr>
+      <tr><td>Plataformas</td><td>Web (WebGL 2), desktop e mobile</td></tr>
+      <tr><td>Resolução base</td><td>1600 × 900, com escala <code>canvas_items</code> e modo <code>expand</code></td></tr>
+      <tr><td>Território</td><td>20 vilas, mapa em pixel art com tiles de 16 px</td></tr>
+      <tr><td>População</td><td>41.650 moradores sintéticos no início (cresce com nascimentos)</td></tr>
+      <tr><td>Cenários</td><td>4 agravos: arbovirose, respiratória, entérica e crônica</td></tr>
+      <tr><td>BioLab</td><td>6 abas: Amostragem, Descritiva, Gráficos, Distribuições, Testes, Regressão</td></tr>
+      <tr><td>Desafios</td><td>9, com 6 rodadas cada</td></tr>
+      <tr><td>Revista</td><td>6 artigos fictícios</td></tr>
+      <tr><td>Salvamento</td><td><code>user://statown_save.json</code>, versão 4; autosave após desafios</td></tr>
+      <tr><td>Idioma</td><td>Português brasileiro (textos do jogo sem acentuação por limitação da fonte pixel)</td></tr>
+      <tr><td>Acessibilidade</td><td>Fonte grande, rótulos no mapa, pausa automática, controle de volume por camada</td></tr>
+      <tr><td>Testes automatizados</td><td>StatCore (47 verificações), SmokeUI (39 passos), câmera (34), áudio (129) e auditoria de rótulos</td></tr>
+      <tr><td>Documentação</td><td>Este manual + guias internos do projeto</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">23.1</span> Atalhos e mapa de telas</h3>
+  <table class="tabela">
+    <thead><tr><th>Ação</th><th>Mouse / toque</th><th>Teclado</th></tr></thead>
+    <tbody>
+      <tr><td>Mover o mapa</td><td>Arrastar</td><td>Setas</td></tr>
+      <tr><td>Zoom</td><td>Roda / pinça</td><td><kbd>+</kbd> / <kbd>-</kbd></td></tr>
+      <tr><td>Selecionar vila</td><td>Clique / toque</td><td>—</td></tr>
+      <tr><td>Abrir painel da vila</td><td><em>Investigar</em></td><td>—</td></tr>
+      <tr><td>Fechar painel</td><td><b>X</b></td><td><kbd>Esc</kbd></td></tr>
+      <tr><td>Pausar / acelerar</td><td>Botões no topo</td><td>—</td></tr>
+      <tr><td>Reenquadrar o vale</td><td><b>FIT</b></td><td>—</td></tr>
+      <tr><td>Abrir o manual</td><td><b>MANUAL</b></td><td><kbd>F1</kbd></td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num2">23.2</span> Histórico de correções desta versão</h3>
+  <p>A revisão que originou este manual encontrou e corrigiu pontos importantes. Registro transparente:</p>
+  <table class="tabela">
+    <thead><tr><th>Problema</th><th>Causa</th><th>Correção</th></tr></thead>
+    <tbody>
+      <tr><td>Letalidade acima de 100%</td><td>Óbitos naturais somados aos óbitos pela doença e total global replicado em cada vila.</td><td>Contagem de óbitos naturais por vila, subtração no cálculo e limites de segurança.</td></tr>
+      <tr><td>Prevalência acima de 100%</td><td>Denominador defasado após carregar save.</td><td>Denominador recalculado e limite [0, 1] como rede de segurança.</td></tr>
+      <tr><td>“Ocupação 126%/197%/300%”</td><td>Não era erro: ocupação é razão demanda/capacidade.</td><td>Rótulos, dicas e notas explicando superlotação; limite de exibição em 900%.</td></tr>
+      <tr><td>Efeitos sonoros inaudíveis no navegador</td><td>Playback type web em modo “Sample”.</td><td>Forçado modo “Stream” (<code>default_playback_type.web = 0</code>); teste de som no menu.</td></tr>
+      <tr><td>Botões de velocidade e do HUD sem clique</td><td>Botões criados fora do tema, sem conectar o efeito.</td><td>Efeito de clique conectado em todos.</td></tr>
+      <tr><td>Mortes naturais ausentes no painel</td><td>Campo não exibido.</td><td>Campo “Óbitos naturais (outras causas)” no contexto da vila.</td></tr>
+      <tr><td>Acurácia alta com desfecho raro</td><td>Modelo aprende a dizer “todos negativos” e a sensibilidade fica em 0%.</td><td>Aviso “Desfecho raro” na saída da regressão e explicação em 8.6.</td></tr>
+      <tr><td>Carros, barcos e planadores sumiam no navegador</td><td>O PCK web remapeia os PNGs e <code>DirAccess.get_files_at()</code> não os listava em tempo de execução.</td><td>Listas explícitas em <code>AssetRegistry</code> (incluindo o atlas de carros e a folha de parapentes); tráfego e voo livre voltaram ao build web.</td></tr>
+      <tr><td>Tela de boas-vindas cortava o botão de configurações</td><td>Modal 1080×700 com três cartões estreitos e rodapé de quatro ações.</td><td>Modal 1180×760, cartões mais largos, rodapé com rolagem e rótulo curto “Configurações do jogo”.</td></tr>
+      <tr><td>Painel de cenários estourava o cartão ao trocar de agravo</td><td>Títulos longos e números em colunas sem largura mínima; modal baixo demais.</td><td>Cartões com rolagem, títulos que quebram por palavra, colunas expansíveis e modal 1180×800.</td></tr>
+      <tr><td>Algumas vilas não abriam ao clique</td><td>A máscara de zona cobre só ~42% do mapa e os rótulos capturavam o mouse.</td><td>Busca pela vila mais próxima num raio de 9 tiles, rótulos com <code>mouse_filter = IGNORE</code> e teste para as 20 vilas.</td></tr>
+      <tr><td>Área de surto atravessava o rio</td><td>O overlay pintava o retângulo da vila sem recortar a água e o contorno era o tile inteiro.</td><td>Máscara de água no shader, contorno de ~3 px nas bordas da zona e halo pulsante apenas em terra.</td></tr>
+      <tr><td>Abrir/fechar painel com som agressivo</td><td>Varreduras de 320→768 Hz e 760→342 Hz, com cauda cortada.</td><td>Quinta de marimba (A3→E4 e o inverso), filtrada, com fade de borda e RMS −24 dB.</td></tr>
+      <tr><td>Efeitos pareciam travar ou repetir</td><td>Round-robin cortava o som anterior; stings de 4 s se sobrepunham a cada clique.</td><td>Pool escolhe player ocioso, fade no fim de todo som curto, throttle de 3 s e guarda de 10 s por vila.</td></tr>
+      <tr><td>SIGA no HUD sem função para o jogador</td><td>Relatório é uma integração de backend, não uma ação de jogo.</td><td>Botão substituído por MANUAL (F1); painel SIGA permanece interno para desenvolvimento e testes.</td></tr>
+      <tr><td>Mapa sem vida urbana e sem voo livre</td><td>Arte tinha apenas o cenário estático.</td><td>Carros, caminhões, barcos, navio e exatamente duas asas-deltas e quatro parapentes em órbitas harmônicas sobre os bairros.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box curiosidade">
+    <span class="rot">Auditoria contínua</span>
+    <p>O projeto mantém uma cena de auditoria que varre a interface em busca de rótulos com valores impossíveis e verifica a soma dos estados populacionais. Na última execução: <strong>0 falhas</strong>, 3 avisos (todos de ocupação &gt; 100%, legítimos) e erro de soma de estados igual a zero.</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer class="rodape">
+  <div class="wrap" style="display:block;padding:0 22px">
+    <p><strong>StaTown — Manual do jogador e livro de bioestatística</strong> · versão 1.0 · novembro de 2026</p>
+    <p>Documento interativo distribuído com o jogo. Use o sumário, a busca e os links cruzados para navegar. Para abrir o jogo: <a href="index.html" target="_blank" rel="noopener">Abrir o jogo</a>.</p>
+    <p><a href="#inicio">Voltar ao início</a> · <a href="#cap17">Tutorial</a> · <a href="#cap20">Solução de problemas</a> · <a href="#cap21">Glossário</a></p>
+  </div>
+</footer>
+
+<button class="voltar-topo" id="voltar-topo" aria-label="Voltar ao topo">↑</button>
+
+<div id="lightbox" role="dialog" aria-label="Imagem ampliada">
+  <button class="fechar" aria-label="Fechar">×</button>
+  <img src="" alt="">
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- progresso de leitura ----------
+  var barra = document.getElementById("progresso");
+  var topo = document.getElementById("voltar-topo");
+  function aoRolar(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var p = max > 0 ? (h.scrollTop || document.body.scrollTop) / max : 0;
+    barra.style.width = (p * 100).toFixed(2) + "%";
+    topo.classList.toggle("on", (h.scrollTop || document.body.scrollTop) > 600);
+  }
+  window.addEventListener("scroll", aoRolar, {passive:true});
+  aoRolar();
+
+  topo.addEventListener("click", function(){
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  // ---------- sumário ativo ----------
+  var links = Array.prototype.slice.call(document.querySelectorAll("aside.toc a[href^='#']"));
+  var alvos = links.map(function(a){ return document.querySelector(a.getAttribute("href")); });
+  var observador = null;
+  if ("IntersectionObserver" in window){
+    observador = new IntersectionObserver(function(entradas){
+      entradas.forEach(function(e){
+        if (!e.isIntersecting) return;
+        var id = "#" + e.target.id;
+        links.forEach(function(a){
+          a.classList.toggle("ativo", a.getAttribute("href") === id);
+        });
+      });
+    }, {rootMargin:"-15% 0px -70% 0px", threshold:0});
+    alvos.forEach(function(t){ if (t) observador.observe(t); });
+  }
+
+  // ---------- menu mobile ----------
+  var botaoMenu = document.getElementById("abrir-menu");
+  var toc = document.getElementById("toc");
+  function alternarMenu(forcar){
+    var abrir = (typeof forcar === "boolean") ? forcar : !toc.classList.contains("aberto");
+    toc.classList.toggle("aberto", abrir);
+    botaoMenu.setAttribute("aria-expanded", abrir ? "true" : "false");
+    document.body.style.overflow = abrir ? "hidden" : "";
+  }
+  botaoMenu.setAttribute("aria-expanded", "false");
+  botaoMenu.addEventListener("click", function(){ alternarMenu(); });
+  toc.addEventListener("click", function(ev){
+    if (ev.target.tagName === "A") alternarMenu(false);
+  });
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && toc.classList.contains("aberto")) alternarMenu(false);
+  });
+  window.addEventListener("resize", function(){
+    if (window.innerWidth > 1080 && toc.classList.contains("aberto")) alternarMenu(false);
+  });
+
+  // ---------- busca no sumário ----------
+  var busca = document.getElementById("busca");
+  var vazia = document.getElementById("busca-vazia");
+  function normalizar(s){
+    return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  busca.addEventListener("input", function(){
+    var q = normalizar(busca.value.trim());
+    var achou = 0;
+    var itens = toc.querySelectorAll(":scope > ol > li");
+    itens.forEach(function(li){
+      var texto = normalizar(li.textContent);
+      var bate = q === "" || texto.indexOf(q) >= 0;
+      li.style.display = bate ? "" : "none";
+      if (bate) achou++;
+    });
+    vazia.style.display = (achou === 0 && q !== "") ? "block" : "none";
+  });
+  busca.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape"){ busca.value = ""; busca.dispatchEvent(new Event("input")); busca.blur(); }
+  });
+
+  // ---------- lightbox ----------
+  var lb = document.getElementById("lightbox");
+  var lbImg = lb.querySelector("img");
+  document.querySelectorAll("[data-zoom]").forEach(function(moldura){
+    moldura.addEventListener("click", function(){
+      var img = moldura.querySelector("img");
+      if (!img) return;
+      lbImg.src = img.currentSrc || img.src;
+      lbImg.alt = img.alt || "";
+      lb.classList.add("aberto");
+      document.body.style.overflow = "hidden";
+    });
+  });
+  function fecharLb(){
+    lb.classList.remove("aberto");
+    document.body.style.overflow = "";
+    lbImg.src = "";
+  }
+  lb.addEventListener("click", fecharLb);
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && lb.classList.contains("aberto")) fecharLb();
+  });
+
+  // ---------- links externos: abrir em nova aba ----------
+  document.querySelectorAll("a[href^='http']").forEach(function(a){
+    a.setAttribute("target", "_blank");
+    a.setAttribute("rel", "noopener");
+  });
+})();
+</script>
+</body>
+</html>
