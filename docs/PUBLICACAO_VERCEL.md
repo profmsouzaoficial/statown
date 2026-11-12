@@ -56,10 +56,15 @@ atualizar a branch `deploy`; a integração Git da Vercel escuta essa branch.
    - **Install Command:** deixe vazio
 4. Clique em **Deploy**. O primeiro deploy pode apontar para `main` e não encontrar
    `index.html`; isso é esperado, porque o build ainda não foi publicado.
-5. Depois que o GitHub Actions terminar a primeira execução, abra
-   **Project → Settings → Git → Production Branch** e troque para **`deploy`**.
-6. Em **Deployments**, faça um **Redeploy** da branch `deploy` (ou aguarde o próximo
-   push). A URL de produção passa a servir o jogo.
+5. Depois que o GitHub Actions terminar a primeira execução, defina a branch de
+   produção. A Vercel mudou o local desse ajuste: ele **não fica mais em Git**.
+   Abra **Project → Settings → Environments**, clique no ambiente **Production** e,
+   em **Branch Tracking**, troque `main` por **`deploy`**. Clique em **Save**.
+6. Ainda não existe deployment da branch `deploy`; criar a regra não dispara um build
+   sozinho. Abra **Deployments → Create Deployment**, escolha **Branch-Based**,
+   informe **`deploy`** e clique em **Deploy**. Se o resultado aparecer como Preview,
+   use **Promote to Production**.
+7. A URL de produção passa a servir o jogo.
 
 Se o workflow não conseguir atualizar a branch `deploy`, confira em
 **Settings → Actions → General → Workflow permissions** se a opção
@@ -131,7 +136,7 @@ clara. O restante dos créditos está em `docs/CREDITOS_ARTE.md` e
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
-| Vercel mostra 404 na raiz | produção ainda em `main`, sem `index.html` | Settings → Git → Production Branch = `deploy`; redeploy |
+| Vercel mostra 404 na raiz | produção ainda em `main`, sem `index.html` | Settings → Environments → Production → Branch Tracking = `deploy`; crie um deployment da branch |
 | Branch `deploy` não existe | workflow ainda não rodou ou falhou | Actions → **Publicar no Vercel** → veja o log |
 | Workflow falha no import/export | template ou binário Godot incompatível | confira `GODOT_VERSION` e o template `4.7.2.stable` |
 | Workflow falha nos testes | regressão real no jogo | corrija o teste; o deploy é bloqueado de propósito |
