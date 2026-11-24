@@ -101,6 +101,7 @@ func avancar_semana() -> void:
 	Population.avancar_semana()
 	semana_avancou.emit(semana, ano)
 	_checar_marcos()
+	_salvar()
 
 
 ## Forca o avanco de varias semanas (usado por "avancar rapido" e testes).
@@ -132,6 +133,9 @@ func ganhar_moedas(v: int, motivo: String = "", categoria: String = "ganho",
 		categoria, referencia, moedas)
 	if motivo != "":
 		notificar("+%d BioMoedas - %s" % [v, motivo], "sucesso")
+	# Grava o disco imediatamente: fechar a aba logo apos um ganho nao pode
+	# depender do proximo avanco de semana nem do upload assincrono.
+	_salvar()
 
 
 ## Compra de uma intervencao. O motivo deve ser explicito para o extrato.
@@ -154,6 +158,7 @@ func gastar_moedas(v: int, motivo: String = "", categoria: String = "intervencao
 		notificar("-%d BioMoedas - %s" % [v, motivo], "info")
 	if moedas <= 0:
 		acionar_game_over()
+	_salvar()
 	return true
 
 
@@ -172,6 +177,7 @@ func descontar_moedas(v: int, motivo: String, categoria: String = "obito",
 		categoria, referencia, moedas)
 	if moedas <= 0:
 		acionar_game_over()
+	_salvar()
 	return real
 
 
@@ -282,6 +288,7 @@ func conquistar(id: String, titulo: String) -> void:
 	_conquistas[id] = true
 	conquista_desbloqueada.emit(id, titulo)
 	notificar("Conquista: %s" % titulo, "conquista")
+	_salvar()
 
 
 func conquistas() -> Dictionary:
@@ -369,6 +376,21 @@ func serializar_partida() -> Dictionary:
 		"epidemia": Epidemic.serializar(),
 		"populacao": Population.serializar(),
 	}
+
+
+## Compara o progresso em memoria com um save vindo da nuvem. `moedas_ganhas`
+## e monotonico dentro do semestre (gastar ou perder saldo nao o reduz), entao
+## ele funciona como relogio de progresso. A semana/ano desempata quando as
+## duas fotos tem a mesma producao. Assim um ganho local que ainda nao subiu
+## nao e apagado pelo download antigo ao reabrir o jogo.
+func progresso_local_maior(save_remoto: Dictionary) -> bool:
+	var remoto_ganhas := int(save_remoto.get("moedas_ganhas", 0))
+	if moedas_ganhas_total != remoto_ganhas:
+		return moedas_ganhas_total > remoto_ganhas
+	var local_ord := ano * SE_POR_ANO + semana
+	var remoto_ord := int(save_remoto.get("ano", 1)) * SE_POR_ANO \
+		+ int(save_remoto.get("semana", 1))
+	return local_ord > remoto_ord
 
 
 func carregar_partida() -> bool:

@@ -37,6 +37,7 @@ var _sync_pendente := false
 var _autenticado := false
 var _bloquear_sync := false   # evita subir save local antes de baixar a nuvem
 var _progresso_pronto := false # true somente apos carregar (ou confirmar conta nova)
+var _cache_local_conta := false # o cache carregado pertence mesmo a esta conta
 
 
 func _ready() -> void:
@@ -161,6 +162,7 @@ func sair() -> void:
 	_limpar_sessao()
 	_bloquear_sync = false
 	_progresso_pronto = false
+	_cache_local_conta = false
 	# Troca o caminho ANTES de reiniciar/carregar: o cache da conta nao pode
 	# ser sobrescrito por uma partida local no momento do logout.
 	GameState.caminho_save = "user://statown_save.json"
@@ -249,8 +251,9 @@ func _preparar_caminho_local() -> void:
 	# Se existe cache desta conta, ele e o melhor ponto de partida offline.
 	# Se nao existe, NAO reinicie a partida: a nuvem ainda vai responder e o
 	# save anonimo atual pode ser a primeira fotografia de uma conta nova.
+	_cache_local_conta = false
 	if FileAccess.file_exists(GameState.caminho_save):
-		GameState.carregar_partida()
+		_cache_local_conta = GameState.carregar_partida()
 
 
 # ---------------------------------------------------------------------------
@@ -436,6 +439,21 @@ func _tratar_carregar(dados) -> void:
 	if typeof(save) != TYPE_DICTIONARY:
 		_progresso_pronto = false
 		progresso_carregado.emit(false, "O servidor respondeu sem um save valido.")
+		return
+	# O upload e assincrono: fechar a aba logo depois de ganhar BioMoedas pode
+	# cancelar o envio. Se o cache local tem mais producao no semestre, ele e a
+	# fotografia mais nova; preserve-o e reenvie em vez de aceitar a nuvem velha.
+	# A preferencia so vale para cache desta conta: um save anonimo/default nao
+	# pode sobrescrever a nuvem de outra conta que ainda nao foi baixada.
+	if _cache_local_conta and GameState.progresso_local_maior(save):
+		ultimo_sync = str(linha.get("atualizado_em", ""))
+		_progresso_pronto = true
+		_bloquear_sync = false
+		GameState.salvar_partida()
+		progresso_carregado.emit(true,
+			"Progresso local preservado (SE %d, ano %d); enviando ao servidor." % [
+				GameState.semana, GameState.ano])
+		sincronizar_agora()
 		return
 	if GameState.aplicar_save(save):
 		ultimo_sync = str(linha.get("atualizado_em", ""))

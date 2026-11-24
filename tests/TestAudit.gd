@@ -1,4 +1,6 @@
 extends Node
+const SAVE_TESTE := "user://test_audit.json"
+
 ## Pente-fino numerico: roda 52 semanas e audita TODO numero exibido na interface.
 ## Roda como cena (precisa dos autoloads):
 ##   godot --headless res://tests/TestAudit.tscn
@@ -9,6 +11,14 @@ var _main: Control
 
 
 func _ready() -> void:
+	# Nao use o save real: a auditoria avanca 52 semanas e grava a cada semana.
+	GameState.caminho_save = SAVE_TESTE
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
+	Conta.cfg["habilitado"] = false
+	Conta._autenticado = false
+	Conta.access_token = ""
+	# Garante que a auditoria comece da SE 1, mesmo que exista save real.
+	GameState.reiniciar_partida()
 	_main = load("res://scenes/Main.tscn").instantiate()
 	add_child(_main)
 	for i in range(6):
@@ -19,6 +29,7 @@ func _ready() -> void:
 	_auditar_modelo()
 	await _auditar_rotulos()
 
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	print("AUDITORIA: %d falhas, %d avisos" % [_falhas, _avisos])
 	get_tree().quit(1 if _falhas > 0 else 0)
 

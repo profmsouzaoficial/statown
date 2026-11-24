@@ -45,7 +45,7 @@ $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de nav
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
-$GODOT --headless res://tests/TestEconomia.tscn              # 33 verificações de moedas/nota/semestre
+$GODOT --headless res://tests/TestEconomia.tscn              # 47 verificações de moedas/nota/semestre/persistência
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
 $GODOT --headless res://tests/TestRevista.tscn               # 1802 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
@@ -171,7 +171,11 @@ Toda transação tem `delta`, `motivo`, `categoria`, `ref`, hora e saldo depois;
 `GameState.aplicar_save`; o upload é `statown_salvar(p_semestre, p_save)`.
 `Conta.progresso_pronto()` só fica `true` depois do download (ou da confirmação de
 conta nova). Enquanto for `false`, `_bloquear_sync` impede qualquer upload — uma falha
-de rede não pode sobrescrever a nuvem com um save local vazio. O logout troca
+de rede não pode sobrescrever a nuvem com um save local vazio. `GameState` grava o
+arquivo local imediatamente em ganhos/gastos e ao avançar a semana; no login,
+`GameState.progresso_local_maior` compara `moedas_ganhas` (e a semana/ano como
+desempate) com o save remoto. Se o cache **desta conta** estiver à frente, ele é
+preservado e reenviado, em vez de ser substituído por uma nuvem atrasada. O logout troca
 `GameState.caminho_save` de volta para `user://statown_save.json` **antes** de
 reiniciar/carregar, para não apagar o cache da conta.
 Regra de ouro: **nunca** coloque a `service_role` no cliente; a `anon key` é pública e
@@ -415,7 +419,7 @@ cobre buses e volumes, não a decodificação do navegador.
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
-- [ ] `TestEconomia` 33/33
+- [ ] `TestEconomia` 47/47
 - [ ] `TestDesafios` 22/22
 - [ ] `TestRevista` 1802/1802 (50 artigos, 10 por area, DOI/PMID unicos e traducao PT-BR)
 - [ ] `Capture` 23 PNGs, 0 `SCRIPT ERROR`

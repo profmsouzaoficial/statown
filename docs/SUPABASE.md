@@ -19,7 +19,7 @@ semestre.
 | Sem `config/supabase.json` preenchido | Tela de conta explica que o backend não está configurado e oferece **CONTINUAR SEM CONTA**. O save fica neste navegador. |
 | Com Supabase, aluno novo | Cria a conta em `auth.users`; o perfil nasce em `statown_alunos`; o progresso local é enviado ao servidor. |
 | Aluno volta em outro computador | Faz login, baixa o save do semestre atual e continua da semana em que parou. |
-| Semana avança / moedas mudam | O jogo envia o save ao Supabase a cada ~12 s, ao perder o foco e em pontos importantes. |
+| Semana avança / moedas mudam | O jogo grava o save local **na hora** em cada ganho/gasto e a cada semana; o envio ao Supabase é agendado (~12 s), ao perder o foco e em pontos importantes. |
 | Tela de login aberta | A simulação fica pausada; nenhuma semana passa atrás do formulário. |
 | Sem internet | O jogo avisa, mantém o save local e tenta de novo; a nota no servidor pode ficar atrasada. |
 | Semestre novo (`2026/1` → `2026/2`) | Começa uma linha nova no banco e uma participação nova; o save do semestre anterior não é reaproveitado. |
@@ -120,8 +120,9 @@ recompilar. O workflow inclui `config/` no build porque o filtro é `all_resourc
    **TENTAR BAIXAR DE NOVO** ou **JOGAR SEM SINCRONIZAR**. A segunda opção deixa
    jogar, mas mantém o envio bloqueado até um download bem-sucedido; é uma proteção
    para não sobrescrever o save de outro computador com uma partida vazia. O progresso
-   feito nesse intervalo fica **somente** no cache local e pode ser substituído pelo
-   save da nuvem quando o download voltar — avise o aluno e prefira tentar de novo.
+   feito nesse intervalo fica no cache local; ao entrar de novo, ele é preservado e
+   reenviado se tiver mais produção no semestre do que a nuvem (veja a seção de
+   conflito abaixo). Ainda assim, prefira tentar o download novamente.
 
 O jogo **não guarda a senha**. Ele guarda apenas o token de sessão em
 `user://statown_sessao.json`, que é específico daquele navegador/computador. Sair
@@ -135,8 +136,15 @@ CONTA** ao terminar.
 - No navegador, `user://` é o armazenamento do próprio site (IndexedDB/OPFS,
   conforme o build). Limpar dados do site apaga o save local.
 
-O servidor é a fonte de verdade quando há conta: ao entrar, o save baixado substitui
-o local. Se o download falhar, o jogo avisa e mantém o local; não faça uma prova
+### Conflito entre cache local e nuvem
+
+Com conta, a nuvem é a referência normal. Mas o upload é assíncrono: se o aluno
+fechar a aba logo depois de ganhar BioMoedas, o envio pode ser cancelado. Por isso,
+ao entrar, o jogo compara a produção do semestre (`moedas_ganhas`) e a semana do
+cache local **deste navegador** com o save da nuvem. Se o cache desta conta estiver
+à frente, ele é preservado e reenviado; uma nuvem mais nova (ou sem cache comprovado
+da conta) continua vencendo. O ganho também é gravado no arquivo local imediatamente,
+antes do HTTP. Se o download falhar, o jogo avisa e mantém o local; não faça uma prova
 dependendo de sincronização em rede instável.
 
 ---

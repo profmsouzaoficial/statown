@@ -378,7 +378,8 @@ footer.rodape a{color:var(--texto2)}
   <div class="box dica">
     <span class="rot">Conta do aluno (obrigatória neste build)</span>
     <p>Com o Supabase ativo, antes das boas-vindas aparece a tela <strong>CONTA DO ALUNO</strong> em modo obrigatório. Entre com e-mail e senha para o servidor guardar a semana, o ano e as BioMoedas — assim a partida continua em outro computador. O jogo guarda apenas o <b>token de sessão</b>, nunca a senha. A tela também abre pelo botão <strong>CONTA</strong> da HUD.</p>
-    <p>O download do progresso acontece antes de liberar a simulação. Se o servidor não responder, a tela mostra o erro e oferece <strong>TENTAR BAIXAR DE NOVO</strong> ou <strong>JOGAR SEM SINCRONIZAR</strong>; nesta segunda opção nada é enviado até um download bem-sucedido, e o progresso feito offline pode ser substituído pelo save da nuvem — o aviso aparece na própria tela. Se o professor publicar um build sem Supabase, a mesma tela explica o que falta e oferece <strong>CONTINUAR SEM CONTA</strong> (modo local).</p>
+    <p>O download do progresso acontece antes de liberar a simulação. Se o servidor não responder, a tela mostra o erro e oferece <strong>TENTAR BAIXAR DE NOVO</strong> ou <strong>JOGAR SEM SINCRONIZAR</strong>; nesta segunda opção nada é enviado até um download bem-sucedido, e o progresso feito offline pode ser substituído pelo save da nuvem quando a nuvem tem mais produção — o aviso aparece na própria tela. Se o professor publicar um build sem Supabase, a mesma tela explica o que falta e oferece <strong>CONTINUAR SEM CONTA</strong> (modo local).</p>
+    <p>Se o envio da última jogada não chegou ao servidor (por exemplo, você fechou a aba logo depois de ganhar BioMoedas), o jogo compara o cache deste navegador com a nuvem ao entrar de novo. O cache com mais moedas ganhas no semestre é preservado e reenviado; assim um ganho local não é apagado por um save remoto atrasado. A nuvem continua vencendo quando tem produção maior ou quando o cache local não é comprovadamente desta conta.</p>
   </div>
   <figure class="shot">
     <div class="moldura" data-zoom>
@@ -419,7 +420,7 @@ footer.rodape a{color:var(--texto2)}
   </div>
 
   <h3><span class="num2">2.4</span> Salvar e continuar depois</h3>
-  <p>O jogo salva automaticamente <strong>ao concluir um desafio</strong>, ao ganhar ou gastar BioMoedas e ao perder o foco da janela. Fora isso, use <strong>MENU › PARTIDA › Salvar</strong>. O arquivo fica no armazenamento local do navegador (para o jogo web) ou em <code>user://statown_save.json</code> (modo local na versão nativa). Com conta, o caminho é <code>user://statown_save_&lt;hash&gt;.json</code> e o servidor guarda uma cópia por semestre. Em <strong>Carregar</strong> você retoma a partida; em <strong>Reiniciar tudo</strong> a população, o histórico e as BioMoedas voltam ao início — essa ação pede confirmação e não pode ser desfeita (a participação do semestre também é zerada).</p>
+  <p>O jogo salva automaticamente <strong>ao concluir um desafio</strong>, ao ganhar ou gastar BioMoedas, ao avançar a semana e ao perder o foco da janela. Fora isso, use <strong>MENU › PARTIDA › Salvar</strong>. O arquivo fica no armazenamento local do navegador (para o jogo web) ou em <code>user://statown_save.json</code> (modo local na versão nativa). Com conta, o caminho é <code>user://statown_save_&lt;hash&gt;.json</code> e o servidor guarda uma cópia por semestre. Em <strong>Carregar</strong> você retoma a partida; em <strong>Reiniciar tudo</strong> a população, o histórico e as BioMoedas voltam ao início — essa ação pede confirmação e não pode ser desfeita (a participação do semestre também é zerada).</p>
   <div class="box atencao">
     <span class="rot">Antes de fechar o navegador</span>
     <p>Se você acabou de fazer uma intervenção cara ou de rodar muitas semanas, salve manualmente. Limpar os dados do site no navegador apaga o save.</p>
@@ -1945,10 +1946,10 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>BioLab</td><td>6 abas: Amostragem, Descritiva, Gráficos, Distribuições, Testes, Regressão</td></tr>
       <tr><td>Desafios</td><td>9, com 6 rodadas cada</td></tr>
       <tr><td>Revista</td><td>6 artigos reais por semana (acervo de 50, PubMed/NLM; resumo em PT-BR com selo TRADUZIDO e DOI do original)</td></tr>
-      <tr><td>Salvamento</td><td><code>user://statown_save.json</code>, versão 4; autosave após desafios</td></tr>
+      <tr><td>Salvamento</td><td><code>user://statown_save.json</code>, versão 6; autosave após desafios, moedas e semanas</td></tr>
       <tr><td>Idioma</td><td>Português brasileiro (chrome sem acentuação por limitação da fonte pixel; traduções da Revista preservam acentos em Rubik)</td></tr>
       <tr><td>Acessibilidade</td><td>Fonte grande, rótulos no mapa, pausa automática, controle de volume por camada</td></tr>
-      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (97), Revista (1.802), câmera (93), áudio (129), economia (33) e desafios do LAB (22)</td></tr>
+      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (97), Revista (1.802), câmera (93), áudio (129), economia (47) e desafios do LAB (22)</td></tr>
       <tr><td>Documentação</td><td>Este manual + guias internos do projeto</td></tr>
     </tbody>
   </table>

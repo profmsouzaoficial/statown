@@ -247,6 +247,13 @@ func _criar_pausa_foco() -> void:
 func _ao_perder_foco() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	# Enquanto o login/download esta na frente, o estado em memoria ainda pode
+	# ser o save anonimo; gravar nele apagaria o cache da conta.
+	if _login_layer != null:
+		return
+	# Primeiro grava o disco; o upload HTTP pode ser cancelado quando a aba
+	# fecha, mas o save local ja leva o estado atual.
+	GameState.salvar_partida()
 	if Conta.autenticado():
 		Conta.sincronizar_agora()
 	if GameState.pausado_por_foco():

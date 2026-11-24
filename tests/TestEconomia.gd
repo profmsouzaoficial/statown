@@ -18,6 +18,10 @@ func _ok(cond: bool, msg: String) -> void:
 
 
 func _ready() -> void:
+	# Teste nao pode tocar na conta real se a maquina tiver sessao salva.
+	Conta.cfg["habilitado"] = false
+	Conta._autenticado = false
+	Conta.access_token = ""
 	GameState.caminho_save = SAVE_TESTE
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	_main = load("res://scenes/Main.tscn").instantiate()
@@ -34,6 +38,7 @@ func _ready() -> void:
 	await _testar_game_over()
 	_testar_pausa_foco()
 	_testar_carregamento()
+	_testar_persistencia_e_conflito()
 	_testar_semestre()
 
 	GameState.reiniciar_partida()
@@ -129,6 +134,93 @@ func _testar_carregamento() -> void:
 	_ok(Economy.extrato.is_empty(),
 		"carregar um save nao pode cobrar obitos da semana de novo")
 	_ok(GameState.moedas == 500, "saldo do save deveria ser preservado no carregamento")
+
+
+func _testar_persistencia_e_conflito() -> void:
+	# Reproduz o relato: ganhar 25 e fechar a aba antes do upload. O save local
+	# precisa conter o ganho e a nuvem velha nao pode apaga-lo ao reabrir.
+	GameState.caminho_save = SAVE_TESTE
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
+	GameState.reiniciar_partida()
+	var antes := GameState.moedas
+	GameState.ganhar_moedas(25, "teste de persistencia", "desafio_lab", "teste_persistencia")
+	_ok(GameState.moedas == antes + 25,
+		"ganho deveria entrar no saldo antes de qualquer sync")
+
+	var arquivo := FileAccess.open(SAVE_TESTE, FileAccess.READ)
+	var texto := ""
+	if arquivo != null:
+		texto = arquivo.get_as_text()
+		arquivo.close()
+	var lido = JSON.parse_string(texto)
+	var d: Dictionary = lido if typeof(lido) == TYPE_DICTIONARY else {}
+	_ok(FileAccess.file_exists(SAVE_TESTE),
+		"ganhar moedas deveria gravar o save local na hora")
+	_ok(not d.is_empty(), "save local deveria ser um JSON valido")
+	_ok(int(d.get("moedas", 0)) == antes + 25,
+		"save local deveria guardar o saldo com o ganho")
+	_ok(int(d.get("moedas_ganhas", 0)) == 25,
+		"save local deveria guardar a producao do semestre")
+	var achou := false
+	var extrato: Array = (d.get("economia", {}) as Dictionary).get("extrato", [])
+	for t in extrato:
+		if typeof(t) == TYPE_DICTIONARY and str(t.get("categoria", "")) == "desafio_lab" \
+				and int(t.get("delta", 0)) == 25:
+			achou = true
+	_ok(achou, "extrato salvo deveria conter a transacao do ganho")
+
+	var antigo: Dictionary = d.duplicate(true)
+	antigo["moedas"] = antes
+	antigo["moedas_ganhas"] = 0
+	antigo["semana"] = 1
+	antigo["ano"] = 1
+	_ok(GameState.progresso_local_maior(antigo),
+		"cache local com 25 ganhas deveria vencer a nuvem com 0")
+	var novo: Dictionary = d.duplicate(true)
+	novo["moedas_ganhas"] = 25
+	novo["semana"] = GameState.semana + 1
+	_ok(not GameState.progresso_local_maior(novo),
+		"nuvem com a mesma producao e semana posterior deveria vencer")
+
+	# Simula fechar/reabrir: o estado em memoria some e so o arquivo fica.
+	GameState.moedas = 0
+	GameState.moedas_ganhas_total = 0
+	_ok(GameState.carregar_partida(), "save local recem-gravado deveria carregar")
+	_ok(GameState.moedas == antes + 25 and GameState.moedas_ganhas_total == 25,
+		"reabrir deveria recuperar as 25 BioMoedas e a producao")
+
+	# O download antigo da nuvem nao pode substituir esse cache.
+	Conta._autenticado = false
+	Conta._bloquear_sync = true
+	Conta._progresso_pronto = false
+	Conta._cache_local_conta = true
+	Conta._tratar_carregar([{"save_data": antigo, "atualizado_em": "2026-11-24T22:11:56+00:00"}])
+	_ok(GameState.moedas == antes + 25,
+		"aplicar a nuvem velha nao pode apagar as 25 moedas locais")
+	_ok(Conta._progresso_pronto,
+		"depois de preservar o local, o progresso deveria ser considerado pronto")
+
+	# Sem cache comprovado desta conta, a nuvem continua sendo a referencia:
+	# um save anonimo/default nao pode sobrescrever a conta.
+	Conta._progresso_pronto = false
+	Conta._cache_local_conta = false
+	Conta._tratar_carregar([{"save_data": antigo, "atualizado_em": "2026-11-24T22:11:56+00:00"}])
+	_ok(GameState.moedas == antes,
+		"sem cache da conta, a nuvem deveria prevalecer")
+
+	# E, quando a nuvem realmente tem mais producao, ela continua vencendo.
+	Conta._progresso_pronto = false
+	novo["moedas"] = 200
+	novo["moedas_ganhas"] = 50
+	novo["semana"] = GameState.semana + 2
+	Conta._tratar_carregar([{"save_data": novo, "atualizado_em": "2026-11-25T10:00:00+00:00"}])
+	_ok(GameState.moedas == 200,
+		"nuvem com mais producao deveria ser aplicada")
+
+	Conta._bloquear_sync = false
+	Conta._progresso_pronto = false
+	GameState.caminho_save = SAVE_TESTE
+	GameState.reiniciar_partida()
 
 
 func _testar_semestre() -> void:

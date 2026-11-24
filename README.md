@@ -117,8 +117,10 @@ Com o Supabase configurado, o aluno cria conta e o progresso (semana, ano, moeda
 extrato e desafios) é gravado por aluno e por semestre. Ao entrar em outro computador,
 o jogo baixa o save e continua da semana em que parou. O login só libera a simulação
 depois do download; se a rede falhar, a tela oferece tentar de novo ou jogar sem
-sincronizar, mantendo o upload bloqueado para não sobrescrever a nuvem. Sem Supabase,
-o botão **CONTA** explica o modo local e o jogo salva apenas neste navegador.
+sincronizar, mantendo o upload bloqueado para não sobrescrever a nuvem. Ganhos e
+gastos são gravados no save local na hora; se o envio ainda não chegou, o cache desta
+conta com mais moedas ganhas no semestre é preservado e reenviado no próximo login.
+Sem Supabase, o botão **CONTA** explica o modo local e o jogo salva apenas neste navegador.
 
 O passo a passo, o SQL e os limites de segurança estão em
 [docs/SUPABASE.md](docs/SUPABASE.md). O build não contém `service_role`; a chave
