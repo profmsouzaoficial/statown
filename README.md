@@ -81,11 +81,56 @@ e um botão **Silenciar tudo**; os valores ficam no save.
    dessa amostra, não de números inventados.
 4. **Decidir** — gastar **BioMoedas** em saneamento, vacinação, UBS e hospital. Cada
    compra altera os parâmetros daquela vila imediatamente.
-5. **Registrar** — o backend gera o relatório semanal (JSON/CSV) no formato de boletim,
-   com hash de integridade — o mesmo formato que um serviço de vigilância usa. A tela
-   **SIGA** continua no projeto como ferramenta interna de desenvolvimento, fora do HUD.
+5. **Registrar** — a tela interna **SIGA** gera o relatório semanal (JSON/CSV) no formato
+   de boletim, com hash de integridade — o mesmo formato que um serviço de vigilância usa.
+   Não há API de backend gerando o CSV nesta versão; com o Supabase ativado, o save e a
+   nota do semestre sobem por conta, mas o relatório continua ferramenta interna.
 6. **Ganhar BioMoedas** nos 9 minigames (10 + até 60 por acerto) e na leitura crítica
    da Revista.
+
+### BioMoedas, desafios e nota de participação
+
+As **BioMoedas** são a moeda do jogo e a base da nota de participação. O jogo mostra
+cada ganho e cada perda no botão **EXTRATO** da HUD, com motivo, categoria, horário e
+saldo depois da transação.
+
+| Evento | Efeito |
+|---|---|
+| Vencer ou pontuar nos 9 minigames | ganha moedas (10 + até 60 por rodada) |
+| Cumprir o **desafio do LAB** da semana | ganha 20 a 30 moedas, uma vez por contexto/semana |
+| Conter um surto sem novos óbitos | ganha bônus de 20 a 60 moedas |
+| Comprar intervenção na vila | gasta o custo da intervenção |
+| Óbito pela doença | perde 1% do saldo por óbito, com teto de 25% do saldo na semana e mínimo de 1 |
+
+Se o saldo chegar a **zero**, é **game over**. O botão **REINICIAR PARTIDA** recomeça a
+simulação na SE 1, mas preserva as moedas **ganhas** e o extrato do semestre — é isso
+que conta para a nota. O menu “reiniciar tudo” apaga também a participação.
+
+A nota é `min(100, moedas_ganhas_no_semestre / 10)` (divisão inteira): 1390 moedas
+viram 100 pontos, não 139. Gastar moedas não reduz a nota; o que conta é o total
+**ganho**. No início de um novo semestre (`AAAA/1` ou `AAAA/2`), a participação
+recomeça.
+
+### Conta do aluno
+
+Com o Supabase configurado, o aluno cria conta e o progresso (semana, ano, moedas,
+extrato e desafios) é gravado por aluno e por semestre. Ao entrar em outro computador,
+o jogo baixa o save e continua da semana em que parou. O login só libera a simulação
+depois do download; se a rede falhar, a tela oferece tentar de novo ou jogar sem
+sincronizar, mantendo o upload bloqueado para não sobrescrever a nuvem. Sem Supabase,
+o botão **CONTA** explica o modo local e o jogo salva apenas neste navegador.
+
+O passo a passo, o SQL e os limites de segurança estão em
+[docs/SUPABASE.md](docs/SUPABASE.md). O build não contém `service_role`; a chave
+`anon` é pública e a proteção real é a RLS + as RPCs do banco.
+
+> **Estado desta entrega (24/11/2026):** a integração foi validada no projeto
+> Supabase real do StaTown: login, download em um navegador novo, retomada da
+> semana salva e upload manual funcionaram. O build atual usa
+> `config/supabase.json` com `habilitado: true`; a chave `anon` é pública e a
+> proteção real continua sendo a RLS + as RPCs. O passo a passo para criar outro
+> projeto está em [docs/SUPABASE.md](docs/SUPABASE.md) (seções 2 e 7). Se a
+> configuração for removida, o jogo abre em modo local.
 
 ### Como ler os números (e por que a ocupação passa de 100%)
 
@@ -142,10 +187,12 @@ linha “Óbitos naturais (outras causas)” no painel.
 - **Dr. Bayes** — diálogo sobre probabilidade condicional, sensibilidade,
   especificidade e valor preditivo.
 - **Manual** — guia completo em `docs/manual.html`, aberto pelo HUD ou por `F1`.
-- **SIGA (interno)** — relatório e conversor de dados; geração pelo backend, sem botão no jogo.
+- **SIGA (interno)** — relatório, conversor de dados e participação do semestre; o HUD
+  usa **EXTRATO** no lugar do SIGA. O CSV de participação usa a conta logada.
 - **Cenário** — quatro agravos com parâmetros diferentes: arbovirose (R₀ 2,8),
   respiratória (R₀ 3,6), entérica (R₀ 2,4) e crônica (R₀ 0).
-- **Menu** — salvar/carregar (`user://statown_save.json`), fonte grande, reiniciar.
+- **Menu** — salvar/carregar (`user://statown_save.json` ou o save por conta), fonte
+  grande, reiniciar.
 
 ---
 
@@ -183,10 +230,16 @@ godot --headless res://tests/TestCamera.tscn
 # 6. tráfego: 55 veículos, 2 asas-deltas, 4 parapentes, máscara e reinício
 godot --headless res://tests/TestTrafego.tscn
 
-# 7. capturas de tela (precisa de display; gera docs/shots/*.png)
+# 7. economia: óbitos, surto, nota, game over, carregamento e semestre
+godot --headless res://tests/TestEconomia.tscn
+
+# 8. desafios do LAB: banco, checagem, pagamento e reset semanal
+godot --headless res://tests/TestDesafios.tscn
+
+# 9. capturas de tela (precisa de display; gera docs/shots/*.png)
 godot --path . res://tests/Capture.tscn --resolution 1600x900
 
-# 8. exportação web
+# 10. exportação web
 mkdir -p exports/web
 godot --headless --path . --export-release "Web" exports/web/index.html
 ```
@@ -263,11 +316,11 @@ assets/art/           mapa bakeado (world_map.png + 16 chunkes), decor.png,
 assets/audio/         mus (15 temas), vila (20 stings), amb (6 loops), sfx (10)
 data/audio.json       mapa vila -> zona/ambiente/acento (Python + jogo leem o mesmo)
 tests/                test_statcore.gd, SmokeUI, TestCamera, TestAudio, TestAudit,
-                      TestTrafego, Capture
+                      TestTrafego, TestEconomia, TestDesafios, Capture
 tools/                render_world.py (mapa), split_world.py (fatia o mapa editado),
                       extract_map_geometry.py,
                       audio/render_audio.py + audio/fetch_freesound.py
-docs/shots/           21 capturas usadas no manual e na documentação
+docs/shots/           24 capturas usadas no manual e na documentação (23 geradas pelo Capture)
 docs/manual.html       manual do usuário (23 capítulos, figuras, links internos)
 docs/manual_preview.png captura da capa do manual (para divulgação)
 docs/CREDITOS_AUDIO.md  arquitetura sonora e créditos CC0 do freesound

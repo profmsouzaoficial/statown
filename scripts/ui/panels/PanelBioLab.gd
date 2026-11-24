@@ -19,6 +19,27 @@ var _lbl_info: Label
 # abas construidas sob demanda
 var _construidas := {}
 
+# Desafio do LAB: um por contexto e por semana epidemiologica. A validacao
+# olha o estado real da aba (amostra, grafico, teste...), nao um quiz.
+var _desafios_bank: Array = []
+var _col_lab: VBoxContainer
+var _desafio_contexto := "amostragem"
+var _lbl_desafio_titulo: Label
+var _lbl_desafio_desc: Label
+var _lbl_desafio_status: Label
+var _btn_desafio: Button
+var _acoes := {}                  # contexto -> quantas acoes o aluno fez
+var _ultima_descritiva := {}
+var _ultimo_grafico := {}
+var _ultima_dist := {}
+var _ultimo_teste := {}
+var _ultima_regressao := {}
+var _semana_acoes := -1
+var _ano_acoes := -1
+const CONTEXTOS_ABAS := ["amostragem", "descritiva", "graficos",
+	"distribuicoes", "testes", "regressao"]
+const CAMINHO_DESAFIOS := "res://data/desafios_lab.json"
+
 
 func _init(m: Control) -> void:
 	main = m
@@ -39,8 +60,10 @@ func _build() -> void:
 	add_child(margem)
 
 	var col := VBoxContainer.new()
+	col.name = "ColunaLab"
 	col.add_theme_constant_override("separation", 10)
 	margem.add_child(col)
+	_col_lab = col
 
 	# ---- barra de status da amostra ----
 	var barra := PanelContainer.new()
@@ -66,10 +89,13 @@ func _build() -> void:
 	hb.add_child(_lbl_info)
 	hb.add_child(UITheme.botao("Nova amostra", _nova_amostra, null, UITheme.SUCESSO))
 
+	_carregar_desafios()
+	_criar_card_desafio()
 	_tab = TabContainer.new()
 	_tab.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab.clip_tabs = false
 	col.add_child(_tab)
+	_tab.tab_changed.connect(_ao_mudar_aba)
 
 	_aba_amostragem()
 	_aba_descritiva()
@@ -78,6 +104,7 @@ func _build() -> void:
 	_aba_testes()
 	_aba_regressao()
 	_atualizar_info()
+	_atualizar_desafio()
 
 
 func _atualizar_info() -> void:
@@ -91,6 +118,199 @@ func _atualizar_info() -> void:
 		str(nomes.get(_metodo, _metodo)),
 		"todas" if _filtro_vila == 0 else str(Vilas.get_vila(_filtro_vila)["nome"]),
 		_seed]
+
+
+func _carregar_desafios() -> void:
+	if not FileAccess.file_exists(CAMINHO_DESAFIOS):
+		return
+	var f := FileAccess.open(CAMINHO_DESAFIOS, FileAccess.READ)
+	if f == null:
+		return
+	var d = JSON.parse_string(f.get_as_text())
+	f.close()
+	if typeof(d) != TYPE_DICTIONARY:
+		return
+	_desafios_bank = d.get("contextos", [])
+	if typeof(_desafios_bank) != TYPE_ARRAY:
+		_desafios_bank = []
+
+
+func _definicoes_contexto(ctx: String) -> Array:
+	for c in _desafios_bank:
+		if typeof(c) == TYPE_DICTIONARY and str(c.get("id", "")) == ctx:
+			return c.get("desafios", [])
+	return []
+
+
+func _criar_card_desafio() -> void:
+	if _col_lab == null:
+		return
+	var p := UITheme.card("DESAFIO DO LABORATORIO", UITheme.ROXO)
+	# O card fica sempre acima das abas: o aluno ve a tarefa e o valor antes
+	# de comecar a mexer nos controles.
+	_col_lab.add_child(p)
+	var c := UITheme.conteudo(p)
+	var h := UITheme.hbox(12)
+	c.add_child(h)
+	var v := UITheme.vbox(4)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	_lbl_desafio_titulo = UITheme.rotulo("", 15, UITheme.ACENTO)
+	v.add_child(_lbl_desafio_titulo)
+	_lbl_desafio_desc = UITheme.paragrafo("", 13, UITheme.TEXTO_DIM)
+	_lbl_desafio_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_lbl_desafio_desc)
+	_lbl_desafio_status = UITheme.rotulo("", 11, UITheme.TEXTO_FRACO)
+	v.add_child(_lbl_desafio_status)
+	_btn_desafio = UITheme.botao("CONFERIR TAREFA", _conferir_desafio, null, UITheme.SUCESSO)
+	_btn_desafio.custom_minimum_size.x = 190
+	h.add_child(_btn_desafio)
+
+
+func _ao_mudar_aba(_i: int) -> void:
+	_atualizar_desafio()
+
+
+func _registro_desafio(ctx: String) -> Dictionary:
+	var reg: Dictionary = GameState.desafios_lab.get(ctx, {})
+	var defs := _definicoes_contexto(ctx)
+	var ids: Array = []
+	for d in defs:
+		ids.append(str(d.get("id", "")))
+	var valido := not reg.is_empty() and int(reg.get("ano", 0)) == GameState.ano \
+		and int(reg.get("semana", 0)) == GameState.semana and ids.has(str(reg.get("id", "")))
+	if valido:
+		return reg
+	if defs.is_empty():
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(hash("%d:%d:%s" % [GameState.ano, GameState.semana, ctx]))
+	var escolha: Dictionary = defs[rng.randi_range(0, defs.size() - 1)]
+	reg = {
+		"ano": GameState.ano, "semana": GameState.semana,
+		"id": str(escolha.get("id", "")),
+		"recompensa": int(escolha.get("recompensa", 20)),
+		"concluido": false,
+	}
+	GameState.desafios_lab[ctx] = reg
+	return reg
+
+
+func _sincronizar_semana_acoes() -> void:
+	if _semana_acoes == GameState.semana and _ano_acoes == GameState.ano:
+		return
+	_semana_acoes = GameState.semana
+	_ano_acoes = GameState.ano
+	_acoes.clear()
+	_ultima_descritiva = {}
+	_ultimo_grafico = {}
+	_ultima_dist = {}
+	_ultimo_teste = {}
+	_ultima_regressao = {}
+
+
+func _atualizar_desafio() -> void:
+	if _lbl_desafio_titulo == null or _tab == null:
+		return
+	_sincronizar_semana_acoes()
+	var idx := clampi(_tab.current_tab, 0, CONTEXTOS_ABAS.size() - 1)
+	_desafio_contexto = CONTEXTOS_ABAS[idx]
+	var reg := _registro_desafio(_desafio_contexto)
+	if reg.is_empty():
+		_lbl_desafio_titulo.text = "Nenhum desafio configurado para este contexto."
+		_lbl_desafio_desc.text = "Verifique data/desafios_lab.json."
+		_lbl_desafio_status.text = ""
+		_btn_desafio.disabled = true
+		return
+	var def := {}
+	for d in _definicoes_contexto(_desafio_contexto):
+		if str(d.get("id", "")) == str(reg.get("id", "")):
+			def = d
+			break
+	_lbl_desafio_titulo.text = "%s  -  %s" % [
+		str(def.get("titulo", "Desafio")), _desafio_contexto.capitalize()]
+	_lbl_desafio_desc.text = str(def.get("descricao", ""))
+	var recompensa := int(reg.get("recompensa", 20))
+	if GameState.game_over:
+		_lbl_desafio_status.text = "Partida encerrada: reinicie para continuar pontuando."
+		_btn_desafio.text = "PARTIDA ENCERRADA"
+		_btn_desafio.disabled = true
+	elif bool(reg.get("concluido", false)):
+		_lbl_desafio_status.text = "CONCLUIDO nesta SE: +%d BioMoedas ja creditadas." % recompensa
+		_btn_desafio.text = "DESAFIO CONCLUIDO"
+		_btn_desafio.disabled = true
+	else:
+		_lbl_desafio_status.text = ("Recompensa: +%d BioMoedas, uma vez por contexto nesta "
+			+ "semana. Dica: %s") % [recompensa, str(def.get("dica", ""))]
+		_btn_desafio.text = "CONFERIR TAREFA (+%d B)" % recompensa
+		_btn_desafio.disabled = false
+
+
+func _registrar_acao(ctx: String) -> void:
+	_sincronizar_semana_acoes()
+	_acoes[ctx] = int(_acoes.get(ctx, 0)) + 1
+	if _btn_desafio != null and ctx == _desafio_contexto:
+		_atualizar_desafio()
+
+
+func _conferir_desafio() -> void:
+	_sincronizar_semana_acoes()
+	var reg := _registro_desafio(_desafio_contexto)
+	if reg.is_empty() or bool(reg.get("concluido", false)) or GameState.game_over:
+		return
+	if not _checar_desafio(str(reg.get("id", ""))):
+		_lbl_desafio_status.text = "Ainda nao. A tarefa precisa ser executada nesta visita ao LAB."
+		main.mostrar_toast("Tarefa incompleta: execute a acao pedida e confira de novo.", "erro")
+		return
+	reg["concluido"] = true
+	GameState.desafios_lab[_desafio_contexto] = reg
+	var recompensa := int(reg.get("recompensa", 20))
+	GameState.ganhar_moedas(recompensa,
+		"Desafio do LAB (%s): %s" % [_desafio_contexto, str(reg.get("id", ""))],
+		"desafio_lab", str(reg.get("id", "")))
+	GameState.salvar_partida()
+	_atualizar_desafio()
+
+
+func _checar_desafio(id: String) -> bool:
+	var ativo := int(_acoes.get(_desafio_contexto, 0)) > 0
+	match id:
+		"amostra_aas_200":
+			return ativo and _metodo == "aas" and _amostra.size() >= 200
+		"amostra_estratificada_150":
+			return ativo and _metodo == "estratificada" and _amostra.size() >= 150
+		"descritiva_idade_ic":
+			return ativo and str(_ultima_descritiva.get("var", "")) == "idade" \
+				and str(_ultima_descritiva.get("grupo", "")) == ""
+		"descritiva_renda_por_sexo":
+			return ativo and str(_ultima_descritiva.get("var", "")) == "renda_familiar_sm" \
+				and str(_ultima_descritiva.get("grupo", "")) == "genero"
+		"grafico_histograma_idade":
+			return ativo and int(_ultimo_grafico.get("tipo", -1)) == 2 \
+				and str(_ultimo_grafico.get("x", "")) == "idade"
+		"grafico_dispersao_r2":
+			return ativo and int(_ultimo_grafico.get("tipo", -1)) == 0 \
+				and str(_ultimo_grafico.get("x", "")) == "idade" \
+				and str(_ultimo_grafico.get("y", "")) == "biomarcador_clinico" \
+				and _ultimo_grafico.has("r2")
+		"dist_normal_sigma2":
+			return ativo and int(_ultima_dist.get("familia", -1)) == 0 \
+				and absf(float(_ultima_dist.get("p2", 0.0)) - 2.0) < 0.001
+		"dist_t_gl5":
+			return ativo and int(_ultima_dist.get("familia", -1)) == 1 \
+				and absf(float(_ultima_dist.get("p2", 0.0)) - 5.0) < 0.001
+		"teste_t_p_menor_005":
+			return ativo and int(_ultimo_teste.get("tipo", -1)) == 0 \
+				and float(_ultimo_teste.get("p", 1.0)) < 0.05
+		"teste_nao_parametrico":
+			return ativo and int(_ultimo_teste.get("tipo", -1)) == 2
+		"regressao_linear_r2":
+			return ativo and int(_ultima_regressao.get("tipo", -1)) == 0 \
+				and _ultima_regressao.has("r2")
+		"regressao_logistica_or":
+			return ativo and int(_ultima_regressao.get("tipo", -1)) == 2 \
+				and _ultima_regressao.has("or_maior_1")
+	return false
 
 
 func _placeholder(nome: String) -> VBoxContainer:
@@ -228,6 +448,7 @@ func _atualizar_tabela() -> void:
 
 
 func _nova_amostra() -> void:
+	_registrar_acao("amostragem")
 	_seed += 1
 	match _metodo:
 		"aas":
@@ -343,8 +564,12 @@ func _aba_descritiva() -> void:
 	box.custom_minimum_size.y = 230
 	graphs.add_child(box)
 
-	sv.item_selected.connect(func(_i): _atualizar_descritiva())
-	sg.item_selected.connect(func(_i): _atualizar_descritiva())
+	sv.item_selected.connect(func(_i):
+		_registrar_acao("descritiva")
+		_atualizar_descritiva())
+	sg.item_selected.connect(func(_i):
+		_registrar_acao("descritiva")
+		_atualizar_descritiva())
 	_atualizar_descritiva()
 
 
@@ -360,6 +585,7 @@ func _atualizar_descritiva() -> void:
 	var cats := _categoricas()
 	var var_num := str(nums[clampi(sv.selected, 0, nums.size() - 1)]["id"])
 	var var_cat := "" if sg.selected <= 0 else str(cats[sg.selected - 1]["id"])
+	_ultima_descritiva = {"var": var_num, "grupo": var_cat}
 
 	var v := Population.vetor_numerico(_amostra, var_num)
 	var d := StatCore.describe(v)
@@ -506,6 +732,7 @@ func _desenhar_grafico() -> void:
 	if opts.size() < 4:
 		return
 	var tipo_i: int = opts[0].selected
+	_ultimo_grafico = {"tipo": tipo_i}
 	var nums := _numericas()
 	var cats := _categoricas()
 	var g := aba.find_child("Canvas", true, false) as StatChartCanvas
@@ -524,7 +751,10 @@ func _desenhar_grafico() -> void:
 		g.definir_dispersao(pts, str(nums[opts[1].selected]["rotulo"]),
 			str(nums[opts[2].selected]["rotulo"]))
 		var reg := StatCore.linear_regression(vx, vy)
+		_ultimo_grafico["x"] = str(nums[opts[1].selected]["id"])
+		_ultimo_grafico["y"] = str(nums[opts[2].selected]["id"])
 		if not reg.has("erro"):
+			_ultimo_grafico["r2"] = float(reg["r2"])
 			g.adicionar_reta(float(reg["b0"]), float(reg["b1"]), UITheme.ACENTO,
 				"R2 = %.3f" % float(reg["r2"]))
 			main.mostrar_toast("r = %.3f  ·  R2 = %.3f  ·  reta: y = %.2f + %.3f x" % [
@@ -543,15 +773,18 @@ func _desenhar_grafico() -> void:
 			val.append(float(item["n"]))
 			cores.append(paleta[k % paleta.size()])
 			k += 1
+		_ultimo_grafico["categoria"] = var_cat
 		g.titulo = "Frequencia de " + var_cat
 		g.formato_y = "int"
 		g.definir_barras(rot, val, cores, "n")
 	else:
 		var vv := Population.vetor_numerico(_amostra, str(nums[opts[1].selected]["id"]))
 		var h2 := StatCore.histogram(vv, 0)
+		_ultimo_grafico["x"] = str(nums[opts[1].selected]["id"])
 		g.titulo = "Histograma de " + str(nums[opts[1].selected]["rotulo"])
 		g.formato_y = "int"
 		g.definir_histograma(_centros_de(h2), h2["counts"], str(nums[opts[1].selected]["rotulo"]))
+	_registrar_acao("graficos")
 
 
 # ============================================================================
@@ -630,10 +863,13 @@ func _construir_distribuicoes() -> void:
 	sel.item_selected.connect(func(i):
 		# O passo das setas depende da familia: sigma 0.5, gl 1, p 0.01.
 		# Digitar continua aceitando qualquer valor exato.
+		_registrar_acao("distribuicoes")
 		_ajustar_passos(i, par1, par2, par3)
 		atualizar.call(i))
 	for w in [par1, par2, par3]:
-		(w as SpinBox).value_changed.connect(func(_v): atualizar.call(0))
+		(w as SpinBox).value_changed.connect(func(_v):
+			_registrar_acao("distribuicoes")
+			atualizar.call(0))
 	_ajustar_passos(sel.selected, par1, par2, par3)
 	_atualizar_distribuicao(sel.selected, par1.value, par2.value, par3.value, par1, par2, par3)
 
@@ -801,6 +1037,9 @@ func _atualizar_distribuicao(familia: int, p1: float, p2: float, p3: float,
 		g.adicionar_ponto(Vector2(p3, minf(y_marca, ymax)), UITheme.PERIGO, 4.0)
 
 
+	_ultima_dist = {"familia": familia, "p1": p1, "p2": p2, "p3": p3}
+
+
 func _s1_label(s: SpinBox, txt: String) -> void:
 	var par := s.get_parent() as GridContainer
 	if par == null:
@@ -900,6 +1139,7 @@ func _construir_testes() -> void:
 
 
 func _rodar_teste() -> void:
+	_registrar_acao("testes")
 	var aba := _tab.get_node_or_null("Testes")
 	if aba == null:
 		return
@@ -907,6 +1147,7 @@ func _rodar_teste() -> void:
 	if opts.size() < 3:
 		return
 	var tipo: int = opts[0].selected
+	_ultimo_teste = {"tipo": tipo}
 	var nums := _numericas()
 	var cats := _categoricas()
 	var var_y := str(nums[opts[1].selected]["id"])
@@ -948,6 +1189,7 @@ func _rodar_teste() -> void:
 				_vazio(corpo)
 				return
 			var r := StatCore.t_test_independent(grupos[nomes[0]], grupos[nomes[1]], true)
+			_ultimo_teste["p"] = float(r.get("p", 1.0))
 			corpo.add_child(_linha_teste("Teste", str(r.get("teste", "t"))))
 			corpo.add_child(_linha_teste("Grupos", "%s (n=%d) vs %s (n=%d)" % [
 				nomes[0], int(r.get("n1", 0)), nomes[1], int(r.get("n2", 0))]))
@@ -1125,7 +1367,7 @@ func _aba_regressao() -> void:
 	sel.select(2)
 	sel.custom_minimum_size.x = 420
 	ctrl.add_child(sel)
-	ctrl.add_child(UITheme.botao("Rodar modelo", func(): _rodar_regressao(sel.selected), null, UITheme.SUCESSO))
+	ctrl.add_child(UITheme.botao("Rodar modelo", func(): _rodar_regressao(sel.selected, true), null, UITheme.SUCESSO))
 	var esp := Control.new()
 	esp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ctrl.add_child(esp)
@@ -1147,8 +1389,11 @@ func _aba_regressao() -> void:
 	_rodar_regressao(2)
 
 
-func _rodar_regressao(tipo: int) -> void:
+func _rodar_regressao(tipo: int, registrar: bool = false) -> void:
+	if registrar:
+		_registrar_acao("regressao")
 	var aba := _tab.get_node_or_null("Regressao")
+	_ultima_regressao = {"tipo": tipo}
 	if aba == null:
 		return
 	var g := aba.find_child("Canvas", true, false) as StatChartCanvas
@@ -1183,6 +1428,7 @@ func _rodar_regressao(tipo: int) -> void:
 		corpo.add_child(_linha_teste("Erro padrao de b1", "%.6f" % float(r.get("se_b1", 0.0))))
 		corpo.add_child(_linha_teste("t de b1", "%.4f" % float(r.get("t", 0.0))))
 		corpo.add_child(_linha_teste("p", StatCore.fmt_p(float(r.get("p", 1.0)))))
+		_ultima_regressao["r2"] = float(r["r2"])
 		var pr := StatCore.pearson(xv, yv)
 		corpo.add_child(_linha_teste("r de Pearson", "%.4f" % float(pr.get("r", 0.0))))
 		corpo.add_child(_linha_teste("R2", "%.4f" % float(r["r2"])))
@@ -1216,9 +1462,13 @@ func _rodar_regressao(tipo: int) -> void:
 	corpo.add_child(UITheme.paragrafo(
 		"Desfecho: estar infectado ou exposto no momento da amostra. Modelo logit com 4 "
 		+ "preditores, ajustado por descida de gradiente.", 12, UITheme.TEXTO_DIM))
+	var tem_or := false
 	for k in range(pesos.size()):
 		var orv := exp(pesos[k])
+		if orv > 1.0:
+			tem_or = true
 		corpo.add_child(_linha_teste("b(%s)" % nomes[k], "%.4f   OR = %.3f" % [pesos[k], orv]))
+	_ultima_regressao["or_maior_1"] = tem_or
 	corpo.add_child(_linha_teste("b0 (intercepto)", "%.4f" % float(rl["bias"])))
 	corpo.add_child(UITheme.separador())
 	var tr: Dictionary = rl["treino"]

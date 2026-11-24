@@ -40,6 +40,25 @@ var _vila_destaque: int = 0
 var _vila_zoom: int = 0
 var _ultimo_tick_semana := 0.0
 
+# Camada de pausa por perda de foco (aba/janela). Fica acima dos modais para
+# deixar claro que a simulacao parou, mesmo quando um painel estava aberto.
+var _pausa_foco_layer: CanvasLayer
+var _pausa_foco_msg: Label
+var _js_vis_cb = null
+
+# Game over: camada propria para nao ser fechada pelo X do modal.
+var _game_over_layer: CanvasLayer
+var _game_over_msg: Label
+var _game_over_resumo: Label
+
+# Conta / login
+var _login_layer: CanvasLayer
+var _login_panel: PanelLogin
+var _btn_conta: Button
+var _login_aguardando_progresso := false
+var _login_pausa_anterior := false
+var _login_velocidade_anterior := 1.0
+
 
 func _ready() -> void:
 	UITheme.aplicar_escala(GameState.fonte_grande)
@@ -53,15 +72,32 @@ func _ready() -> void:
 	_criar_hud()
 	_criar_modais()
 	_criar_toasts()
+	_criar_pausa_foco()
+	_criar_game_over()
+	_configurar_visibilidade_web()
 	_conectar()
 	_atualizar_hud()
+	if GameState.game_over:
+		_mostrar_game_over.call_deferred()
 	Audio.modo_mapa()
 	Audio.tocar_ambiente_base("amb_parque_urbano")
 	# a Vila Central e o que o jogador ve no centro da tela ao abrir o jogo:
 	# deixar o cartao do rodape preenchido evita a primeira impressao de "vazio"
 	_vila_sel = 1
 	_atualizar_card_vila(1)
-	abrir_boas_vindas()
+	if _deve_mostrar_login():
+		_mostrar_login.call_deferred(true)
+	else:
+		abrir_boas_vindas()
+
+
+func _notification(what: int) -> void:
+	# Desktop e alguns navegadores entregam a perda de foco por notificacao.
+	# O callback de visibilitychange cobre o caso da aba oculta no web.
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_ao_perder_foco()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_WM_WINDOW_FOCUS_IN:
+		_ao_ganhar_foco()
 
 
 func _process(delta: float) -> void:
@@ -80,6 +116,205 @@ func _unhandled_input(event: InputEvent) -> void:
 			and event.keycode == KEY_F1:
 		_abrir_manual()
 		get_viewport().set_input_as_handled()
+
+
+# ============================================================================
+# GAME OVER
+# ============================================================================
+
+func _criar_game_over() -> void:
+	_game_over_layer = CanvasLayer.new()
+	_game_over_layer.name = "GameOver"
+	_game_over_layer.layer = 95
+	_game_over_layer.visible = false
+	add_child(_game_over_layer)
+	var fundo := ColorRect.new()
+	fundo.color = Color(0.02, 0.02, 0.03, 0.95)
+	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_game_over_layer.add_child(fundo)
+	var centro := CenterContainer.new()
+	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_game_over_layer.add_child(centro)
+	var p := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.BG_PANEL
+	sb.border_color = UITheme.PERIGO
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 36
+	sb.content_margin_right = 36
+	sb.content_margin_top = 28
+	sb.content_margin_bottom = 28
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(560, 0)
+	centro.add_child(p)
+	var v := UITheme.vbox(10)
+	p.add_child(v)
+	v.add_child(UITheme.titulo("GAME OVER", 32, UITheme.PERIGO, true))
+	_game_over_msg = UITheme.paragrafo("", 16, UITheme.TEXTO)
+	_game_over_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_game_over_msg)
+	_game_over_resumo = UITheme.paragrafo("", 13, UITheme.TEXTO_DIM)
+	_game_over_resumo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_game_over_resumo)
+	v.add_child(UITheme.separador())
+	var b := UITheme.botao("REINICIAR PARTIDA", _reiniciar_game_over, null, UITheme.SUCESSO)
+	b.custom_minimum_size = Vector2(0, 48)
+	v.add_child(b)
+	v.add_child(UITheme.paragrafo(
+		"A nota do semestre e o extrato sao preservados. A partida recomeca na SE 1, "
+		+ "com o saldo inicial, e voce pode continuar ganhando moedas.", 12, UITheme.TEXTO_FRACO))
+
+
+func _mostrar_game_over() -> void:
+	if _game_over_layer == null:
+		return
+	var n := Economy.nota_participacao()
+	_game_over_msg.text = ("Suas BioMoedas chegaram a zero na SE %d do ano %d. A simulacao "
+		+ "parou; nenhuma semana avanca ate voce reiniciar.") % [GameState.semana, GameState.ano]
+	_game_over_resumo.text = ("Semestre preservado: %d moedas ganhas, %d gastas, nota projetada "
+		+ "%d/%d. Saldo inicial do proximo ciclo: %d BioMoedas.") % [
+		GameState.moedas_ganhas_total, GameState.moedas_gastas_total,
+		int(n["nota"]), int(n["nota_maxima"]), GameState.MOEDAS_INICIAIS]
+	_game_over_layer.visible = true
+	Audio.duck(-10.0)
+
+
+func _reiniciar_game_over() -> void:
+	GameState.reiniciar_partida(true)
+	if Conta.autenticado():
+		Conta.sincronizar_agora()
+	_game_over_layer.visible = false
+	# O reinicio tambem limpa o estado de pausa por foco no GameState; sem
+	# esconder a camada, ela poderia reaparecer sobre a partida nova quando o
+	# game over aconteceu logo antes de a janela perder o foco.
+	if _pausa_foco_layer != null:
+		_pausa_foco_layer.visible = false
+	Audio.duck(-7.0 if GameState.modal_aberto else 0.0)
+	_atualizar_hud()
+	mostrar_toast("Nova partida iniciada. A pontuacao do semestre foi preservada.", "sucesso")
+
+
+# ============================================================================
+# PAUSA POR PERDA DE FOCO
+# ============================================================================
+
+func _criar_pausa_foco() -> void:
+	_pausa_foco_layer = CanvasLayer.new()
+	_pausa_foco_layer.name = "PausaPorFoco"
+	_pausa_foco_layer.layer = 90
+	_pausa_foco_layer.visible = false
+	add_child(_pausa_foco_layer)
+
+	var fundo := ColorRect.new()
+	fundo.color = Color(0.02, 0.03, 0.05, 0.92)
+	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pausa_foco_layer.add_child(fundo)
+
+	var centro := CenterContainer.new()
+	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pausa_foco_layer.add_child(centro)
+
+	var p := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.BG_PANEL
+	sb.border_color = UITheme.ACENTO
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(12)
+	sb.content_margin_left = 32
+	sb.content_margin_right = 32
+	sb.content_margin_top = 26
+	sb.content_margin_bottom = 26
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(520, 0)
+	centro.add_child(p)
+
+	var v := UITheme.vbox(10)
+	p.add_child(v)
+	v.add_child(UITheme.titulo("JOGO PAUSADO", 28, UITheme.ACENTO, true))
+	_pausa_foco_msg = UITheme.paragrafo(
+		"A simulacao parou porque o StaTown perdeu o foco da janela/aba. "
+		+ "Nenhuma semana avanca enquanto voce estiver fora.", 16, UITheme.TEXTO_DIM)
+	v.add_child(_pausa_foco_msg)
+	v.add_child(UITheme.separador())
+	var b := UITheme.botao("RETOMAR A SIMULACAO", _retomar_foco, null, UITheme.SUCESSO)
+	b.custom_minimum_size = Vector2(0, 48)
+	v.add_child(b)
+
+
+func _ao_perder_foco() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	if Conta.autenticado():
+		Conta.sincronizar_agora()
+	if GameState.pausado_por_foco():
+		return
+	GameState.pausar_por_foco()
+	if _pausa_foco_layer == null:
+		return
+	_pausa_foco_layer.visible = true
+	if _pausa_foco_msg != null:
+		_pausa_foco_msg.text = ("A simulacao parou na SE %d (ano %d). "
+			+ "Nenhuma semana avanca enquanto voce estiver fora; o jogo salvou o estado atual.") % [
+			GameState.semana, GameState.ano]
+	Audio.duck(-12.0 if not GameState.modal_aberto else -7.0)
+
+
+func _ao_ganhar_foco() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	if _pausa_foco_msg != null and GameState.pausado_por_foco():
+		_pausa_foco_msg.text = ("Voce voltou. A simulacao continua pausada na SE %d (ano %d). "
+			+ "Clique em retomar para seguir de onde parou.") % [GameState.semana, GameState.ano]
+
+
+func _retomar_foco() -> void:
+	GameState.retomar_por_foco()
+	if _pausa_foco_layer != null:
+		_pausa_foco_layer.visible = false
+	Audio.duck(-7.0 if GameState.modal_aberto else 0.0)
+
+
+## No web, visibilitychange e o sinal mais confiavel para aba ocultada.
+## A callback fica guardada em uma variavel para o JavaScriptObject nao ser
+## coletado pelo GC do Godot.
+func _configurar_visibilidade_web() -> void:
+	if not OS.has_feature("web"):
+		return
+	if not ClassDB.class_exists("JavaScriptBridge"):
+		return
+	_js_vis_cb = JavaScriptBridge.create_callback(_ao_visibilidade_js)
+	var win = JavaScriptBridge.get_interface("window")
+	if win != null:
+		# JavaScriptObject aceita atribuicao de propriedade; `win.set(...)`
+		# nao existe e, no navegador, vira uma chamada ao metodo JS `set`.
+		win.__statown_vis_cb = _js_vis_cb
+	JavaScriptBridge.eval("""
+		(function () {
+			if (window.__statown_vis_instalado) return;
+			window.__statown_vis_instalado = true;
+			function avisar() {
+				if (window.__statown_vis_cb) {
+					window.__statown_vis_cb(document.visibilityState);
+				}
+			}
+			document.addEventListener('visibilitychange', avisar);
+			window.addEventListener('pagehide', function () {
+				if (window.__statown_vis_cb) window.__statown_vis_cb('hidden');
+			});
+			window.addEventListener('pageshow', avisar);
+		})();
+	""")
+
+
+func _ao_visibilidade_js(args: Array) -> void:
+	var estado := str(args[0]) if args.size() > 0 else ""
+	if estado == "hidden":
+		_ao_perder_foco()
+	elif estado == "visible":
+		_ao_ganhar_foco()
 
 
 # ============================================================================
@@ -202,7 +437,10 @@ func _criar_hud() -> void:
 	acoes.add_child(_botao_hud("LAB", "Abrir o laboratorio de bioestatistica", _abrir_lab, UITheme.INFO))
 	acoes.add_child(_botao_hud("JOGOS", "Minigames curriculares", _abrir_minigames, UITheme.ROXO))
 	acoes.add_child(_botao_hud("REVISTA", "Leitura critica de artigos", _abrir_revista, UITheme.ACENTO_2))
+	acoes.add_child(_botao_hud("EXTRATO", "Moedas, nota e historico", _abrir_economia, UITheme.ACENTO_2))
 	acoes.add_child(_botao_hud("MANUAL", "Manual do jogo (F1)", _abrir_manual, UITheme.SUCESSO))
+	_btn_conta = _botao_hud("CONTA", Conta.status_curto(), _abrir_conta, UITheme.INFO)
+	acoes.add_child(_btn_conta)
 	acoes.add_child(_botao_hud("MENU", "Configuracoes", _abrir_menu, UITheme.BORDA_CLARA))
 	linha.add_child(acoes)
 
@@ -429,6 +667,13 @@ func _conectar() -> void:
 		_vila_sel = 0
 		mundo.definir_overlay(GameState.overlay_ativo)
 		_atualizar_hud())
+	GameState.game_over_acionado.connect(_mostrar_game_over)
+	Conta.sessao_alterada.connect(_atualizar_conta)
+	Conta.progresso_carregado.connect(_ao_progresso_carregado)
+	Conta.sync_alterado.connect(func(msg, ok):
+		_atualizar_conta()
+		if not ok and not OS.has_feature("headless"):
+			mostrar_toast("Sincronizacao: " + msg, "erro"))
 	camera_ctrl.zoom_alterado.connect(_ao_mudar_zoom)
 	Vilas.vila_atualizada.connect(func(_id): _atualizar_kpis())
 	Epidemic.atualizado.connect(_ao_atualizar_epidemia)
@@ -540,6 +785,124 @@ func _ciclar_overlay() -> void:
 	var nomes := {"prevalencia": "Prevalencia", "incidencia": "Incidencia",
 		"vacinacao": "Cobertura vacinal", "saneamento": "Saneamento", "nenhum": "Sem camada"}
 	mostrar_toast("Camada: %s" % nomes[GameState.overlay_ativo], "info")
+
+
+func _deve_mostrar_login() -> bool:
+	# Testes headless nao devem parar numa tela de login sem Supabase.
+	if OS.has_feature("headless"):
+		return false
+	return Conta.configurado() and (not Conta.autenticado() or not Conta.progresso_pronto())
+
+
+func _mostrar_login(obrigatorio: bool = false) -> void:
+	if _login_layer != null:
+		return
+	_login_layer = CanvasLayer.new()
+	_login_layer.name = "Login"
+	_login_layer.layer = 110
+	add_child(_login_layer)
+	# Entrar/carregar nao e jogar: nao deixe a simulacao avancar atras da tela.
+	_login_pausa_anterior = GameState.pausado
+	_login_velocidade_anterior = GameState.velocidade
+	GameState.pausado = true
+	GameState.velocidade = 0.0
+	var fundo := ColorRect.new()
+	fundo.color = Color(0.02, 0.02, 0.03, 0.96)
+	fundo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fundo.mouse_filter = Control.MOUSE_FILTER_STOP
+	_login_layer.add_child(fundo)
+	var centro := CenterContainer.new()
+	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_login_layer.add_child(centro)
+	var p := PanelLogin.new(self, obrigatorio)
+	_login_panel = p
+	centro.add_child(p)
+	p.concluido.connect(_ao_login_concluido)
+	p.cancelado.connect(_fechar_login)
+	# Sessao restaurada de outro acesso: a nuvem ainda esta chegando. Mantenha
+	# a tela e a pausa ate o download terminar, como no login manual.
+	_login_aguardando_progresso = Conta.autenticado() and not Conta.progresso_pronto()
+	Audio.duck(-10.0)
+
+
+func _fechar_login() -> void:
+	if _login_layer == null:
+		return
+	_login_layer.queue_free()
+	_login_layer = null
+	_login_panel = null
+	_login_aguardando_progresso = false
+	if not GameState.game_over:
+		GameState.pausado = _login_pausa_anterior
+		GameState.velocidade = 0.0 if GameState.pausado else maxf(1.0, _login_velocidade_anterior)
+		_atualizar_botoes_velocidade()
+	Audio.duck(-7.0 if GameState.modal_aberto else 0.0)
+
+
+func _ao_progresso_carregado(ok: bool, msg: String) -> void:
+	_atualizar_hud()
+	if _login_layer != null:
+		if not ok:
+			# Nao feche a tela como se tivesse dado certo: o save da nuvem nao
+			# chegou e o upload continua bloqueado. O aluno pode tentar de novo
+			# ou escolher jogar sem sincronizar, ciente do risco.
+			if _login_panel != null:
+				if Conta.autenticado():
+					_login_panel.mostrar_conta_ativa()
+				_login_panel.definir_status("Conta: " + msg, UITheme.PERIGO)
+			mostrar_toast("Conta: " + msg, "erro")
+			return
+		if _login_aguardando_progresso:
+			_login_aguardando_progresso = false
+			_fechar_login()
+			_finalizar_login("conta")
+			return
+		if _login_panel != null:
+			_login_panel.definir_status(msg, UITheme.SUCESSO)
+			return
+	if ok:
+		if not OS.has_feature("headless"):
+			mostrar_toast(msg, "sucesso")
+	else:
+		mostrar_toast("Conta: " + msg, "erro")
+
+
+func _ao_login_concluido(modo: String) -> void:
+	if modo == "conta" and Conta.autenticado() and _login_layer != null:
+		# Mantem a tela e a pausa ate o download do progresso terminar, para o
+		# jogo nao avancar semanas por cima do save que esta chegando.
+		_login_aguardando_progresso = true
+		return
+	_fechar_login()
+	_finalizar_login(modo)
+
+
+func _finalizar_login(modo: String) -> void:
+	_atualizar_hud()
+	if modo == "conta":
+		_vila_sel = 1
+		mundo.definir_overlay(GameState.overlay_ativo)
+		_atualizar_card_vila(1)
+		abrir_boas_vindas()
+		mostrar_toast("Conta conectada. O progresso sera sincronizado.", "sucesso")
+	elif modo == "logout":
+		_vila_sel = 1
+		mundo.definir_overlay(GameState.overlay_ativo)
+		abrir_boas_vindas()
+		mostrar_toast("Conta encerrada. O progresso desta conta continua no servidor.", "info")
+	else:
+		abrir_boas_vindas()
+		mostrar_toast("Modo local: a semana e as moedas nao serao enviadas ao SIGA.", "info")
+
+
+func _abrir_conta() -> void:
+	_mostrar_login(false)
+
+
+func _atualizar_conta() -> void:
+	if _btn_conta != null:
+		_btn_conta.text = "CONTA"
+		_btn_conta.tooltip_text = Conta.status_curto()
 
 
 func _ao_mudar_moedas(valor: int, delta: int) -> void:
@@ -697,6 +1060,11 @@ func _abrir_manual() -> void:
 		OS.shell_open(caminho)
 	else:
 		mostrar_toast("Manual nao encontrado nesta build", "erro")
+
+
+func _abrir_economia() -> void:
+	var p := PanelEconomia.new(self)
+	abrir_modal("BioMoedas e participacao", p, 1220, 800)
 
 
 func _abrir_siga() -> void:

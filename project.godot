@@ -24,10 +24,12 @@ GameState="*res://scripts/autoload/GameState.gd"
 Vilas="*res://scripts/autoload/VilaRegistry.gd"
 Population="*res://scripts/autoload/PopulationManager.gd"
 Epidemic="*res://scripts/autoload/EpidemicManager.gd"
+Economy="*res://scripts/autoload/EconomyManager.gd"
 Assets="*res://scripts/autoload/AssetRegistry.gd"
 RoadMask="*res://scripts/autoload/RoadMask.gd"
 UITheme="*res://scripts/ui/UIKit.gd"
 Audio="*res://scripts/autoload/AudioManager.gd"
+Conta="*res://scripts/autoload/ContaManager.gd"
 
 [display]
 

@@ -80,7 +80,7 @@ func _build() -> void:
 	grid.add_child(_card_verbo("3  DECIDIR", UITheme.SUCESSO, "icone_coracao",
 		"Gaste BioMoedas em saneamento, vacina, UBS e hospital. Cada decisao muda o Rt "
 		+ "e a ocupacao de leitos na semana seguinte. Os dados ficam registrados e podem "
-		+ "ser exportados no formato SIGA pelo backend."))
+		+ "ser exportados no formato SIGA pela tela interna de relatorio."))
 	raiz.add_child(UITheme.espacador(2))
 
 	# --- rodape ----------------------------------------------------------

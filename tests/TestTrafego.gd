@@ -1,4 +1,6 @@
 extends Node
+const SAVE_TESTE := "user://test_trafego.json"
+
 ## Teste de aceite do trafego, da malha viaria e do voo livre.
 ## Roda sem display: valida contagens, texturas, posicao na mascara e reinicio.
 ## Uso: godot --headless --path . res://tests/TestTrafego.tscn
@@ -8,6 +10,8 @@ var _passos := 0
 
 
 func _ready() -> void:
+	GameState.caminho_save = SAVE_TESTE
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	var cena: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(cena)
 	await _esperar(30)
@@ -85,6 +89,7 @@ func _ready() -> void:
 	_ok(deltas2 == 2 and paras2 == 4, "2 deltas + 4 parapentes apos reiniciar")
 	_ok(mundo._asas_dados.size() == antes.size(), "slots de voo preservados no reinicio")
 
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	print("TESTE TRAFEGO: ", _passos, " passos, ", _falhas, " falhas")
 	get_tree().quit(1 if _falhas > 0 else 0)
 

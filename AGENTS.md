@@ -31,17 +31,21 @@ GODOT=/home/marcio/opt/godot/godot        # binário usado no desenvolvimento
 
 $GODOT --headless --import                                    # gate de compilação
 $GODOT --headless --script tests/test_statcore.gd             # 47 verificações
-$GODOT --headless res://tests/SmokeUI.tscn                    # 39 passos de UI
+$GODOT --headless res://tests/SmokeUI.tscn                    # 47 passos de UI (inclui CONTA local)
 $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de navegação
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
+$GODOT --headless res://tests/TestEconomia.tscn              # 33 verificações de moedas/nota/semestre
+$GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
 ```
 
 - `--headless --script` **não carrega autoloads**: teste que usa `GameState`, `Vilas` etc.
   precisa ser **cena** (`extends Node` + `.tscn`), como `SmokeUI` e `TestCamera`.
 - `--check-only --script` falha em identificadores de autoload; use `--import` como gate.
+- `SmokeUI` força `Conta.cfg["habilitado"] = false` em memória para testar o modo local
+  mesmo com a configuração de produção ativa; ele **não** apaga a sessão real.
 - Captura de tela exige display real (`DISPLAY=:0`); não há Xvfb nesta máquina.
 - `read_image` guarda cache por hash: se a captura "não mudou", confira `sha256sum`.
 
@@ -51,18 +55,21 @@ DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
 
 | # | Nome | Script | Papel |
 |---|---|---|---|
-| 1 | `GameState` | `scripts/autoload/GameState.gd` | semana/ano, BioMoedas, progresso, save em `user://statown_save.json` |
+| 1 | `GameState` | `scripts/autoload/GameState.gd` | semana/ano, BioMoedas, progresso, save local (`user://statown_save*.json`) |
 | 2 | `Vilas` | `VilaRegistry.gd` | carrega `data/vilas.json`, lookup por id, âncoras no mapa |
 | 3 | `Population` | `PopulationManager.gd` | microdados: 41.650 pessoas em `Packed*Array` paralelos |
 | 4 | `Epidemic` | `EpidemicManager.gd` | SEIR individual, mobilidade por gravidade, Rt, prevalência |
-| 5 | `Assets` | `AssetRegistry.gd` | sprites e texturas carregados uma vez |
-| 6 | `RoadMask` | `scripts/autoload/RoadMask.gd` | consulta da malha viária; valida rotas e posição dos veículos |
-| 7 | `UITheme` | `UIKit.gd` | paleta, fontes, helpers de layout (`card`, `botao`, `scroll`...) |
-| 8 | `Audio` | `scripts/autoload/AudioManager.gd` | temas (crossfade), ambiências, stings, SFX, volumes |
+| 5 | `Economy` | `scripts/autoload/EconomyManager.gd` | extrato auditável, penalidade de óbitos, surto, nota do semestre |
+| 6 | `Assets` | `AssetRegistry.gd` | sprites e texturas carregados uma vez |
+| 7 | `RoadMask` | `scripts/autoload/RoadMask.gd` | consulta da malha viária; valida rotas e posição dos veículos |
+| 8 | `UITheme` | `UIKit.gd` | paleta, fontes, helpers de layout (`card`, `botao`, `scroll`...) |
+| 9 | `Audio` | `scripts/autoload/AudioManager.gd` | temas (crossfade), ambiências, stings, SFX, volumes |
+| 10 | `Conta` | `scripts/autoload/ContaManager.gd` | Supabase Auth, download/upload do save, sessão local |
 
 `Vilas` precisa vir antes de `Population`, que precisa vir antes de `Epidemic`.
-`Assets` precisa vir antes de `RoadMask` e de `UITheme`; `Audio` fica por último:
-lê `GameState` (volumes) e é chamado por todos os painéis.
+`Economy` escuta `Epidemic` e `GameState`, então vem depois dos dois. `Assets` precisa vir
+antes de `RoadMask` e de `UITheme`; `Audio` depende de `GameState` e `UITheme`. `Conta`
+fica por último porque usa `GameState`, `Economy` e a UI do painel de login.
 
 ---
 
@@ -136,9 +143,30 @@ o PNG derivado e reimporte. A folha de carros tem 6 colunas × 12 linhas; a de p
 
 ### `UIKit` (autoload `UITheme`)
 
-`card(titulo, cor)`, `conteudo(card)`, `botao(texto, cb, icone, cor)`, `rotulo`,
-`paragrafo`, `badge`, `separador`, `scroll()`, `painel()`, `vbox/hbox`,
-`titulo_font(bold)`, `corpo(weight)`, `mono_font()`.
+`card(titulo, cor)`, `card_info(titulo, texto, cor)`, `conteudo(card)`, `botao(texto,
+cb, icone, cor)`, `rotulo`, `paragrafo`, `badge`, `separador`, `scroll()`, `painel()`,
+`vbox/hbox`, `titulo_font(bold)`, `corpo(weight)`, `mono_font()`.
+
+### `Economy` e `Conta`
+
+`Economy` é a fonte única do dinheiro: `ganhar_moedas`, `gastar_moedas`,
+`descontar_moedas`, `aplicar_penalidade_obitos`, `nota_participacao`, `extrato`.
+Toda transação tem `delta`, `motivo`, `categoria`, `ref`, hora e saldo depois; a HUD
+**EXTRATO** e o CSV leem esse ledger. Regras em `data/economia.json` (valores iniciais,
+1% por óbito, teto de 25% na semana, bônus de surto, 10 moedas por ponto, teto 100).
+
+`Conta` lê `config/supabase.json`, guarda **apenas o token** em
+`user://statown_sessao.json` e troca o save local para
+`user://statown_save_<hash-do-id>.json`. O download do servidor é aplicado por
+`GameState.aplicar_save`; o upload é `statown_salvar(p_semestre, p_save)`.
+`Conta.progresso_pronto()` só fica `true` depois do download (ou da confirmação de
+conta nova). Enquanto for `false`, `_bloquear_sync` impede qualquer upload — uma falha
+de rede não pode sobrescrever a nuvem com um save local vazio. O logout troca
+`GameState.caminho_save` de volta para `user://statown_save.json` **antes** de
+reiniciar/carregar, para não apagar o cache da conta.
+Regra de ouro: **nunca** coloque a `service_role` no cliente; a `anon key` é pública e
+as RPCs/RLS filtram por `auth.uid()`. O SQL completo e o checklist estão em
+[`docs/SUPABASE.md`](docs/SUPABASE.md) e [`docs/SUPABASE.sql`](docs/SUPABASE.sql).
 
 ### Áudio (`Audio`)
 
@@ -205,18 +233,20 @@ Detalhes em `docs/CREDITOS_AUDIO.md`.
 | `AudioStreamOggVorbis` em loop infinito | o `.import` não define loop: setar `stream.loop = true` **antes** do `play()` |
 | "editei o PNG e o jogo não mudou" | rodando **fora** do editor, ninguém reimporta: `godot --headless --import` (ou exporte de novo) |
 | mapa com buracos pretos | PNG mestre salvo com alfa: o mapa é RGB, transparência vira preto |
+| progresso falha no web com "resultado 8" | Cloudflare/Supabase devolve gzip e o `fetch` do navegador já descompacta; o `HTTPRequest` tenta de novo: mantenha `_http.accept_gzip = false` em `ContaManager._ready()` e reexporte |
 | clique em rotulo/vila "nao faz nada" no web | o `Control` raiz do `Main` cobre a tela e, com `MOUSE_FILTER_STOP`, engolia o evento antes do `_unhandled_input` em alguns pontos; deixe o raiz em `MOUSE_FILTER_IGNORE` e teste os rotulos em **coordenadas de mundo** (`WorldView.vila_no_rotulo_mundo`), nao pelo transform de tela |
 
 ---
 
 ## 7. Capturas e documentação
 
-`tests/Capture.tscn` percorre o jogo e salva 21 PNGs em `docs/shots/`. O roteiro usa
+`tests/Capture.tscn` percorre o jogo e salva 23 PNGs em `docs/shots/`. O roteiro usa
 `_pressionar(texto)` (acha um `Button` visível pelo texto), `_aba(i)` e `_esperar(n)`.
 Ao adicionar tela nova, acrescente um passo e rode de novo; o teste imprime
-`SCRIPT ERROR` se algo quebrar — o alvo é **zero**.
+`SCRIPT ERROR` se algo quebrar — o alvo é **zero**. A captura `19b_conta_login.png`
+é feita à mão (login ativo) e não é sobrescrita pelo `Capture`; as demais são do roteiro.
 
-O **manual do usuário** é `docs/manual.html`: arquivo único, 23 capítulos, 17 figuras e
+O **manual do usuário** é `docs/manual.html`: arquivo único, 23 capítulos, 20 figuras e
 hiperlinks internos (`href="#cap..."`). As capturas vêm de `docs/shots/`; os números
 circulares sobre as figuras (`.pin`) são posicionados em porcentagem da imagem — se
 recapturar uma tela, confira os pins no navegador antes de publicar. A checagem de links
@@ -328,8 +358,9 @@ pacote completo de 2 GB em cada execução. O guia operacional, com a configura�
 
 O botão **MANUAL** do HUD chama `Main._abrir_manual()`: no navegador abre
 `manual.html` em outra aba; no desktop abre `docs/manual.html` pelo `OS.shell_open`.
-O SIGA continua como `PanelSIGA`/`trocar_para("siga")`, mas não aparece no HUD —
-a geração real é responsabilidade do backend.
+O SIGA continua como `PanelSIGA`/`trocar_para("siga")`, mas não aparece no HUD: a
+geração do CSV é **local** e a tela é interna (testes e conferência). Com Supabase, o
+que sobe é o save e a nota por semestre; não há API gerando/assinando o CSV nesta versão.
 
 Exclui do pacote: `assets/extracted/*`, `assets/audio/raw/*`, `assets/art_backup/*`,
 `assets/*.zip`, `assets/Gemini_Generated_FULL-MAP.jpeg`, `assets/art/world_map.png`,
@@ -369,12 +400,14 @@ cobre buses e volumes, não a decodificação do navegador.
 
 - [ ] `godot --headless --import` sem erro
 - [ ] `tests/test_statcore.gd` 47/47
-- [ ] `SmokeUI` 39/39
+- [ ] `SmokeUI` 47/47
 - [ ] `TestCamera` 93/93
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
-- [ ] `Capture` 21 PNGs, 0 `SCRIPT ERROR`
+- [ ] `TestEconomia` 33/33
+- [ ] `TestDesafios` 22/22
+- [ ] `Capture` 23 PNGs, 0 `SCRIPT ERROR`
 - [ ] `docs/manual.html`: 0 links internos quebrados, 0 imagens ausentes, sem overflow
       horizontal em 390 px e gaveta do sumário opaca
 - [ ] áudio do build web audível (medido, não “no ouvido”)

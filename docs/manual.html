@@ -338,7 +338,7 @@ footer.rodape a{color:var(--texto2)}
       <tr><td>JOGOS</td><td>Nove desafios curtos, cada um isolando um conceito.</td><td><a href="#cap10">10</a></td></tr>
       <tr><td>REVISTA</td><td>Seis artigos científicos fictícios para leitura crítica.</td><td><a href="#cap11">11</a></td></tr>
       <tr><td>MANUAL</td><td>Abre este guia em outra aba (atalho <kbd>F1</kbd>).</td><td><a href="#cap3">3</a></td></tr>
-      <tr><td>SIGA (interno)</td><td>Relatório técnico no formato SIGA/SINAN, gerado pelo backend; não é um botão do jogo.</td><td><a href="#cap12">12</a></td></tr>
+      <tr><td>SIGA (interno)</td><td>Relatório técnico no formato SIGA/SINAN, gerado localmente pelo código; não é um botão do jogo.</td><td><a href="#cap12">12</a></td></tr>
       <tr><td>MENU</td><td>Áudio, acessibilidade, salvar/carregar, reiniciar e conquistas.</td><td><a href="#cap15">15</a></td></tr>
       <tr><td>Trocar (no topo)</td><td>Trocar o cenário epidêmico (arbovirose, respiratória, entérica, crônica).</td><td><a href="#cap14">14</a></td></tr>
     </tbody>
@@ -375,6 +375,18 @@ footer.rodape a{color:var(--texto2)}
     <p>Navegadores bloqueiam áudio até que você interaja com a página (“política de autoplay”). O StaTown só começa a tocar música e efeitos <strong>depois do seu primeiro clique</strong>. Se você abrir o jogo e não ouvir nada antes de clicar, isso é esperado. Clique uma vez e o áudio é liberado — há um <a href="#cap15-2">teste de som no menu</a> para confirmar.</p>
   </div>
 
+  <div class="box dica">
+    <span class="rot">Conta do aluno (obrigatória neste build)</span>
+    <p>Com o Supabase ativo, antes das boas-vindas aparece a tela <strong>CONTA DO ALUNO</strong> em modo obrigatório. Entre com e-mail e senha para o servidor guardar a semana, o ano e as BioMoedas — assim a partida continua em outro computador. O jogo guarda apenas o <b>token de sessão</b>, nunca a senha. A tela também abre pelo botão <strong>CONTA</strong> da HUD.</p>
+    <p>O download do progresso acontece antes de liberar a simulação. Se o servidor não responder, a tela mostra o erro e oferece <strong>TENTAR BAIXAR DE NOVO</strong> ou <strong>JOGAR SEM SINCRONIZAR</strong>; nesta segunda opção nada é enviado até um download bem-sucedido, e o progresso feito offline pode ser substituído pelo save da nuvem — o aviso aparece na própria tela. Se o professor publicar um build sem Supabase, a mesma tela explica o que falta e oferece <strong>CONTINUAR SEM CONTA</strong> (modo local).</p>
+  </div>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/19b_conta_login.png" alt="Tela CONTA DO ALUNO com campos de e-mail e senha e os botões ENTRAR e CRIAR CONTA" loading="lazy">
+    </div>
+    <figcaption><b>Entrada na conta.</b> Com o Supabase ativo, o aluno informa e-mail e senha; o download da semana e das moedas acontece antes de a simulação ser liberada. O botão <b>CRIAR CONTA</b> abre nome e matrícula. Se o projeto exigir confirmação, confirme o e-mail antes de entrar.</figcaption>
+  </figure>
+
   <h3><span class="num2">2.2</span> A tela de boas-vindas</h3>
   <figure class="shot">
     <div class="moldura" data-zoom>
@@ -407,7 +419,7 @@ footer.rodape a{color:var(--texto2)}
   </div>
 
   <h3><span class="num2">2.4</span> Salvar e continuar depois</h3>
-  <p>O jogo salva automaticamente <strong>ao concluir um desafio</strong>. Fora isso, use <strong>MENU › PARTIDA › Salvar</strong>. O arquivo fica no armazenamento local do navegador (para o jogo web) ou em <code>user://statown_save.json</code> (versão nativa). Em <strong>Carregar</strong> você retoma a partida; em <strong>Reiniciar tudo</strong> a população, o histórico e as BioMoedas voltam ao início — essa ação pede confirmação e não pode ser desfeita.</p>
+  <p>O jogo salva automaticamente <strong>ao concluir um desafio</strong>, ao ganhar ou gastar BioMoedas e ao perder o foco da janela. Fora isso, use <strong>MENU › PARTIDA › Salvar</strong>. O arquivo fica no armazenamento local do navegador (para o jogo web) ou em <code>user://statown_save.json</code> (modo local na versão nativa). Com conta, o caminho é <code>user://statown_save_&lt;hash&gt;.json</code> e o servidor guarda uma cópia por semestre. Em <strong>Carregar</strong> você retoma a partida; em <strong>Reiniciar tudo</strong> a população, o histórico e as BioMoedas voltam ao início — essa ação pede confirmação e não pode ser desfeita (a participação do semestre também é zerada).</p>
   <div class="box atencao">
     <span class="rot">Antes de fechar o navegador</span>
     <p>Se você acabou de fazer uma intervenção cara ou de rodar muitas semanas, salve manualmente. Limpar os dados do site no navegador apaga o save.</p>
@@ -425,9 +437,9 @@ footer.rodape a{color:var(--texto2)}
       <div class="pin" style="left:14.6%;top:3%">1</div>
       <div class="pin" style="left:29.9%;top:3%">2</div>
       <div class="pin" style="left:44.2%;top:3%">3</div>
-      <div class="pin" style="left:68.1%;top:3%">4</div>
-      <div class="pin" style="left:76.6%;top:3%">5</div>
-      <div class="pin" style="left:92.8%;top:3%">6</div>
+      <div class="pin" style="left:79.3%;top:3%">4</div>
+      <div class="pin" style="left:92.8%;top:3%">5</div>
+      <div class="pin" style="left:27.8%;top:8.2%">6</div>
       <div class="pin" style="left:97.2%;top:24%">7</div>
       <div class="pin teal" style="left:14%;top:93%">8</div>
       <div class="pin teal" style="left:81%;top:95.5%">9</div>
@@ -440,7 +452,7 @@ footer.rodape a{color:var(--texto2)}
     <li><span class="n">3</span><b>Agravo ativo</b> — nome do cenário epidêmico; ao lado, o botão <em>Trocar</em>.</li>
     <li><span class="n">4</span><b>Situação</b> — classificação global (estável, atenção, epidemia…).</li>
     <li><span class="n">5</span><b>BioMoedas</b> — seu saldo para intervenções.</li>
-    <li><span class="n">6</span><b>Menu de telas</b> — LAB, JOGOS, REVISTA, MANUAL, MENU.</li>
+    <li><span class="n">6</span><b>Menu de telas</b> — LAB, JOGOS, REVISTA, EXTRATO, MANUAL, CONTA, MENU, na segunda linha da barra.</li>
     <li><span class="n">7</span><b>Controles do mapa</b> — zoom (+/−), FIT (enquadrar), MAP (minimapa), HQ (qualidade).</li>
     <li><span class="n">8</span><b>Card da vila selecionada</b> — PREV, RT, LEITOS, VAC e o botão <em>Investigar</em>.</li>
     <li><span class="n">9</span><b>Dica de contexto</b> — instrução do momento (“toque em uma vila…”).</li>
@@ -454,8 +466,8 @@ footer.rodape a{color:var(--texto2)}
       <tr><td>Botões de velocidade</td><td>Clique</td><td><kbd>||</kbd> pausa; <kbd>&gt;</kbd> 0,5×; <kbd>&gt;&gt;</kbd> 1×; <kbd>&gt;&gt;&gt;</kbd> 3×; <kbd>&gt;&gt;&gt;&gt;</kbd> 8×. O botão ativo fica destacado.</td></tr>
       <tr><td>Agravo / Trocar</td><td>Clique em <em>Trocar</em></td><td>Abre o <a href="#cap14">cenário epidemiológico</a>. Trocar reinicia a simulação da doença (população e moedas são mantidas).</td></tr>
       <tr><td>Situação</td><td>Somente leitura</td><td>Resume o estado global: estável, atenção, surto, epidemia. Serve como alerta, não como diagnóstico.</td></tr>
-      <tr><td>BioMoedas</td><td>Somente leitura (ganhas em desafios/artigos)</td><td>Saldo disponível. O custo das intervenções aparece no painel da vila.</td></tr>
-      <tr><td>LAB / JOGOS / REVISTA / MANUAL / MENU</td><td>Clique</td><td>Abrem as telas dos capítulos <a href="#cap8">8</a>, <a href="#cap10">10</a>, <a href="#cap11">11</a> e <a href="#cap15">15</a>. <b>MANUAL</b> abre este guia em outra aba (ou tecle <kbd>F1</kbd>). O relatório SIGA é interno (capítulo <a href="#cap12">12</a>).</td></tr>
+      <tr><td>BioMoedas</td><td>Somente leitura (ganhas em minigames, desafios do LAB e surtos)</td><td>Saldo disponível. O custo das intervenções aparece no painel da vila. Clique em <b>EXTRATO</b> para ver cada ganho/perda e a nota projetada.</td></tr>
+      <tr><td>LAB / JOGOS / REVISTA / EXTRATO / MANUAL / CONTA / MENU</td><td>Clique</td><td>Abrem as telas dos capítulos <a href="#cap8">8</a>, <a href="#cap10">10</a>, <a href="#cap11">11</a>, <a href="#cap16">16</a> e <a href="#cap15">15</a>. <b>MANUAL</b> abre este guia em outra aba (ou tecle <kbd>F1</kbd>). <b>CONTA</b> abre o login/estado da conta. O relatório SIGA é interno (capítulo <a href="#cap12">12</a>).</td></tr>
       <tr><td>Zoom / FIT / MAP / HQ</td><td>Clique ou use a roda do mouse</td><td><b>FIT</b> reenquadra o vale inteiro; <b>MAP</b> mostra o minimapa; <b>HQ</b> alterna a qualidade do desenho (útil em máquinas lentas).</td></tr>
       <tr><td>Card da vila</td><td>Clique em uma vila</td><td>Atualiza em tempo real. Clique em <em>Investigar</em> para abrir o painel completo.</td></tr>
     </tbody>
@@ -494,10 +506,10 @@ footer.rodape a{color:var(--texto2)}
       <tr><td>Roda do mouse / pinça</td><td>Zoom contínuo; arrastar move o mapa.</td></tr>
     </tbody>
   </table>
-  <p>Se o navegador bloquear a nova aba, libere pop-ups para o endereço do jogo ou abra <code>manual.html</code> diretamente na barra de endereços. O manual não pausa a simulação: ele é uma página separada, e o jogo continua rodando na aba original.</p>
+  <p>Se o navegador bloquear a nova aba, libere pop-ups para o endereço do jogo ou abra <code>manual.html</code> diretamente na barra de endereços. Ao trocar de aba, o StaTown pausa por perda de foco (capítulo 16.5); ao voltar, clique em <b>RETOMAR A SIMULACAO</b>.</p>
   <div class="box info">
-    <span class="rot">O SIGA não é mais um botão</span>
-    <p>O relatório SIGA/SINAN passou a ser gerado pelo <strong>backend</strong>, que recebe o estado da semana e devolve o CSV assinado. O jogador não vê essa etapa. O capítulo <a href="#cap12">12</a> documenta o formato e a tela interna usada no desenvolvimento — não a procure no HUD.</p>
+    <span class="rot">O SIGA é uma tela interna</span>
+    <p>O relatório SIGA/SINAN é gerado <strong>localmente</strong> pelo código, para testes e conferência; não há uma API de backend assinando o CSV nesta versão. O jogador não o abre pela HUD. Com o Supabase ativado, o servidor recebe o <b>save</b> e a <b>nota por semestre</b> — o CSV continua sendo uma ferramenta interna do professor. Veja o capítulo <a href="#cap12">12</a>.</p>
   </div>
 </section>
 
@@ -843,7 +855,7 @@ Eficácia vacinal = redução relativa do risco de infecção (por agravo)</div>
   <p>Na auditoria automatizada do jogo (52 semanas simuladas, todas as telas varridas), a maior prevalência observada foi <strong>8,2%</strong> e a maior ocupação, <strong>900%</strong> (limite de exibição). Nenhuma proporção passou de 100%. Os avisos de ocupação acima de 100% são, portanto, <em>informação</em>, não defeito.</p>
   <div class="box atencao">
     <span class="rot">O que fazer se ainda parecer errado</span>
-    <p>Se você vir um valor acima de 100% em um indicador que deveria ser proporção, anote: (1) a tela, (2) a vila, (3) a semana, (4) o texto exato do rótulo. Se você tiver acesso ao CSV exportado pelo backend, confira os numeradores e denominadores (capítulo <a href="#cap12">12</a>). Com esses quatro dados é possível reproduzir o cálculo e identificar a origem.</p>
+    <p>Se você vir um valor acima de 100% em um indicador que deveria ser proporção, anote: (1) a tela, (2) a vila, (3) a semana, (4) o texto exato do rótulo. Se você tiver acesso ao CSV exportado pela tela interna do SIGA, confira os numeradores e denominadores (capítulo <a href="#cap12">12</a>). Com esses quatro dados é possível reproduzir o cálculo e identificar a origem.</p>
   </div>
 </section>
 
@@ -1292,27 +1304,25 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
 <!-- ==================================================== CAP 12 -->
 <section class="cap" id="cap12">
   <h2><span class="num">12</span> SIGA: dados e integração interna <a class="ancora" href="#cap12">#</a></h2>
-  <p class="lead">O StaTown prepara a semana simulada no formato SIGA/SINAN: CSV, resumo, completude e um hash SHA-256 que prova que o arquivo não foi alterado. Nesta versão a geração é <b>interna</b> — feita pelo backend/API, não por um botão no HUD.</p>
+  <p class="lead">O StaTown prepara a semana simulada no formato SIGA/SINAN: CSV, resumo, completude e um hash SHA-256 que mostra se o arquivo mudou. A tela é <b>interna</b>: o jogador não a abre pela HUD; ela é usada em testes e pode ser aberta pelo código. A <b>participação do semestre</b> também aparece nela e é o dado que o professor leva para o SIGA.</p>
   <div class="box atencao">
-    <span class="rot">Por que o SIGA saiu do HUD</span>
-    <p>O relatório é uma responsabilidade de integração, não uma tarefa do jogador. Manter a geração no servidor evita que o navegador manipule o arquivo inteiro, garante a mesma versão de schema para todos e permite autenticar quem pediu o dado. A tela abaixo continua existindo no código como ferramenta de desenvolvimento e de teste; ela não é mais um caminho do jogo.</p>
+    <span class="rot">Por que o SIGA não está na HUD</span>
+    <p>O relatório é uma responsabilidade de integração e de docência, não uma tarefa do jogador. No build atual, a geração é <b>local</b> (não há uma API de backend gerando o CSV); ela continua no código como ferramenta de desenvolvimento e de conferência. Com o Supabase ativado, o que sobe é o <b>save</b> e a <b>nota por semestre</b>, não o CSV inteiro.</p>
   </div>
 
   <figure class="shot">
     <div class="moldura" data-zoom>
-      <img src="shots/13_siga.png" alt="Tela interna do SIGA com prévia do CSV, resumo da semana e integridade" loading="lazy">
+      <img src="shots/13_siga.png" alt="Tela interna do SIGA com prévia do CSV e participação no semestre" loading="lazy">
       <div class="pin" style="left:12.2%;top:16.5%">1</div>
       <div class="pin teal" style="left:84.5%;top:16%">2</div>
       <div class="pin teal" style="left:84.5%;top:57%">3</div>
-      <div class="pin" style="left:60.5%;top:76.5%">4</div>
     </div>
-    <figcaption><b>SIGA (tela interna de desenvolvimento).</b> À esquerda, o arquivo; à direita, o resumo da semana, a integridade e as ações de exportação. No jogo publicado, o mesmo conteúdo é produzido pelo backend.</figcaption>
+    <figcaption><b>SIGA (tela interna).</b> À esquerda, o arquivo; à direita, a participação no semestre e, abaixo, o resumo da semana. Integridade e ações ficam na rolagem.</figcaption>
   </figure>
   <ul class="legenda-pins">
     <li><span class="n">1</span><b>Prévia do CSV</b> — separador <code>;</code>, cabeçalho e linhas por vila/registro.</li>
-    <li><span class="n">2</span><b>Resumo da semana</b> — SE, agravo, população, casos ativos, óbitos, prevalência e completude.</li>
-    <li><span class="n">3</span><b>Integridade</b> — hash SHA-256 do arquivo; muda se qualquer campo mudar.</li>
-    <li><span class="n">4</span><b>Ações</b> — gerar novamente, copiar, baixar CSV e baixar JSON de resumo.</li>
+    <li><span class="n">2</span><b>Participação no semestre</b> — moedas ganhas, nota projetada, regra e botão do CSV de participação.</li>
+    <li><span class="n">3</span><b>Resumo da semana</b> — SE, agravo, população, casos ativos, óbitos, prevalência e completude.</li>
   </ul>
 
   <h3><span class="num2">12.1</span> O que o arquivo contém</h3>
@@ -1339,8 +1349,11 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   </ul>
   <div class="box dica">
     <span class="rot">Dica de sala de aula</span>
-    <p>Se a turma tiver acesso ao CSV exportado pela API, peça a dois grupos que gerem o relatório na mesma semana e comparem os hashes. Depois, avance uma semana e gere de novo: o hash deve mudar. Isso demonstra, na prática, o que é integridade de dados.</p>
+    <p>Peça a dois grupos que gerem o relatório na mesma semana e comparem os hashes. Depois, avance uma semana e gere de novo: o hash deve mudar. Isso demonstra, na prática, o que é integridade de dados.</p>
   </div>
+  <h3><span class="num2">12.3</span> Participação do aluno e lançamento no SIGA</h3>
+  <p>Além do boletim semanal, a tela <b>SIGA</b> tem o cartão <b>PARTICIPAÇÃO NO SEMESTRE</b>. Ele mostra as moedas ganhas, a nota projetada (<code>min(100, moedas_ganhas / 10)</code>) e permite baixar um CSV de uma linha com nome, e-mail, matrícula, semestre, moedas e nota. O botão usa a conta logada quando existe; no modo local, o nome sai como “Aluno local”.</p>
+  <p>O lançamento no SIGA <b>não é automático</b>. O professor exporta a consulta da turma no Supabase (visão <code>statown_notas</code>), confere os casos e lança manualmente. O passo a passo do backend, incluindo a promoção da conta de professor e a RLS, está em <code>docs/SUPABASE.md</code>.</p>
   <div class="box atencao">
     <span class="rot">Completude não é qualidade</span>
     <p>“100% dos campos preenchidos” não significa “dados corretos”. Um campo pode estar preenchido com valor impossível. Completude mede ausência, não veracidade — a checagem de plausibilidade é a próxima etapa.</p>
@@ -1431,7 +1444,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   </div>
   <div class="box atencao">
     <span class="rot">Trocar reinicia a doença</span>
-    <p>Ao ativar outro cenário, a curva epidêmica, o histórico e os óbitos pela doença recomeçam. A população, as intervenções estruturais e as BioMoedas permanecem. Se quiser comparar cenários com rigor, exporte os dados antes de trocar (quando a API estiver disponível).</p>
+    <p>Ao ativar outro cenário, a curva epidêmica, o histórico e os óbitos pela doença recomeçam. A população, as intervenções estruturais e as BioMoedas permanecem. Se quiser comparar cenários com rigor, exporte os dados antes de trocar pela tela interna do SIGA.</p>
   </div>
 </section>
 
@@ -1527,15 +1540,83 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   <table class="tabela">
     <thead><tr><th>Fonte</th><th>Valor</th><th>Observação</th></tr></thead>
     <tbody>
-      <tr><td>Desafio concluído</td><td>10 a 70 B</td><td>10 + 60 × aproveitamento. Repetir rende de novo.</td></tr>
+      <tr><td>Minigame concluído</td><td>10 a 70 B</td><td>10 + 60 × aproveitamento. Repetir rende de novo.</td></tr>
       <tr><td>Artigo lido</td><td>20 B</td><td>Uma vez por artigo; seis artigos = 120 B.</td></tr>
       <tr><td>Auditoria do Dr. Bayes</td><td>12 B</td><td>Por auditoria concluída.</td></tr>
+      <tr><td>Desafio do LAB</td><td>20 a 30 B</td><td>Um por contexto (amostragem, descritiva, gráficos, distribuições, testes, regressão) por semana; pagamento único.</td></tr>
+      <tr><td>Surto contido</td><td>20 a 60 B</td><td>Base 20 + 5 por semana de surto + 15 se nenhum óbito; teto 60.</td></tr>
       <tr><td>Saldo inicial</td><td>150 B</td><td>Definido no início da partida.</td></tr>
     </tbody>
   </table>
   <div class="box exercicio">
     <span class="rot">Exercício de gestão</span>
     <p>Você tem 150 B e duas vilas em situação oposta: uma com Rt 2,1 e ocupação 40%; outra com Rt 0,8 e ocupação 180%. Onde investir primeiro? Justifique com os conceitos dos capítulos <a href="#cap7-4">7.4</a> e <a href="#cap7-7">7.7</a>.</p>
+  </div>
+  <figure class="shot">
+    <div class="moldura" data-zoom>
+      <img src="shots/20_extrato.png" alt="Painel BioMoedas com saldo, nota projetada e extrato de ganhos e perdas" loading="lazy">
+      <div class="pin" style="left:13%;top:18%">1</div>
+      <div class="pin teal" style="left:41%;top:18%">2</div>
+    </div>
+    <figcaption><b>Extrato (valores ilustrativos de uma partida de teste).</b> Saldo de 253 B, 285 B ganhas e 180 B gastas; a nota usa as 285 ganhas e projeta 28/100. A intervenção de 180 B aparece como saída, mas não apaga o esforço que gerou as moedas.</figcaption>
+  </figure>
+  <ul class="legenda-pins">
+    <li><span class="n">1</span><b>Saldo e nota</b> — saldo disponível, ganhas/gastas do semestre, nota projetada e a regra em texto.</li>
+    <li><span class="n">2</span><b>Extrato</b> — semana, tipo, motivo, delta e saldo depois de cada transação, do mais recente para o mais antigo.</li>
+  </ul>
+
+  <h3><span class="num2">16.4</span> Óbitos e o preço em BioMoedas</h3>
+  <p>Óbito não é só um número no boletim: ele custa moedas. A cada semana com óbitos, o jogo desconta <b>1% do saldo por óbito</b>, com <b>teto de 25% do saldo</b> naquela semana e mínimo de 1 B quando houve pelo menos uma morte. O motivo e o saldo depois do desconto aparecem no <b>EXTRATO</b> e num aviso na tela.</p>
+  <table class="tabela">
+    <thead><tr><th>Saldo antes</th><th>Óbitos na semana</th><th>Perda bruta</th><th>Perda aplicada</th><th>Saldo depois</th></tr></thead>
+    <tbody>
+      <tr><td class="num-col">1000 B</td><td class="num-col">10</td><td class="num-col">100 B (10%)</td><td class="num-col">100 B</td><td class="num-col">900 B</td></tr>
+      <tr><td class="num-col">100 B</td><td class="num-col">40</td><td class="num-col">40 B (40%)</td><td class="num-col">25 B (teto)</td><td class="num-col">75 B</td></tr>
+      <tr><td class="num-col">10 B</td><td class="num-col">100</td><td class="num-col">10 B (100%)</td><td class="num-col">2 B (teto de 25%)</td><td class="num-col">8 B</td></tr>
+    </tbody>
+  </table>
+  <p>Ao <b>conter um surto</b>, você recupera moedas: 20 de base, +5 por semana de surto (até 6 semanas) e +15 se não houve óbito no período, com teto de 60. A recompensa é registrada no extrato como <code>surto_controlado</code>.</p>
+
+  <h3><span class="num2">16.5</span> Game over e reinício</h3>
+  <p>Se o saldo chegar a <b>zero</b> — por uma intervenção ou por óbitos — é <b>game over</b>. A simulação pausa e aparece a tela de reinício. <b>REINICIAR PARTIDA</b> volta à SE 1 com 150 B, mas preserva as moedas <b>ganhas</b> e o extrato do semestre, porque é isso que conta para a nota. O menu <b>Reiniciar tudo</b> apaga também a participação e os desafios.</p>
+  <div class="box atencao">
+    <span class="rot">Pausa ao sair da janela</span>
+    <p>Se você mudar de aba, minimizar a janela ou trocar de aplicativo, o StaTown pausa e não avança semanas. Ao voltar, ele espera você clicar em <b>RETOMAR A SIMULACAO</b>; não retoma sozinho. Isso evita perder uma semana enquanto lê o manual ou responde uma mensagem.</p>
+  </div>
+
+  <h3><span class="num2">16.6</span> Desafios do LAB: uma tarefa por contexto e por semana</h3>
+  <p>No topo do <b>BioLab</b> há um cartão <b>DESAFIO DO LABORATORIO</b>. A cada semana epidemiológica, cada uma das seis abas sorteia uma tarefa do banco <code>data/desafios_lab.json</code>. A tarefa pede uma ação real na aba — não é um quiz de múltipla escolha — e paga <b>20 a 30 BioMoedas</b> quando você clica em <b>CONFERIR TAREFA</b>.</p>
+  <table class="tabela">
+    <thead><tr><th>Contexto</th><th>Exemplos de tarefa</th><th>O que o jogo confere</th></tr></thead>
+    <tbody>
+      <tr><td>Amostragem</td><td>AAS com n ≥ 200; estratificada com n ≥ 150</td><td>desenho escolhido e tamanho da amostra ativa</td></tr>
+      <tr><td>Descritiva</td><td>IC da idade; renda por sexo</td><td>variável e grupo selecionados</td></tr>
+      <tr><td>Gráficos</td><td>histograma da idade; dispersão com reta</td><td>tipo de gráfico e variáveis desenhadas</td></tr>
+      <tr><td>Distribuições</td><td>normal com σ = 2; t com 5 gl</td><td>família e parâmetros ajustados</td></tr>
+      <tr><td>Testes</td><td>teste t com p &lt; 0,05; Mann-Whitney</td><td>teste executado e p-valor lido</td></tr>
+      <tr><td>Regressão</td><td>ler o R²; ler as OR</td><td>modelo ajustado e resultado exibido</td></tr>
+    </tbody>
+  </table>
+  <p>Cada desafio paga <b>uma vez por contexto por semana</b>. Se você não cumprir a tarefa, o cartão explica o que falta; se já cumpriu, mostra “CONCLUIDO nesta SE”. Na semana seguinte, o sorteio muda e a tarefa recomeça. O pagamento entra no extrato como <code>desafio_lab</code> e conta para a nota — mas não é uma fonte infinita: fechar e reabrir a aba não paga de novo.</p>
+  <div class="box dica">
+    <span class="rot">Transparência total</span>
+    <p>Abra o <b>EXTRATO</b> sempre que quiser conferir de onde vieram (ou para onde foram) as moedas. A tabela traz semana, tipo, motivo, delta e saldo depois de cada transação. É o mesmo dado que o professor vê no CSV de participação.</p>
+  </div>
+
+  <h3><span class="num2">16.7</span> A nota do semestre</h3>
+  <p>A nota de participação é <code>min(100, floor(moedas_ganhas_no_semestre / 10))</code>. Ou seja: <b>10 BioMoedas ganhas = 1 ponto</b>, e o teto é 100. 1390 moedas viram 100 pontos, não 139. O cálculo usa as moedas <b>ganhas</b>, não o saldo restante — gastar numa intervenção não reduz a nota duas vezes.</p>
+  <table class="tabela">
+    <thead><tr><th>Moedas ganhas no semestre</th><th>Nota</th><th>Excedente</th></tr></thead>
+    <tbody>
+      <tr><td class="num-col">99</td><td class="num-col">9</td><td class="num-col">9</td></tr>
+      <tr><td class="num-col">1000</td><td class="num-col">100</td><td class="num-col">0</td></tr>
+      <tr><td class="num-col">1390</td><td class="num-col">100</td><td class="num-col">390 B (não viram pontos)</td></tr>
+    </tbody>
+  </table>
+  <p>O semestre é o do calendário: janeiro a junho = <code>AAAA/1</code>; julho a dezembro = <code>AAAA/2</code>. Ao virar o semestre, a participação recomeça e o save antigo não é reaproveitado. A tela <b>EXTRATO</b> mostra a nota projetada e a barra de progresso; o CSV do SIGA mostra a mesma conta para o lançamento.</p>
+  <div class="box atencao">
+    <span class="rot">Limite de segurança</span>
+    <p>A nota é calculada a partir do save enviado pelo navegador. Isso é suficiente para participação em sala, mas não é uma prova à prova de fraude: um aluno com conhecimento técnico poderia alterar o próprio save. Para nota formal, combine com conferência do extrato, atividade presencial e/ou uma simulação autoritativa no servidor. O professor encontra o checklist em <code>docs/SUPABASE.md</code>.</p>
   </div>
 </section>
 
@@ -1901,7 +1982,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Área de surto atravessava o rio</td><td>O overlay pintava o retângulo da vila sem recortar a água e o contorno era o tile inteiro.</td><td>Máscara de água no shader, contorno de ~3 px nas bordas da zona e halo pulsante apenas em terra.</td></tr>
       <tr><td>Abrir/fechar painel com som agressivo</td><td>Varreduras de 320→768 Hz e 760→342 Hz, com cauda cortada.</td><td>Quinta de marimba (A3→E4 e o inverso), filtrada, com fade de borda e RMS −24 dB.</td></tr>
       <tr><td>Efeitos pareciam travar ou repetir</td><td>Round-robin cortava o som anterior; stings de 4 s se sobrepunham a cada clique.</td><td>Pool escolhe player ocioso, fade no fim de todo som curto, throttle de 3 s e guarda de 10 s por vila.</td></tr>
-      <tr><td>SIGA no HUD sem função para o jogador</td><td>Relatório é uma integração de backend, não uma ação de jogo.</td><td>Botão substituído por MANUAL (F1); painel SIGA permanece interno para desenvolvimento e testes.</td></tr>
+      <tr><td>SIGA no HUD sem função para o jogador</td><td>Relatório é uma ferramenta interna do professor, não uma ação de jogo.</td><td>Saída do HUD; painel SIGA permanece acessível pelo código/testes, com a participação no topo.</td></tr>
       <tr><td>Mapa sem vida urbana e sem voo livre</td><td>Arte tinha apenas o cenário estático.</td><td>Carros, caminhões, barcos, navio e exatamente duas asas-deltas e quatro parapentes em órbitas harmônicas sobre os bairros.</td></tr>
     </tbody>
   </table>

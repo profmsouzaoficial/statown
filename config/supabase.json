@@ -1,0 +1,6 @@
+{
+  "habilitado": true,
+  "url": "https://truvhnzqqzhgdetsierl.supabase.co",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXZobnpxcXpoZ2RldHNpZXJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzU4MjIsImV4cCI6MjExMTExMTgyMn0.5Mm9LbC8LOgEgHfTrONR1Urogl98vsFMXc4cSAnqjuE",
+  "observacao": "Ativo. URL e anon key do projeto Supabase; a anon key e publica. NUNCA coloque a chave administrativa aqui."
+}

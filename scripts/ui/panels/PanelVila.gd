@@ -237,7 +237,7 @@ func _montar_intervencoes(v: Dictionary) -> void:
 			func(): _comprar(chave), null,
 			UITheme.SUCESSO if GameState.moedas >= custo else UITheme.BORDA)
 		b.tooltip_text = DESCRICAO[chave]
-		b.disabled = GameState.moedas < custo
+		b.disabled = GameState.moedas < custo or GameState.game_over
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.add_theme_font_size_override("font_size", 14)
 		vv.add_child(b)
@@ -284,7 +284,9 @@ func _montar_contexto(v: Dictionary) -> void:
 
 func _comprar(chave: String) -> void:
 	var custo: int = CUSTO[chave]
-	if not GameState.gastar_moedas(custo):
+	var vila := Vilas.get_vila(vila_id)
+	var motivo := "Intervencao: %s em %s" % [chave, str(vila.get("nome", "vila"))]
+	if not GameState.gastar_moedas(custo, motivo, "intervencao", "%d:%s" % [vila_id, chave]):
 		main.mostrar_toast("BioMoedas insuficientes (%.0f B)" % custo, "erro")
 		return
 	match chave:

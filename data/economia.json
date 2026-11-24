@@ -1,0 +1,20 @@
+{
+  "versao": 1,
+  "moedas_iniciais": 150,
+  "penalidade_obitos": {
+    "fracao_do_saldo_por_obito": 0.01,
+    "teto_fracao_do_saldo_por_semana": 0.25,
+    "minimo_por_semana_com_obito": 1
+  },
+  "surto_controlado": {
+    "base": 20,
+    "por_semana_de_surto": 5,
+    "bonus_sem_obitos": 15,
+    "teto": 60
+  },
+  "nota_participacao": {
+    "moedas_por_ponto": 10,
+    "nota_maxima": 100,
+    "base": "moedas_ganhas"
+  }
+}

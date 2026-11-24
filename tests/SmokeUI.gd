@@ -1,4 +1,6 @@
 extends Node
+const SAVE_TESTE := "user://test_smokeui.json"
+
 ## Smoke test de interface do StaTown.
 ##
 ## Abre a cena principal, percorre todos os paineis e abas, pressiona os botoes
@@ -14,6 +16,13 @@ var passos := 0
 
 
 func _ready() -> void:
+	GameState.caminho_save = SAVE_TESTE
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
+	# Este smoke cobre a tela de conta no modo local. O config de producao pode
+	# estar ativo no CI; isola apenas a memoria do teste (nao apaga a sessao real).
+	Conta.cfg["habilitado"] = false
+	Conta._autenticado = false
+	Conta.access_token = ""
 	var cena: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(cena)
 	main = cena
@@ -35,14 +44,17 @@ func _ready() -> void:
 		if b.is_visible_in_tree():
 			hud_txt += " " + (b as Button).text
 	_ok(" MANUAL" in hud_txt, "HUD tem o botao MANUAL")
+	_ok(" CONTA" in hud_txt, "HUD tem o botao CONTA")
 	_ok(not (" SIGA" in hud_txt), "HUD nao expoe mais o botao SIGA")
 
+	await _testar_conta_local()
 	await _testar_abas_lab()
 	await _testar_minigames()
 	await _testar_bayes()
 	await _testar_revista()
 	await _testar_siga()
 
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	print("\nSMOKE UI: %d passos, %d falhas" % [passos, falhas.size()])
 	for f in falhas:
 		print("  FALHA: ", f)
@@ -84,6 +96,47 @@ func _testar_abas_lab() -> void:
 	await _pressionar("Calcular n ideal")
 	main.fechar_modal()
 	await get_tree().process_frame
+
+
+func _testar_conta_local() -> void:
+	main._abrir_conta()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_ok(main._login_layer != null, "botao CONTA deveria abrir a tela de conta")
+	var textos := _textos(main._login_layer)
+	_ok("MODO LOCAL ATIVO" in textos, "sem Supabase, a tela deve explicar o modo local")
+	_ok(not Conta.autenticado(), "modo local nao deveria autenticar")
+	var b := _botao_em(main._login_layer, "VOLTAR AO JOGO")
+	if b == null:
+		falhas.append("botao ausente: VOLTAR AO JOGO")
+	else:
+		b.pressed.emit()
+		await get_tree().process_frame
+		passos += 1
+	_ok(main._login_layer == null, "VOLTAR AO JOGO deveria fechar a tela de conta")
+
+
+func _textos(raiz: Node) -> String:
+	var out := ""
+	var pilha: Array = [raiz]
+	while not pilha.is_empty():
+		var n: Node = pilha.pop_back()
+		if n is Label and n.is_visible_in_tree():
+			out += " " + (n as Label).text
+		for c in n.get_children():
+			pilha.append(c)
+	return out
+
+
+func _botao_em(raiz: Node, texto: String) -> Button:
+	var pilha: Array = [raiz]
+	while not pilha.is_empty():
+		var n: Node = pilha.pop_back()
+		if n is Button and (n as Button).text.begins_with(texto):
+			return n
+		for c in n.get_children():
+			pilha.append(c)
+	return null
 
 
 func _pressionar(texto: String) -> void:
@@ -208,6 +261,14 @@ func _testar_siga() -> void:
 		return
 	painel._gerar()
 	await get_tree().process_frame
+	painel._baixar_participacao()
+	await get_tree().process_frame
+	var arq := "user://statown_participacao_SE%02d.csv" % GameState.semana
+	_ok(FileAccess.file_exists(arq), "CSV de participacao deveria ser gerado")
+	if FileAccess.file_exists(arq):
+		var csv := FileAccess.get_file_as_string(arq)
+		_ok(GameState.semestre_atual() in csv, "CSV de participacao deveria trazer o semestre")
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(arq))
 	passos += 1
 	main.fechar_modal()
 	await get_tree().process_frame

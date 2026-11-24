@@ -65,6 +65,21 @@ func _build() -> void:
 	dir.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scd.add_child(dir)
 
+	var p4 := UITheme.card("PARTICIPACAO NO SEMESTRE", UITheme.ROXO)
+	dir.add_child(p4)
+	var c4 := UITheme.conteudo(p4)
+	var nota := Economy.nota_participacao()
+	c4.add_child(UITheme.campo("Moedas ganhas", str(int(nota["base"]))))
+	c4.add_child(UITheme.campo("Nota projetada", "%d / %d" % [
+		int(nota["nota"]), int(nota["nota_maxima"])]))
+	c4.add_child(UITheme.campo("Regra", Economy.texto_regra_nota()))
+	c4.add_child(UITheme.paragrafo(
+		"A nota usa as moedas ganhas, nao o saldo. O CSV abaixo leva esta linha para o SIGA; "
+		+ "com a conta Supabase, o professor baixa a mesma conta para toda a turma pela view "
+		+ "statown_notas.", 12, UITheme.TEXTO_DIM))
+	c4.add_child(UITheme.botao("Baixar CSV de participacao", _baixar_participacao,
+		null, UITheme.ACENTO))
+
 	var p1 := UITheme.card("RESUMO DA SEMANA", UITheme.SUCESSO)
 	dir.add_child(p1)
 	_resumo = UITheme.conteudo(p1)
@@ -136,6 +151,22 @@ func _copiar() -> void:
 func _baixar() -> void:
 	var nome := "siga_statown_SE%02d_%s.csv" % [GameState.semana, GameState.doenca_id]
 	var r := SigaExporter.baixar(nome, str(_ultimo["csv"]))
+	main.mostrar_toast(str(r["msg"]), "sucesso" if bool(r["ok"]) else "erro")
+
+
+func _baixar_participacao() -> void:
+	var n := Economy.nota_participacao()
+	var email := Conta.email_aluno() if Conta.autenticado() else ""
+	var matricula := Conta.matricula_aluno() if Conta.autenticado() else ""
+	var nome := Conta.nome_aluno() if Conta.autenticado() else "Aluno local"
+	var linhas := PackedStringArray()
+	linhas.append("nome;email;matricula;semestre;ano;semana;moedas_ganhas;moedas_gastas;saldo;nota;nota_maxima")
+	linhas.append("%s;%s;%s;%s;%d;%d;%d;%d;%d;%d;%d" % [
+		nome, email, matricula, GameState.semestre_atual(), GameState.ano, GameState.semana,
+		GameState.moedas_ganhas_total, GameState.moedas_gastas_total, GameState.moedas,
+		int(n["nota"]), int(n["nota_maxima"])])
+	var nome_arq := "statown_participacao_SE%02d.csv" % GameState.semana
+	var r := SigaExporter.baixar(nome_arq, "\n".join(linhas))
 	main.mostrar_toast(str(r["msg"]), "sucesso" if bool(r["ok"]) else "erro")
 
 

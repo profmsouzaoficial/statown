@@ -1,0 +1,125 @@
+{
+  "versao": 1,
+  "contextos": [
+    {
+      "id": "amostragem",
+      "nome": "Amostragem",
+      "desafios": [
+        {
+          "id": "amostra_aas_200",
+          "titulo": "Sorteio representativo",
+          "descricao": "Gere uma nova amostra aleatoria simples com n >= 200 e confira o plano no painel.",
+          "recompensa": 20,
+          "dica": "Use o botao 'Sortear amostra' com o metodo AAS e n >= 200."
+        },
+        {
+          "id": "amostra_estratificada_150",
+          "titulo": "Estratos etarios",
+          "descricao": "Gere uma amostra estratificada por faixa etaria com n >= 150.",
+          "recompensa": 25,
+          "dica": "Escolha o metodo estratificado e aumente o n antes de sortear."
+        }
+      ]
+    },
+    {
+      "id": "descritiva",
+      "nome": "Descritiva",
+      "desafios": [
+        {
+          "id": "descritiva_idade_ic",
+          "titulo": "IC da idade",
+          "descricao": "Selecione Idade sem agrupamento e confira o IC95% da media.",
+          "recompensa": 20,
+          "dica": "Mude a variavel para Idade e deixe o agrupamento em '(sem agrupamento)'."
+        },
+        {
+          "id": "descritiva_renda_por_sexo",
+          "titulo": "Renda por sexo",
+          "descricao": "Agrupe a renda familiar por sexo e compare as medianas no boxplot.",
+          "recompensa": 25,
+          "dica": "Escolha Renda (SM) e agrupe por Sexo."
+        }
+      ]
+    },
+    {
+      "id": "graficos",
+      "nome": "Graficos",
+      "desafios": [
+        {
+          "id": "grafico_histograma_idade",
+          "titulo": "Histograma da idade",
+          "descricao": "Desenhe um histograma da variavel Idade.",
+          "recompensa": 20,
+          "dica": "No seletor de tipo, escolha Histograma e Idade; depois clique em Desenhar."
+        },
+        {
+          "id": "grafico_dispersao_r2",
+          "titulo": "Dispersao com reta",
+          "descricao": "Desenhe a dispersao de biomarcador vs idade e leia o R2 da reta.",
+          "recompensa": 25,
+          "dica": "Escolha Dispersao, X = Idade e Y = Biomarcador; o R2 aparece no grafico."
+        }
+      ]
+    },
+    {
+      "id": "distribuicoes",
+      "nome": "Distribuicoes",
+      "desafios": [
+        {
+          "id": "dist_normal_sigma2",
+          "titulo": "Achatamento da normal",
+          "descricao": "Na Normal, ajuste sigma = 2,0 e observe o efeito no pico e nas caudas.",
+          "recompensa": 20,
+          "dica": "Familia Normal: mu pode ficar em 0; mude sigma para 2,0."
+        },
+        {
+          "id": "dist_t_gl5",
+          "titulo": "Caudas da t",
+          "descricao": "Na t de Student, ajuste gl = 5 e compare a cauda com a Normal.",
+          "recompensa": 25,
+          "dica": "Familia t: o segundo campo e gl; use 5."
+        }
+      ]
+    },
+    {
+      "id": "testes",
+      "nome": "Testes",
+      "desafios": [
+        {
+          "id": "teste_t_p_menor_005",
+          "titulo": "Diferenca significativa",
+          "descricao": "Rode um teste t para 2 medias independentes e encontre p < 0,05.",
+          "recompensa": 30,
+          "dica": "Se o primeiro par nao for significativo, troque a variavel resposta e o grupo. Doses de vacina por Vacinado tem diferenca clara."
+        },
+        {
+          "id": "teste_nao_parametrico",
+          "titulo": "Quando nao ha normalidade",
+          "descricao": "Rode Mann-Whitney em uma variavel resposta e leia o p-valor.",
+          "recompensa": 25,
+          "dica": "Escolha '2 grupos, nao-parametrico (Mann-Whitney)' e execute."
+        }
+      ]
+    },
+    {
+      "id": "regressao",
+      "nome": "Regressao",
+      "desafios": [
+        {
+          "id": "regressao_linear_r2",
+          "titulo": "Leia o R2",
+          "descricao": "Rode a regressao linear do biomarcador em funcao da idade e leia o R2. O R2 baixo mostra que idade explica pouca variacao: interprete antes de concluir causalidade.",
+          "recompensa": 25,
+          "dica": "Escolha o primeiro modelo linear e clique em Rodar modelo. Leia o R2 e o p da inclinacao."
+        },
+        {
+          "id": "regressao_logistica_or",
+          "titulo": "Razoes de chances",
+          "descricao": "Rode a regressao logistica e leia as OR dos quatro preditores. Compare a magnitude e o sentido de cada uma.",
+          "recompensa": 30,
+          "dica": "Escolha o modelo logistico e procure a coluna OR. OR > 1 aumenta a chance; OR < 1 protege."
+        }
+      ]
+    }
+  ]
+}

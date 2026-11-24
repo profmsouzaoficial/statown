@@ -1,4 +1,6 @@
 extends Node
+const SAVE_TESTE := "user://capture_docs.json"
+
 ## Captura de telas para documentacao e revisao visual.
 ##
 ## Roda com display real (GL Compatibility):
@@ -13,6 +15,9 @@ var n := 0
 
 
 func _ready() -> void:
+	GameState.caminho_save = SAVE_TESTE
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
+	GameState.reiniciar_partida()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 	DisplayServer.window_set_size(Vector2i(1600, 900))
 	var cena: Node = load("res://scenes/Main.tscn").instantiate()
@@ -21,12 +26,30 @@ func _ready() -> void:
 	await _esperar(30)
 	await _shot("01_boas_vindas")
 
+	# Tela de conta no modo local (sem Supabase configurado neste build).
+	main._abrir_conta()
+	await _esperar(12)
+	await _shot("19_conta_local")
+	_pressionar("VOLTAR AO JOGO")
+	await _esperar(6)
 	main.fechar_modal()
 	await _esperar(6)
 	# roda algumas semanas para os graficos terem dados reais
 	GameState.avancar_semanas(16)
 	await _esperar(8)
+	# Alguns ganhos e uma intervencao para as telas de economia/SIGA nao
+	# aparecerem zeradas na documentacao (valores ilustrativos do save de teste).
+	GameState.ganhar_moedas(240, "minigames concluidos (4 partidas)", "minigame", "captura")
+	GameState.ganhar_moedas(45, "surto controlado sem obitos", "surto", "captura")
+	GameState.gastar_moedas(180, "intervencao: saneamento da Vila Ribeira", "intervencao", "captura")
+	await _esperar(4)
 	await _shot("02_mapa")
+
+	main._abrir_economia()
+	await _esperar(10)
+	await _shot("20_extrato")
+	main.fechar_modal()
+	await _esperar(4)
 
 	main.focar_vila(3)
 	await _esperar(20)
@@ -117,6 +140,7 @@ func _ready() -> void:
 	await _esperar(16)
 	await _shot("18_vila_secundaria")
 
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	get_tree().quit()
 
 
@@ -180,6 +204,11 @@ func _achar(raiz: Node, tipo: String) -> Node:
 
 
 func _shot(nome: String) -> void:
+	# Em ambiente de CI o foco da janela oscila; tira a pausa de foco da foto
+	# didatica e a retoma depois, sem alterar o comportamento documentado.
+	if main._pausa_foco_layer != null and main._pausa_foco_layer.visible:
+		main._retomar_foco()
+		await get_tree().process_frame
 	# avisos flutuantes nao entram nas capturas (poluem o painel fotografado)
 	if main.has_method("limpar_toasts"):
 		main.limpar_toasts()

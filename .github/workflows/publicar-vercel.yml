@@ -60,10 +60,16 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --path . --script tests/test_statcore.gd
-          for scene in SmokeUI TestCamera TestAudio TestAudit TestTrafego; do
+          for scene in SmokeUI TestCamera TestAudio TestAudit TestTrafego TestEconomia TestDesafios; do
             echo "== $scene =="
             "$GODOT_BIN" --headless --path . "res://tests/${scene}.tscn"
           done
+
+      - name: Conferir configuracao do Supabase
+        run: |
+          set -euo pipefail
+          test -s config/supabase.json
+          python3 -c 'import json; c=json.load(open("config/supabase.json", encoding="utf-8")); assert isinstance(c.get("habilitado"), bool), "habilitado deve ser booleano"; assert "service_role" not in json.dumps(c), "service_role nunca entra no cliente"; assert (not c.get("habilitado")) or (str(c.get("url", "")).startswith("https://") and len(str(c.get("anon_key", ""))) > 20), "URL/anon_key invalidas"; print("config/supabase.json ok; habilitado=", c.get("habilitado"))'
 
       - name: Exportar build web
         run: |
@@ -84,7 +90,7 @@ jobs:
           cp docs/shots/*.png exports/web/shots/
           cp deploy/vercel.json exports/web/vercel.json
           test -s exports/web/manual.html
-          test "$(find exports/web/shots -maxdepth 1 -name '*.png' | wc -l)" -ge 17
+          test "$(find exports/web/shots -maxdepth 1 -name '*.png' | wc -l)" -ge 23
 
       - name: Publicar branch deploy
         env:
@@ -110,4 +116,4 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Branch de produção da Vercel: \`deploy\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Manual e 21 figuras copiados para \`exports/web\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Manual e figuras copiados para \`exports/web\`." >> "$GITHUB_STEP_SUMMARY"

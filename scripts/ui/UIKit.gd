@@ -344,6 +344,13 @@ func conteudo(p: PanelContainer) -> VBoxContainer:
 	return p.get_node("Conteudo") as VBoxContainer
 
 
+func card_info(titulo_txt: String, texto: String, cor: Color = ACENTO,
+		tamanho: int = 13) -> PanelContainer:
+	var p := card(titulo_txt, cor)
+	conteudo(p).add_child(paragrafo(texto, tamanho, TEXTO))
+	return p
+
+
 func hbox(sep: int = 10) -> HBoxContainer:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", _px(sep))
