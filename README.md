@@ -182,8 +182,9 @@ linha “Óbitos naturais (outras causas)” no painel.
 
 ### Outros painéis
 
-- **Revista** — leitura crítica de artigos fictícios, com checklist de viés e
-  randomização (conteúdo explicitamente marcado como ficcional).
+- **Revista** — leitura crítica de artigos **reais** indexados no PubMed/NLM:
+  acervo de 50, com 6 sorteados por semana epidemiológica. Cada ficha mostra
+  autores, periódico, ano, DOI, PMID, tipo de estudo e o resumo da fonte.
 - **Dr. Bayes** — diálogo sobre probabilidade condicional, sensibilidade,
   especificidade e valor preditivo.
 - **Manual** — guia completo em `docs/manual.html`, aberto pelo HUD ou por `F1`.
@@ -201,8 +202,11 @@ linha “Óbitos naturais (outras causas)” no painel.
 - **População e vilas são sintéticas** (`data/vilas.json`), com estrutura etária,
   comorbidades, saneamento e cobertura vacinal plausíveis — não são dados reais de
   nenhum município.
-- Os **artigos da Revista e as falas do Dr. Bayes são fictícios** e assim rotulados no
-  jogo. Nenhuma citação real é inventada.
+- As falas do **Dr. Bayes** são ficcionais e rotuladas como tais. Os **artigos da
+  Revista são reais**: título, autores, periódico, DOI, PMID e resumo vêm do
+  PubMed/NLM. Os DOIs foram conferidos no Crossref; nenhuma citação é inventada.
+  A base fica em `data/revista_artigos.json` e o espelho SQL em
+  `docs/SUPABASE_ARTIGOS.sql`.
 - Todos os cálculos estatísticos saem de `scripts/stats/StatCore.gd`, uma biblioteca
   única e testada (47 verificações), usada tanto pela interface quanto pelos testes.
 
@@ -220,6 +224,9 @@ godot --headless --script tests/test_statcore.gd
 # 3. smoke test da interface (abre todos os painéis e joga os 9 minigames)
 godot --headless res://tests/SmokeUI.tscn
 
+# 3.1. base da Revista: 50 artigos, 10 por área, DOI/PMID e metadados
+godot --headless res://tests/TestRevista.tscn
+
 # 4. áudio: buses, 51 arquivos, mapa vila -> zona, volumes e troca de tema
 #    (129 verificações)
 godot --headless res://tests/TestAudio.tscn
@@ -236,10 +243,13 @@ godot --headless res://tests/TestEconomia.tscn
 # 8. desafios do LAB: banco, checagem, pagamento e reset semanal
 godot --headless res://tests/TestDesafios.tscn
 
-# 9. capturas de tela (precisa de display; gera docs/shots/*.png)
+# 9. auditoria: 52 semanas de simulação
+godot --headless res://tests/TestAudit.tscn
+
+# 10. capturas de tela (precisa de display; gera docs/shots/*.png)
 godot --path . res://tests/Capture.tscn --resolution 1600x900
 
-# 10. exportação web
+# 11. exportação web
 mkdir -p exports/web
 godot --headless --path . --export-release "Web" exports/web/index.html
 ```
@@ -302,7 +312,8 @@ Para saber onde pintar, `docs/mapa_vilas.png` mostra as 20 vilas numeradas sobre
 ## 6. Estrutura
 
 ```
-data/                 vilas.json, doencas.json, map_data.json (gerado)
+data/                 vilas.json, doencas.json, map_data.json (gerado),
+                      revista_artigos.json (50 artigos reais do PubMed/NLM)
 scenes/Main.tscn      cena principal (HUD + mapa + modais)
 scripts/autoload/     GameState, VilaRegistry, PopulationManager, EpidemicManager,
                       AssetRegistry, RoadMask, UIKit, AudioManager  (ordem importa!)
@@ -316,12 +327,13 @@ assets/art/           mapa bakeado (world_map.png + 16 chunkes), decor.png,
 assets/audio/         mus (15 temas), vila (20 stings), amb (6 loops), sfx (10)
 data/audio.json       mapa vila -> zona/ambiente/acento (Python + jogo leem o mesmo)
 tests/                test_statcore.gd, SmokeUI, TestCamera, TestAudio, TestAudit,
-                      TestTrafego, TestEconomia, TestDesafios, Capture
+                      TestTrafego, TestEconomia, TestDesafios, TestRevista, Capture
 tools/                render_world.py (mapa), split_world.py (fatia o mapa editado),
                       extract_map_geometry.py,
                       audio/render_audio.py + audio/fetch_freesound.py
 docs/shots/           24 capturas usadas no manual e na documentação (23 geradas pelo Capture)
 docs/manual.html       manual do usuário (23 capítulos, figuras, links internos)
+docs/SUPABASE_ARTIGOS.sql  tabela statown_artigos + carga dos 50 artigos
 docs/manual_preview.png captura da capa do manual (para divulgação)
 docs/CREDITOS_AUDIO.md  arquitetura sonora e créditos CC0 do freesound
 docs/CREDITOS_ARTE.md   origem e licença dos sprites de veículos e parapentes

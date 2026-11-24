@@ -326,7 +326,7 @@ O DSH deve criar um projeto Godot 4.x válido (`project.godot` configurado em re
 │   ├── vilas_config.json           # Parâmetros iniciais das 20 Vilas
 │   ├── diseases_config.json        # Parâmetros das 4 doenças/agravos
 │   ├── questions_bank.json         # Templates parametrizados dos 9 minigames
-│   └── scientific_articles.json    # Artigos fictícios/adaptados para leitura crítica
+│   └── revista_artigos.json        # Base de 50 artigos reais (PubMed/NLM) para leitura crítica
 ├── scenes/
 │   ├── Main.tscn                   # Cena raiz integrando WorldMap + HUD + Modals
 │   ├── world/

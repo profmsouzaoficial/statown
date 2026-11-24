@@ -241,10 +241,14 @@ func _testar_revista() -> void:
 	if painel == null or not painel.has_method("_abrir_artigo"):
 		falhas.append("Revista sem _abrir_artigo")
 		return
+	_ok(painel.ARTIGOS.size() == 6, "Revista deveria sortear 6 artigos")
+	_ok(painel._todos.size() == 50, "Revista deveria carregar 50 artigos reais")
 	for i in range(painel.ARTIGOS.size()):
+		var a: Dictionary = painel.ARTIGOS[i]
+		_ok(str(a.get("doi", "")).begins_with("10."), "Artigo sem DOI")
+		_ok(str(a.get("autores_exibicao", "")) != "", "Artigo sem autores")
+		_ok(str(a.get("periodico", "")) != "", "Artigo sem periodico")
 		painel._abrir_artigo(i)
-		await get_tree().process_frame
-		painel._alternar_perguntas()
 		await get_tree().process_frame
 		passos += 1
 	painel._marcar_lido()

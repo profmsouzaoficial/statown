@@ -13,8 +13,10 @@ técnica.
    o Silkscreen (fonte de display) não tem acentuação confiável e o texto é desenhado em
    muitos lugares com fontes diferentes. Textos longos em Rubik também seguem a regra,
    por consistência visual.
-3. **Nunca fabrique dado, citação ou número.** População/ vilas são sintéticas e os
-   artigos da Revista são fictícios e rotulados como tal.
+3. **Nunca fabrique dado, citação ou número.** População/vilas são sintéticas; as
+   falas do Dr. Bayes são ficcionais. Os artigos da Revista são **reais**, vindos do
+   PubMed/NLM, com DOI e PMID conferidos; não edite título, autor, resumo ou DOI sem
+   consultar a fonte.
 4. **Toda estatística passa por `StatCore`.** Se a interface precisa de uma conta nova,
    ela vira função estática em `scripts/stats/StatCore.gd` + verificação em
    `tests/test_statcore.gd`. Nunca calcule média/p-valor inline num painel.
@@ -31,13 +33,14 @@ GODOT=/home/marcio/opt/godot/godot        # binário usado no desenvolvimento
 
 $GODOT --headless --import                                    # gate de compilação
 $GODOT --headless --script tests/test_statcore.gd             # 47 verificações
-$GODOT --headless res://tests/SmokeUI.tscn                    # 47 passos de UI (inclui CONTA local)
+$GODOT --headless res://tests/SmokeUI.tscn                    # 67 passos de UI (inclui CONTA e Revista)
 $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de navegação
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
 $GODOT --headless res://tests/TestEconomia.tscn              # 33 verificações de moedas/nota/semestre
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
+$GODOT --headless res://tests/TestRevista.tscn               # 1007 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
 ```
 
@@ -400,13 +403,14 @@ cobre buses e volumes, não a decodificação do navegador.
 
 - [ ] `godot --headless --import` sem erro
 - [ ] `tests/test_statcore.gd` 47/47
-- [ ] `SmokeUI` 47/47
+- [ ] `SmokeUI` 67/67
 - [ ] `TestCamera` 93/93
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
 - [ ] `TestEconomia` 33/33
 - [ ] `TestDesafios` 22/22
+- [ ] `TestRevista` 1007/1007 (50 artigos, 10 por area, DOI/PMID unicos)
 - [ ] `Capture` 23 PNGs, 0 `SCRIPT ERROR`
 - [ ] `docs/manual.html`: 0 links internos quebrados, 0 imagens ausentes, sem overflow
       horizontal em 390 px e gaveta do sumário opaca

@@ -234,3 +234,12 @@ grant select on public.statown_notas to authenticated;
 -- select * from public.statown_notas
 -- where semestre = '2026/2'
 -- order by nome;
+
+-- 11. Revista cientifica: base de artigos reais -----------------------------
+-- A tabela public.statown_artigos e a carga dos 50 artigos do PubMed/NLM
+-- estao em SUPABASE_ARTIGOS.sql. Rode aquele arquivo depois deste para deixar
+-- o espelho das fontes no Supabase. O jogo usa a copia offline em
+-- data/revista_artigos.json e nao precisa de rede para abrir a Revista.
+--
+-- Consulta util para conferir a carga:
+-- select tema, count(*) from public.statown_artigos group by tema order by tema;

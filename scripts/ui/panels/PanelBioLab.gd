@@ -94,6 +94,7 @@ func _build() -> void:
 	_tab = TabContainer.new()
 	_tab.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab.clip_tabs = false
+	_tab.clip_contents = true
 	col.add_child(_tab)
 	_tab.tab_changed.connect(_ao_mudar_aba)
 
@@ -1323,15 +1324,20 @@ func _vazio(corpo: VBoxContainer) -> void:
 
 func _linha_teste(rot: String, val: String) -> HBoxContainer:
 	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 10)
-	var l := UITheme.rotulo(rot.to_upper(), 11, UITheme.TEXTO_FRACO)
-	l.custom_minimum_size.x = 190
+	h.add_theme_constant_override("separation", 8)
+	var l := UITheme.rotulo(rot.to_upper(), 10, UITheme.TEXTO_FRACO)
+	l.custom_minimum_size.x = 132
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.clip_text = true
 	h.add_child(l)
 	var v := Label.new()
 	v.text = val
 	v.add_theme_font_override("font", UITheme.corpo(600))
-	v.add_theme_font_size_override("font_size", 15)
+	v.add_theme_font_size_override("font_size", 13)
 	v.add_theme_color_override("font_color", UITheme.TEXTO)
+	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	h.add_child(v)
 	return h
 
@@ -1349,10 +1355,16 @@ func _texto_t(p: float, lo: float, hi: float) -> String:
 # ============================================================================
 
 func _aba_regressao() -> void:
+	# A saida do modelo logistico fica alta (coeficientes + avisos + ROC).
+	# Sem ScrollContainer ela estourava o rodape do modal e empurrava a
+	# largura minima; o scroll confina o conteudo ao espaco da aba.
+	var sc := UITheme.scroll()
+	sc.name = "Regressao"
+	_tab.add_child(sc)
 	var raiz := VBoxContainer.new()
-	raiz.name = "Regressao"
+	raiz.name = "ConteudoRegressao"
 	raiz.add_theme_constant_override("separation", 10)
-	_tab.add_child(raiz)
+	sc.add_child(raiz)
 
 	var ctrl := HBoxContainer.new()
 	ctrl.add_theme_constant_override("separation", 8)
@@ -1360,17 +1372,14 @@ func _aba_regressao() -> void:
 	var sel := OptionButton.new()
 	sel.fit_to_longest_item = false
 	sel.clip_text = true
-	sel.custom_minimum_size = Vector2(220, 34)
+	sel.custom_minimum_size = Vector2(280, 34)
+	sel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sel.add_item("Linear: biomarcador ~ idade")
 	sel.add_item("Linear: renda ~ idade")
 	sel.add_item("Logistica: chance de estar infectado (idade + renda + saneamento + doses)")
 	sel.select(2)
-	sel.custom_minimum_size.x = 420
 	ctrl.add_child(sel)
 	ctrl.add_child(UITheme.botao("Rodar modelo", func(): _rodar_regressao(sel.selected, true), null, UITheme.SUCESSO))
-	var esp := Control.new()
-	esp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	ctrl.add_child(esp)
 
 	var corpo := HBoxContainer.new()
 	corpo.add_theme_constant_override("separation", 12)
@@ -1378,12 +1387,16 @@ func _aba_regressao() -> void:
 	raiz.add_child(corpo)
 	var g := StatChartCanvas.new()
 	g.name = "Canvas"
+	g.custom_minimum_size = Vector2(300, 360)
 	g.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	g.size_flags_stretch_ratio = 1.2
+	g.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	g.size_flags_stretch_ratio = 1.4
 	corpo.add_child(g)
 	var out := UITheme.card("SAIDA DO MODELO", UITheme.ACENTO)
 	out.name = "Saida"
-	out.custom_minimum_size.x = 440
+	out.custom_minimum_size.x = 400
+	out.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	UITheme.conteudo(out).add_theme_constant_override("separation", 5)
 	corpo.add_child(out)
 
 	_rodar_regressao(2)
@@ -1461,7 +1474,8 @@ func _rodar_regressao(tipo: int, registrar: bool = false) -> void:
 	var nomes := ["idade/10", "renda (SM)", "saneamento", "doses"]
 	corpo.add_child(UITheme.paragrafo(
 		"Desfecho: estar infectado ou exposto no momento da amostra. Modelo logit com 4 "
-		+ "preditores, ajustado por descida de gradiente.", 12, UITheme.TEXTO_DIM))
+		+ "preditores, ajustado por descida de gradiente. OR > 1 aumenta a chance; "
+		+ "OR < 1 protege. Compare as magnitudes.", 12, UITheme.TEXTO_DIM))
 	var tem_or := false
 	for k in range(pesos.size()):
 		var orv := exp(pesos[k])
@@ -1486,17 +1500,12 @@ func _rodar_regressao(tipo: int, registrar: bool = false) -> void:
 			and float(te.get("acuracia", 0.0)) >= 0.90):
 		var aviso := UITheme.card("ATENCAO: DESFECHO RARO", UITheme.PERIGO)
 		UITheme.conteudo(aviso).add_child(UITheme.paragrafo(
-			"A amostra tem apenas %d %s (infectados ou expostos) em %d individuos. "
+			"%d %s em %d individuos. A acuracia pode enganar: com desfecho raro, o "
 			% [positivos, "positivo" if positivos == 1 else "positivos", y.size()]
-			+ "Com desfecho raro, a acuracia pode parecer alta so porque o modelo aprendeu a "
-			+ "dizer 'todos negativos': a sensibilidade fica em 0%% e nenhum caso real e "
-			+ "detectado. Leia sensibilidade, especificidade e AUC — nunca a acuracia isolada. "
-			+ "Aumente o n, filtre uma vila com surto ativo ou sorteie uma amostra com mais "
-			+ "expostos.", 13, UITheme.TEXTO))
+			+ "modelo aprende a dizer 'todos negativos' e a sensibilidade fica em 0%%. "
+			+ "Leia sensibilidade, especificidade e AUC; aumente o n ou filtre uma vila "
+			+ "com surto ativo.", 12, UITheme.TEXTO))
 		corpo.add_child(aviso)
-	corpo.add_child(UITheme.paragrafo(
-		"OR > 1 aumenta a chance do desfecho; OR < 1 protege. Compare as magnitudes: o "
-		+ "preditor com OR mais distante de 1 e o que mais pesa no modelo.", 12, UITheme.TEXTO_DIM))
 	if g:
 		# ROC a partir dos escores previstos (amostra completa)
 		var scores: Array = []

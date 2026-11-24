@@ -38,12 +38,15 @@ O semestre é calculado pela data do sistema: **janeiro a junho = `AAAA/1`**;
 3. Abra **SQL Editor**, cole todo o conteúdo de
    [`docs/SUPABASE.sql`](SUPABASE.sql) e execute. O script é idempotente: pode ser
    rodado de novo após atualizações.
-4. Em **Authentication → Providers → Email**, deixe **Enable email provider** ligado.
+4. Para guardar também o acervo da Revista, execute em seguida
+   [`docs/SUPABASE_ARTIGOS.sql`](SUPABASE_ARTIGOS.sql). Ele cria
+   `public.statown_artigos` e carrega os 50 artigos reais do PubMed/NLM.
+5. Em **Authentication → Providers → Email**, deixe **Enable email provider** ligado.
    Para uma disciplina, o mais simples é **desligar “Confirm email”** enquanto testa;
    em produção, deixe ligado e oriente o aluno a confirmar o e-mail.
-5. Em **Authentication → URL Configuration**, coloque a URL pública do jogo (Vercel)
+6. Em **Authentication → URL Configuration**, coloque a URL pública do jogo (Vercel)
    em **Site URL** e adicione `http://localhost:*` se for testar localmente.
-6. Se o projeto usar confirmação de e-mail, configure um remetente em
+7. Se o projeto usar confirmação de e-mail, configure um remetente em
    **Authentication → Emails**. Sem SMTP próprio, o Supabase tem limite de envio.
 
 ### O que o SQL cria
@@ -55,6 +58,8 @@ O semestre é calculado pela data do sistema: **janeiro a junho = `AAAA/1`**;
 - `statown_carregar(p_semestre)`: devolve só a linha do próprio aluno.
 - `statown_salvar(p_semestre, p_save)`: valida e faz upsert do próprio progresso.
 - `statown_notas`: visão para o professor consultar a turma.
+- `statown_artigos` (script separado): acervo público, somente leitura, com título,
+  autores, periódico, ano, DOI, PMID, tipo, resumo e metadados de fonte.
 - RLS: aluno lê o próprio perfil/progresso; professor lê a turma; ninguém escreve
   direto nas tabelas — só pelas RPCs.
 
@@ -92,6 +97,7 @@ $GODOT --headless --path . --import
 $GODOT --headless res://tests/SmokeUI.tscn
 $GODOT --headless res://tests/TestEconomia.tscn
 $GODOT --headless res://tests/TestDesafios.tscn
+$GODOT --headless res://tests/TestRevista.tscn
 ```
 
 Para publicar, faça commit de `config/supabase.json` e deixe o GitHub Actions
@@ -308,7 +314,37 @@ tem senha provisória, troque-a antes de liberar o jogo para os alunos.
 
 ---
 
-## 9. LGPD e uso em sala
+## 9. Base de artigos da Revista
+
+A Revista Científica do Vale usa **50 artigos reais** indexados no PubMed/NLM,
+consultados em **24/11/2026**. O jogo carrega a cópia versionada
+[`data/revista_artigos.json`](../data/revista_artigos.json) para funcionar offline
+e sorteia **6 por semana epidemiológica** (o lote é estável dentro da semana).
+
+Para espelhar a base no Supabase:
+
+1. execute [`docs/SUPABASE_ARTIGOS.sql`](SUPABASE_ARTIGOS.sql) no SQL Editor;
+2. confira com `select tema, count(*) from public.statown_artigos group by tema;`
+   — devem aparecer 10 linhas em cada uma das cinco áreas;
+3. a tabela é **somente leitura** para `anon`/`authenticated`; alterações são feitas
+   pelo SQL Editor ou por uma futura RPC de professor, nunca pelo cliente do jogo.
+
+| Campo | Uso |
+|---|---|
+| `pmid`, `doi`, `url` | rastreabilidade e acesso ao artigo completo |
+| `titulo`, `autores`, `periodico`, `ano`, volume/número/páginas | citação |
+| `tipo`, `desenho`, `tema` | classificação didática |
+| `resumo`, `secoes` | texto reproduzido da ficha PubMed, sem reescrita |
+| `fonte`, `consultado_em` | data e origem da consulta |
+
+**Limite importante:** o resumo não substitui o artigo completo. O botão
+**Abrir no DOI** leva à versão do editor; o jogo não baixa nem redistribui PDFs.
+Os metadados foram conferidos contra o Crossref, mas a disponibilidade do texto
+completo depende do acesso da instituição.
+
+---
+
+## 10. LGPD e uso em sala
 
 - O jogo coleta **e-mail, nome e matrícula** para identificar o aluno e a nota.
 - Informe a turma, no início do semestre, o que é coletado, por quê, onde fica e por
@@ -321,7 +357,7 @@ tem senha provisória, troque-a antes de liberar o jogo para os alunos.
 
 ---
 
-## 10. Checklist de publicação
+## 11. Checklist de publicação
 
 - [ ] SQL executado no projeto de produção.
 - [ ] `config/supabase.json` com URL e **anon key**, `habilitado: true`.
@@ -329,5 +365,6 @@ tem senha provisória, troque-a antes de liberar o jogo para os alunos.
 - [ ] Confirmação de e-mail decidida (ligada em produção, desligada só em teste).
 - [ ] URL da Vercel cadastrada em **Authentication → URL Configuration**.
 - [ ] Professor promovido e consulta `statown_notas` testada.
-- [ ] Testes `SmokeUI`, `TestEconomia` e `TestDesafios` verdes no CI.
+- [ ] Testes `SmokeUI`, `TestEconomia`, `TestDesafios` e `TestRevista` verdes no CI.
+- [ ] `docs/SUPABASE_ARTIGOS.sql` executado e `statown_artigos` com 50 linhas.
 - [ ] Aviso de privacidade e plano de exclusão definidos com a turma.
