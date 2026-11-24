@@ -134,8 +134,9 @@ func _build() -> void:
 	cf.add_child(UITheme.paragrafo(
 		"%d artigos reais indexados no PubMed/NLM. A cada semana o jogo sorteia "
 		% _todos.size()
-		+ "6. Os resumos sao reproduzidos da fonte e cada ficha mostra autores, "
-		+ "periodico, DOI e PMID. Confira o DOI antes de citar.", 12, UITheme.TEXTO_DIM))
+		+ "6. Os resumos sao traduzidos para o portugues e marcados como TRADUZIDO; "
+		+ "o texto original abre pelo DOI. Cada ficha mostra autores, periodico, "
+		+ "DOI e PMID. Confira o DOI antes de citar.", 12, UITheme.TEXTO_DIM))
 	cf.add_child(UITheme.paragrafo(
 		"Consulta: %s · recorte dos ultimos cinco anos." % _data_consulta(), 11, UITheme.TEXTO_FRACO))
 
@@ -196,12 +197,27 @@ func _botao_artigo(i: int) -> Button:
 	b.custom_minimum_size = Vector2(0, 78)
 	b.clip_text = true
 	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	b.tooltip_text = str(a["titulo"]) + "\n" + str(a["autores_exibicao"]) + "\nDOI: " + str(a["doi"])
+	b.tooltip_text = _titulo(a) + "\n" + str(a["autores_exibicao"]) + "\nDOI: " + str(a["doi"])
+	if _tem_traducao(a):
+		b.tooltip_text += "\nTraducao PT-BR; texto original no DOI."
 	return b
 
 
+func _titulo(a: Dictionary) -> String:
+	# A Revista mostra a traducao por padrao. O titulo original continua
+	# disponivel na citacao e no artigo aberto pelo DOI.
+	if _tem_traducao(a) and str(a.get("titulo_pt", "")).strip_edges() != "":
+		return str(a["titulo_pt"])
+	return str(a.get("titulo", ""))
+
+
+func _tem_traducao(a: Dictionary) -> bool:
+	return str(a.get("titulo_pt", "")).strip_edges() != "" \
+		and str(a.get("resumo_pt", "")).strip_edges() != ""
+
+
 func _titulo_lista(a: Dictionary) -> String:
-	var t := str(a.get("titulo", ""))
+	var t := _titulo(a)
 	if t.length() > 88:
 		t = t.substr(0, 85).strip_edges() + "..."
 	return t
@@ -215,16 +231,22 @@ func _abrir_artigo(i: int) -> void:
 		c.queue_free()
 	var a: Dictionary = ARTIGOS[i]
 	var lido := GameState.artigos_lidos.has(str(a["id"]))
+	var traduzido := _tem_traducao(a)
 
 	var topo := HBoxContainer.new()
-	topo.add_theme_constant_override("separation", 14)
+	topo.add_theme_constant_override("separation", 10)
 	topo.add_child(UITheme.rotulo(str(a.get("tema", "")).to_upper(), 11, UITheme.ACENTO))
 	topo.add_child(UITheme.rotulo(str(int(a.get("ano", 0))), 11, UITheme.TEXTO_DIM))
 	if lido:
 		topo.add_child(UITheme.rotulo("LIDO", 11, UITheme.SUCESSO))
+	if traduzido:
+		var selo := UITheme.badge("TRADUZIDO", UITheme.INFO, 10)
+		selo.tooltip_text = "Traducao PT-BR. O artigo original abre pelo DOI."
+		topo.add_child(selo)
 	_leitor.add_child(topo)
 
-	var tit := UITheme.paragrafo(str(a.get("titulo", "")), 24, UITheme.TEXTO)
+	var tit := UITheme.paragrafo(str(a["titulo_pt"]) if traduzido else str(a.get("titulo", "")),
+		24, UITheme.TEXTO)
 	tit.add_theme_font_override("font", UITheme.corpo(700))
 	tit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_leitor.add_child(tit)
@@ -243,26 +265,35 @@ func _abrir_artigo(i: int) -> void:
 	acoes.add_theme_constant_override("h_separation", 10)
 	acoes.add_theme_constant_override("v_separation", 8)
 	_leitor.add_child(acoes)
-	acoes.add_child(UITheme.botao("Abrir no DOI", _abrir_doi, null, UITheme.INFO))
+	acoes.add_child(UITheme.botao("Abrir original no DOI", _abrir_doi, null, UITheme.INFO))
 	acoes.add_child(UITheme.botao("Copiar citacao", _copiar_citacao, null, UITheme.BORDA))
 	acoes.add_child(UITheme.botao("Marcar como lido (+20)", _marcar_lido, null, UITheme.SUCESSO))
 
-	var resumo := UITheme.card("RESUMO DO ARTIGO (FONTE: PUBMED)", UITheme.INFO)
+	var resumo := UITheme.card(
+		"RESUMO TRADUZIDO (FONTE: PUBMED)" if traduzido else "RESUMO DO ARTIGO (FONTE: PUBMED)",
+		UITheme.INFO)
 	_leitor.add_child(resumo)
 	var cr := UITheme.conteudo(resumo)
-	var secoes: Array = a.get("secoes", [])
+	var secoes_pt: Array = a.get("secoes_pt", [])
+	var usar_pt := traduzido and not secoes_pt.is_empty()
+	var secoes: Array = secoes_pt if usar_pt else a.get("secoes", [])
 	var tem_rotulo := false
 	for s in secoes:
-		if str((s as Dictionary).get("rotulo", "")) != "":
+		var chave_rot := "rotulo_pt" if usar_pt else "rotulo"
+		if str((s as Dictionary).get(chave_rot, "")) != "":
 			tem_rotulo = true
 	if tem_rotulo:
 		for s in secoes:
-			var rot := _rotulo_secao(str((s as Dictionary).get("rotulo", "")))
+			var chave_rot := "rotulo_pt" if usar_pt else "rotulo"
+			var rot := str((s as Dictionary).get(chave_rot, ""))
+			if not usar_pt:
+				rot = _rotulo_secao(rot)
 			if rot != "":
 				cr.add_child(UITheme.rotulo(rot.to_upper(), 11, UITheme.ACENTO_2))
-			cr.add_child(_texto(str((s as Dictionary).get("texto", ""))))
+			var chave_txt := "texto_pt" if usar_pt else "texto"
+			cr.add_child(_texto(str((s as Dictionary).get(chave_txt, ""))))
 	else:
-		cr.add_child(_texto(str(a.get("resumo", ""))))
+		cr.add_child(_texto(str(a.get("resumo_pt", "")) if traduzido else str(a.get("resumo", ""))))
 
 	var metadados := UITheme.card("FONTE E METADADOS", UITheme.ACENTO_2)
 	_leitor.add_child(metadados)
@@ -271,6 +302,9 @@ func _abrir_artigo(i: int) -> void:
 	cm.add_child(_linha_fonte("PMID", str(a.get("pmid", ""))))
 	cm.add_child(_linha_fonte("DOI", str(a.get("doi", "")), UITheme.INFO))
 	cm.add_child(_linha_fonte("Tipo", str(a.get("desenho", "Artigo"))))
+	if traduzido:
+		cm.add_child(_linha_fonte("Idioma", "Traduzido do ingles; original no DOI",
+			UITheme.INFO))
 
 	var guia := UITheme.card("ROTEIRO DE LEITURA CRITICA", UITheme.ROXO)
 	_leitor.add_child(guia)
@@ -349,7 +383,7 @@ func _abrir_doi() -> void:
 		main.mostrar_toast("DOI indisponivel para este artigo", "info")
 		return
 	OS.shell_open("https://doi.org/" + doi)
-	main.mostrar_toast("Abrindo o artigo no navegador", "info")
+	main.mostrar_toast("Abrindo o artigo original no navegador", "info")
 
 
 func _marcar_lido() -> void:

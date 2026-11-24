@@ -30,7 +30,9 @@ func _ready() -> void:
 	main._abrir_conta()
 	await _esperar(12)
 	await _shot("19_conta_local")
-	_pressionar("VOLTAR AO JOGO")
+	# A tela de conta e um CanvasLayer separado do modal. Fecha pelo metodo
+	# do Main (sem depender do rotulo do botao, que muda com a configuracao).
+	main._fechar_login()
 	await _esperar(6)
 	main.fechar_modal()
 	await _esperar(6)

@@ -336,7 +336,7 @@ footer.rodape a{color:var(--texto2)}
       <tr><td>Painel da vila</td><td>Indicadores detalhados, séries semanais, intervenções e projeção de leitos.</td><td><a href="#cap5-3">5.3</a></td></tr>
       <tr><td>LAB</td><td>BioLab: amostragem, descritiva, gráficos, distribuições, testes e regressão.</td><td><a href="#cap8">8</a></td></tr>
       <tr><td>JOGOS</td><td>Nove desafios curtos, cada um isolando um conceito.</td><td><a href="#cap10">10</a></td></tr>
-      <tr><td>REVISTA</td><td>Seis artigos reais sorteados de um acervo de 50, com DOI, autores e resumo da fonte.</td><td><a href="#cap11">11</a></td></tr>
+      <tr><td>REVISTA</td><td>Seis artigos reais sorteados de um acervo de 50, com resumo traduzido (badge TRADUZIDO), DOI, autores e acesso ao original.</td><td><a href="#cap11">11</a></td></tr>
       <tr><td>MANUAL</td><td>Abre este guia em outra aba (atalho <kbd>F1</kbd>).</td><td><a href="#cap3">3</a></td></tr>
       <tr><td>SIGA (interno)</td><td>Relatório técnico no formato SIGA/SINAN, gerado localmente pelo código; não é um botão do jogo.</td><td><a href="#cap12">12</a></td></tr>
       <tr><td>MENU</td><td>Áudio, acessibilidade, salvar/carregar, reiniciar e conquistas.</td><td><a href="#cap15">15</a></td></tr>
@@ -1265,17 +1265,17 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
 <!-- ==================================================== CAP 11 -->
 <section class="cap" id="cap11">
   <h2><span class="num">11</span> Revista científica <a class="ancora" href="#cap11">#</a></h2>
-  <p class="lead">Seis artigos <strong>reais</strong> indexados no PubMed/NLM, sorteados de um acervo de 50 a cada semana epidemiológica. Cada ficha traz autores, periódico, ano, DOI, PMID, tipo de estudo e o resumo reproduzido da fonte. O objetivo não é “acertar um quiz”: é aprender a interrogar um artigo antes de citar.</p>
+  <p class="lead">Seis artigos <strong>reais</strong> indexados no PubMed/NLM, sorteados de um acervo de 50 a cada semana epidemiológica. Cada ficha traz autores, periódico, ano, DOI, PMID, tipo de estudo e o resumo <strong>traduzido para o português</strong>, com o selo <b>TRADUZIDO</b>. O botão <b>Abrir original no DOI</b> leva ao texto em inglês no site do editor. O objetivo não é “acertar um quiz”: é aprender a interrogar um artigo antes de citar.</p>
 
   <figure class="shot">
     <div class="moldura" data-zoom>
-      <img src="shots/12_revista.png" alt="Revista científica com lista de seis artigos e leitor mostrando autores, DOI e resumo" loading="lazy">
+      <img src="shots/12_revista.png" alt="Revista científica com lista de seis artigos, selo TRADUZIDO e leitor em português com DOI do original" loading="lazy">
     </div>
-    <figcaption><b>Revista.</b> A lista da semana traz seis artigos; o leitor mostra título, autores, periódico, DOI, PMID e resumo. Marcar um artigo inédito como lido rende 20 BioMoedas, uma única vez por artigo.</figcaption>
+    <figcaption><b>Revista.</b> A lista da semana traz seis artigos; o leitor mostra título e resumo em português, selo TRADUZIDO, autores, periódico, DOI e PMID. O botão do DOI abre o artigo original. Marcar um artigo inédito como lido rende 20 BioMoedas, uma única vez por artigo.</figcaption>
   </figure>
 
   <h3><span class="num2">11.1</span> O acervo e o sorteio</h3>
-  <p>O acervo tem <strong>50 artigos</strong>, 10 em cada área, todos publicados nos últimos cinco anos. A consulta ao PubMed/NLM foi feita em <strong>24/11/2026</strong>; título, autores, periódico, DOI, PMID e resumo vêm da ficha indexada. Os DOIs foram conferidos no Crossref.</p>
+  <p>O acervo tem <strong>50 artigos</strong>, 10 em cada área, todos publicados nos últimos cinco anos. A consulta ao PubMed/NLM foi feita em <strong>24/11/2026</strong>; título, autores, periódico, DOI, PMID e resumo original vêm da ficha indexada. Os títulos e resumos exibidos no jogo são traduções editoriais para o português; o original em inglês permanece na base e é o texto usado na citação. Os DOIs foram conferidos no Crossref.</p>
   <table class="tabela">
     <thead><tr><th>Área</th><th>Cobertura do acervo</th><th>O que observar</th></tr></thead>
     <tbody>
@@ -1289,7 +1289,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   <p>O lote é <strong>estável dentro da mesma semana</strong>: fechar e reabrir a Revista não troca os seis artigos. Quando a semana epidemiológica avança, um novo lote é sorteado. Assim, a leitura acompanha o ritmo da partida e não vira uma lista infinita para farmar moedas.</p>
   <div class="box ok">
     <span class="rot">Fonte e rastreabilidade</span>
-    <p>Cada ficha exibe <strong>DOI</strong> e <strong>PMID</strong>; o botão <b>Abrir no DOI</b> leva ao site do editor. O jogo não baixa nem redistribui PDFs. O resumo é reproduzido da fonte, sem reescrita. A mesma base pode ser espelhada no Supabase pela tabela <code>statown_artigos</code> (script <code>docs/SUPABASE_ARTIGOS.sql</code>); o jogo usa a cópia local para funcionar offline.</p>
+    <p>Cada ficha exibe <strong>DOI</strong> e <strong>PMID</strong>; o botão <b>Abrir original no DOI</b> leva ao site do editor. O jogo não baixa nem redistribui PDFs. O resumo em português é uma tradução editorial do resumo indexado, com números, unidades e siglas preservados; o texto original em inglês continua sendo a referência para citação e conferência. A mesma base pode ser espelhada no Supabase pela tabela <code>statown_artigos</code> (script <code>docs/SUPABASE_ARTIGOS.sql</code>); o jogo usa a cópia local para funcionar offline.</p>
   </div>
 
   <h3><span class="num2">11.2</span> Como ler um artigo em cinco passos</h3>
@@ -1944,11 +1944,11 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Cenários</td><td>4 agravos: arbovirose, respiratória, entérica e crônica</td></tr>
       <tr><td>BioLab</td><td>6 abas: Amostragem, Descritiva, Gráficos, Distribuições, Testes, Regressão</td></tr>
       <tr><td>Desafios</td><td>9, com 6 rodadas cada</td></tr>
-      <tr><td>Revista</td><td>6 artigos reais por semana (acervo de 50, PubMed/NLM)</td></tr>
+      <tr><td>Revista</td><td>6 artigos reais por semana (acervo de 50, PubMed/NLM; resumo em PT-BR com selo TRADUZIDO e DOI do original)</td></tr>
       <tr><td>Salvamento</td><td><code>user://statown_save.json</code>, versão 4; autosave após desafios</td></tr>
-      <tr><td>Idioma</td><td>Português brasileiro (textos do jogo sem acentuação por limitação da fonte pixel)</td></tr>
+      <tr><td>Idioma</td><td>Português brasileiro (chrome sem acentuação por limitação da fonte pixel; traduções da Revista preservam acentos em Rubik)</td></tr>
       <tr><td>Acessibilidade</td><td>Fonte grande, rótulos no mapa, pausa automática, controle de volume por camada</td></tr>
-      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (67), Revista (1.007), câmera (93), áudio (129), economia (33) e desafios do LAB (22)</td></tr>
+      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (97), Revista (1.802), câmera (93), áudio (129), economia (33) e desafios do LAB (22)</td></tr>
       <tr><td>Documentação</td><td>Este manual + guias internos do projeto</td></tr>
     </tbody>
   </table>

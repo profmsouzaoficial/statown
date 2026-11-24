@@ -59,7 +59,8 @@ O semestre é calculado pela data do sistema: **janeiro a junho = `AAAA/1`**;
 - `statown_salvar(p_semestre, p_save)`: valida e faz upsert do próprio progresso.
 - `statown_notas`: visão para o professor consultar a turma.
 - `statown_artigos` (script separado): acervo público, somente leitura, com título,
-  autores, periódico, ano, DOI, PMID, tipo, resumo e metadados de fonte.
+  autores, periódico, ano, DOI, PMID, tipo, resumo original, tradução PT-BR
+  (`titulo_pt`, `resumo_pt`, `secoes_pt`) e metadados de fonte.
 - RLS: aluno lê o próprio perfil/progresso; professor lê a turma; ninguém escreve
   direto nas tabelas — só pelas RPCs.
 
@@ -326,6 +327,8 @@ Para espelhar a base no Supabase:
 1. execute [`docs/SUPABASE_ARTIGOS.sql`](SUPABASE_ARTIGOS.sql) no SQL Editor;
 2. confira com `select tema, count(*) from public.statown_artigos group by tema;`
    — devem aparecer 10 linhas em cada uma das cinco áreas;
+   `select count(*) from public.statown_artigos where titulo_pt <> '' and resumo_pt <> '';`
+   deve devolver 50;
 3. a tabela é **somente leitura** para `anon`/`authenticated`; alterações são feitas
    pelo SQL Editor ou por uma futura RPC de professor, nunca pelo cliente do jogo.
 
@@ -334,11 +337,14 @@ Para espelhar a base no Supabase:
 | `pmid`, `doi`, `url` | rastreabilidade e acesso ao artigo completo |
 | `titulo`, `autores`, `periodico`, `ano`, volume/número/páginas | citação |
 | `tipo`, `desenho`, `tema` | classificação didática |
-| `resumo`, `secoes` | texto reproduzido da ficha PubMed, sem reescrita |
+| `resumo`, `secoes` | texto original reproduzido da ficha PubMed, sem reescrita |
+| `titulo_pt`, `resumo_pt`, `secoes_pt` | tradução editorial para PT-BR exibida no jogo |
 | `fonte`, `consultado_em` | data e origem da consulta |
 
 **Limite importante:** o resumo não substitui o artigo completo. O botão
-**Abrir no DOI** leva à versão do editor; o jogo não baixa nem redistribui PDFs.
+**Abrir original no DOI** leva à versão do editor; o jogo não baixa nem redistribui
+PDFs. A tradução é editorial e didática; o texto em inglês na tabela é a referência
+para citação e conferência.
 Os metadados foram conferidos contra o Crossref, mas a disponibilidade do texto
 completo depende do acesso da instituição.
 

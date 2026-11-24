@@ -184,7 +184,8 @@ linha “Óbitos naturais (outras causas)” no painel.
 
 - **Revista** — leitura crítica de artigos **reais** indexados no PubMed/NLM:
   acervo de 50, com 6 sorteados por semana epidemiológica. Cada ficha mostra
-  autores, periódico, ano, DOI, PMID, tipo de estudo e o resumo da fonte.
+  autores, periódico, ano, DOI, PMID, tipo de estudo e o resumo **traduzido para
+  o português**, com o selo `TRADUZIDO`; o botão do DOI abre o artigo original.
 - **Dr. Bayes** — diálogo sobre probabilidade condicional, sensibilidade,
   especificidade e valor preditivo.
 - **Manual** — guia completo em `docs/manual.html`, aberto pelo HUD ou por `F1`.
@@ -203,10 +204,12 @@ linha “Óbitos naturais (outras causas)” no painel.
   comorbidades, saneamento e cobertura vacinal plausíveis — não são dados reais de
   nenhum município.
 - As falas do **Dr. Bayes** são ficcionais e rotuladas como tais. Os **artigos da
-  Revista são reais**: título, autores, periódico, DOI, PMID e resumo vêm do
-  PubMed/NLM. Os DOIs foram conferidos no Crossref; nenhuma citação é inventada.
-  A base fica em `data/revista_artigos.json` e o espelho SQL em
-  `docs/SUPABASE_ARTIGOS.sql`.
+  Revista são reais**: título, autores, periódico, DOI, PMID e resumo original vêm
+  do PubMed/NLM. Os títulos/resumos exibidos também têm tradução editorial em
+  PT-BR, identificada pelo selo `TRADUZIDO`; o original em inglês permanece no
+  JSON e é o texto usado na citação. Os DOIs foram conferidos no Crossref;
+  nenhuma citação é inventada. A base fica em `data/revista_artigos.json` e o
+  espelho SQL em `docs/SUPABASE_ARTIGOS.sql`.
 - Todos os cálculos estatísticos saem de `scripts/stats/StatCore.gd`, uma biblioteca
   única e testada (47 verificações), usada tanto pela interface quanto pelos testes.
 
@@ -224,7 +227,7 @@ godot --headless --script tests/test_statcore.gd
 # 3. smoke test da interface (abre todos os painéis e joga os 9 minigames)
 godot --headless res://tests/SmokeUI.tscn
 
-# 3.1. base da Revista: 50 artigos, 10 por área, DOI/PMID e metadados
+# 3.1. base da Revista: 50 artigos, 10 por área, DOI/PMID, tradução e metadados
 godot --headless res://tests/TestRevista.tscn
 
 # 4. áudio: buses, 51 arquivos, mapa vila -> zona, volumes e troca de tema

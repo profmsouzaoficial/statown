@@ -248,13 +248,25 @@ func _testar_revista() -> void:
 		_ok(str(a.get("doi", "")).begins_with("10."), "Artigo sem DOI")
 		_ok(str(a.get("autores_exibicao", "")) != "", "Artigo sem autores")
 		_ok(str(a.get("periodico", "")) != "", "Artigo sem periodico")
+		_ok(painel._tem_traducao(a), "Artigo sem traducao PT-BR")
+		_ok(str(a.get("titulo_pt", "")) != "", "Artigo sem titulo traduzido")
+		_ok(str(a.get("resumo_pt", "")) != "", "Artigo sem resumo traduzido")
+		_ok(not (a.get("secoes_pt", []) as Array).is_empty(), "Artigo sem secoes traduzidas")
 		painel._abrir_artigo(i)
 		await get_tree().process_frame
+		_ok(_tem_selo_traduzido(painel._leitor), "Artigo sem badge TRADUZIDO")
 		passos += 1
 	painel._marcar_lido()
 	await get_tree().process_frame
 	main.fechar_modal()
 	await get_tree().process_frame
+
+
+func _tem_selo_traduzido(no: Node) -> bool:
+	for filho in no.find_children("*", "Label", true, false):
+		if (filho as Label).text == "TRADUZIDO":
+			return true
+	return false
 
 
 func _testar_siga() -> void:

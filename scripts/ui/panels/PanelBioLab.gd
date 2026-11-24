@@ -55,8 +55,12 @@ func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var margem := MarginContainer.new()
 	margem.set_anchors_preset(Control.PRESET_FULL_RECT)
-	for lado in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+	# 10 px no topo/rodape libera altura para a aba Regressao caber inteira
+	# no modal de 830 px, sem depender de uma rolagem de 2 px.
+	for lado in ["margin_left", "margin_right"]:
 		margem.add_theme_constant_override(lado, 14)
+	for lado in ["margin_top", "margin_bottom"]:
+		margem.add_theme_constant_override(lado, 10)
 	add_child(margem)
 
 	var col := VBoxContainer.new()
@@ -157,11 +161,15 @@ func _criar_card_desafio() -> void:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(v)
 	_lbl_desafio_titulo = UITheme.rotulo("", 15, UITheme.ACENTO)
+	# Sem autowrap, o titulo/status longo vira largura minima do card e
+	# empurra a TabContainer para fora da margem do modal.
+	_lbl_desafio_titulo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_lbl_desafio_titulo)
 	_lbl_desafio_desc = UITheme.paragrafo("", 13, UITheme.TEXTO_DIM)
 	_lbl_desafio_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_lbl_desafio_desc)
 	_lbl_desafio_status = UITheme.rotulo("", 11, UITheme.TEXTO_FRACO)
+	_lbl_desafio_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_lbl_desafio_status)
 	_btn_desafio = UITheme.botao("CONFERIR TAREFA", _conferir_desafio, null, UITheme.SUCESSO)
 	_btn_desafio.custom_minimum_size.x = 190
@@ -1363,7 +1371,7 @@ func _aba_regressao() -> void:
 	_tab.add_child(sc)
 	var raiz := VBoxContainer.new()
 	raiz.name = "ConteudoRegressao"
-	raiz.add_theme_constant_override("separation", 10)
+	raiz.add_theme_constant_override("separation", 8)
 	sc.add_child(raiz)
 
 	var ctrl := HBoxContainer.new()
@@ -1394,9 +1402,11 @@ func _aba_regressao() -> void:
 	corpo.add_child(g)
 	var out := UITheme.card("SAIDA DO MODELO", UITheme.ACENTO)
 	out.name = "Saida"
-	out.custom_minimum_size.x = 400
+	# 440 px deixa a descricao e o aviso com menos linhas; o card inteiro
+	# cabe na altura da aba sem cortar a ultima linha de AUC.
+	out.custom_minimum_size.x = 440
 	out.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	UITheme.conteudo(out).add_theme_constant_override("separation", 5)
+	UITheme.conteudo(out).add_theme_constant_override("separation", 4)
 	corpo.add_child(out)
 
 	_rodar_regressao(2)

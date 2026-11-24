@@ -9,13 +9,20 @@ técnica.
 ## 1. Regras de ouro
 
 1. **Godot 4.7**, GDScript apenas, renderizador **gl_compatibility** (alvo web/celular).
-2. **Toda string visível é PT-BR e sem acento** (`Amostragem`, `Grafico`, `nao`). Motivo:
-   o Silkscreen (fonte de display) não tem acentuação confiável e o texto é desenhado em
-   muitos lugares com fontes diferentes. Textos longos em Rubik também seguem a regra,
-   por consistência visual.
+2. **Toda string de interface é PT-BR e sem acento** (`Amostragem`, `Grafico`, `nao`).
+   Motivo: o Silkscreen (fonte de display) não tem acentuação confiável e o texto é
+   desenhado em muitos lugares com fontes diferentes. Textos longos em Rubik também
+   seguem a regra, por consistência visual.
+   **Exceção documentada:** títulos e resumos traduzidos dos artigos da Revista são
+   metadados acadêmicos externos, exibidos em Rubik. Eles preservam a acentuação correta
+   do português (ex.: `pré-eclâmpsia`, `métodos`), mas rótulos de seção, badges e todo o
+   chrome da UI continuam em ASCII/Silkscreen. O original em inglês permanece no JSON e
+   a citação usa o título original.
 3. **Nunca fabrique dado, citação ou número.** População/vilas são sintéticas; as
    falas do Dr. Bayes são ficcionais. Os artigos da Revista são **reais**, vindos do
    PubMed/NLM, com DOI e PMID conferidos; não edite título, autor, resumo ou DOI sem
+   fonte. Traduções PT-BR são campos aditivos (`titulo_pt`, `resumo_pt`, `secoes_pt`)
+   e nunca substituem o original em inglês, que é a referência para citação.
    consultar a fonte.
 4. **Toda estatística passa por `StatCore`.** Se a interface precisa de uma conta nova,
    ela vira função estática em `scripts/stats/StatCore.gd` + verificação em
@@ -33,14 +40,14 @@ GODOT=/home/marcio/opt/godot/godot        # binário usado no desenvolvimento
 
 $GODOT --headless --import                                    # gate de compilação
 $GODOT --headless --script tests/test_statcore.gd             # 47 verificações
-$GODOT --headless res://tests/SmokeUI.tscn                    # 67 passos de UI (inclui CONTA e Revista)
+$GODOT --headless res://tests/SmokeUI.tscn                    # 97 passos de UI (inclui CONTA e Revista)
 $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de navegação
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
 $GODOT --headless res://tests/TestEconomia.tscn              # 33 verificações de moedas/nota/semestre
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
-$GODOT --headless res://tests/TestRevista.tscn               # 1007 verificações da base de artigos
+$GODOT --headless res://tests/TestRevista.tscn               # 1802 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
 ```
 
@@ -403,14 +410,14 @@ cobre buses e volumes, não a decodificação do navegador.
 
 - [ ] `godot --headless --import` sem erro
 - [ ] `tests/test_statcore.gd` 47/47
-- [ ] `SmokeUI` 67/67
+- [ ] `SmokeUI` 97/97
 - [ ] `TestCamera` 93/93
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
 - [ ] `TestEconomia` 33/33
 - [ ] `TestDesafios` 22/22
-- [ ] `TestRevista` 1007/1007 (50 artigos, 10 por area, DOI/PMID unicos)
+- [ ] `TestRevista` 1802/1802 (50 artigos, 10 por area, DOI/PMID unicos e traducao PT-BR)
 - [ ] `Capture` 23 PNGs, 0 `SCRIPT ERROR`
 - [ ] `docs/manual.html`: 0 links internos quebrados, 0 imagens ausentes, sem overflow
       horizontal em 390 px e gaveta do sumário opaca
@@ -418,5 +425,5 @@ cobre buses e volumes, não a decodificação do navegador.
 - [ ] se mexeu na arte: `python3 tools/split_world.py --verificar` → 0 diferenças
 - [ ] export web gera `index.html` + `index.wasm` + `index.pck` e abre no navegador
 - [ ] GitHub Actions verde e branch `deploy` atualizada (quando publicar no Vercel)
-- [ ] texto novo sem acento e em PT-BR
+- [ ] texto novo de UI sem acento e em PT-BR; traducoes da Revista com acento em Rubik
 - [ ] nenhuma conta estatística fora de `StatCore`

@@ -29,6 +29,7 @@ func _ready() -> void:
 	var pmids := {}
 	var dois := {}
 	var titulos := {}
+	var titulos_pt := {}
 	var por_tema := {}
 	for item in artigos:
 		_ok(item is Dictionary, "registro e dicionario")
@@ -64,6 +65,31 @@ func _ready() -> void:
 		_ok(str(a.get("resumo", "")).length() >= 300, "resumo com corpo: " + id)
 		_ok(a.get("secoes") is Array and not (a.get("secoes") as Array).is_empty(),
 			"resumo estruturado: " + id)
+
+		# Contrato da traducao: a Revista abre em PT-BR, mas o original
+		# continua no JSON e e o unico texto usado na citacao/DOI.
+		var titulo_pt := str(a.get("titulo_pt", ""))
+		var resumo_pt := str(a.get("resumo_pt", ""))
+		_ok(titulo_pt.length() >= 20, "titulo traduzido: " + id)
+		_ok(titulo_pt != titulo, "titulo traduzido difere do original: " + id)
+		_ok(not titulos_pt.has(titulo_pt), "titulo traduzido unico: " + id)
+		titulos_pt[titulo_pt] = true
+		_ok(resumo_pt.length() >= 300, "resumo traduzido com corpo: " + id)
+		_ok(resumo_pt != str(a.get("resumo", "")), "resumo traduzido difere do original: " + id)
+		var secoes_orig: Array = a.get("secoes", [])
+		var secoes_pt: Array = a.get("secoes_pt", [])
+		_ok(secoes_pt.size() == secoes_orig.size(),
+			"secoes traduzidas mantem a estrutura: " + id)
+		for si in range(mini(secoes_pt.size(), secoes_orig.size())):
+			var sp: Dictionary = secoes_pt[si]
+			var so: Dictionary = secoes_orig[si]
+			var rot_pt := str(sp.get("rotulo_pt", ""))
+			_ok(str(sp.get("texto_pt", "")).length() >= 20,
+				"texto traduzido da secao %d: %s" % [si, id])
+			_ok(rot_pt == "" or not _tem_acento(rot_pt),
+				"rotulo traduzido sem acento: %s/%d" % [id, si])
+			var rot_ok := (rot_pt == "") if str(so.get("rotulo", "")) == "" else (rot_pt != "")
+			_ok(rot_ok, "rotulo traduzido presente: %s/%d" % [id, si])
 		_ok(str(a.get("tipo", "")) != "" and str(a.get("desenho", "")) != "",
 			"tipo/desenho: " + id)
 		_ok(str(a.get("fonte", "")) == "PubMed / NLM", "fonte PubMed: " + id)
@@ -75,6 +101,13 @@ func _ready() -> void:
 		_ok(int(por_tema.get(tema, 0)) == 10, "10 artigos em " + tema)
 
 	_fim()
+
+
+func _tem_acento(t: String) -> bool:
+	for i in range(t.length()):
+		if t.unicode_at(i) > 127:
+			return true
+	return false
 
 
 func _ok(cond: bool, nome: String) -> void:
