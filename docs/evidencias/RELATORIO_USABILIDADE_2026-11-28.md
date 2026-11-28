@@ -30,7 +30,9 @@
 6. A suíte final passou: **47/47** StatCore, **97/97** SmokeUI, **93/93** Câmera,
    **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **22/22** Desafios,
    **1802/1802** Revista, **13/13** Tráfego e **52 semanas** de auditoria sem falhas.
-7. Nada foi commitado nem publicado. O build web está em `exports/web/` para revisão.
+7. Os commits foram enviados para `origin/main`; o workflow **Publicar no Vercel**
+   concluiu com sucesso e a branch `deploy` foi atualizada. O build local também está
+   em `exports/web/` para revisão.
 
 ---
 
@@ -266,8 +268,10 @@ que já documenta 1600 px como largura recomendada.
 
 ## 7. Riscos e limites
 
-1. **Não houve commit nem deploy.** O workflow do GitHub/Vercel não foi executado; o
-   build em `exports/web/` é local.
+1. **Publicação:** o push para `main` acionou o workflow **Publicar no Vercel**; ele
+   concluiu com sucesso no commit `715e935` e atualizou a branch `deploy`. A Vercel
+   reportou esse commit como `success`. O domínio público é o configurado no painel
+   da Vercel e não está registrado no repositório.
 2. **Áudio do navegador**: `TestAudio` cobre buses e volumes, mas não foi medida a
    saída RMS no navegador nesta rodada. O ajuste
    `general/default_playback_type.web=0` continua no `project.godot`; uma verificação
@@ -311,5 +315,5 @@ que já documenta 1600 px como largura recomendada.
 - [x] Suíte Godot completa sem falhas.
 - [x] 24 capturas em 1600×900 e manual com 0 links/imagens quebrados.
 - [x] Build web local abre, login local funciona e o mapa carrega.
-- [ ] Publicação no Vercel (não solicitada; requer commit/push).
+- [x] Commit e push para `origin/main`; workflow e Vercel com sucesso.
 - [ ] Medição de RMS de áudio no navegador (recomendada antes de publicar).
