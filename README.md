@@ -143,18 +143,28 @@ gastos são gravados no save local na hora; se o envio ainda não chegou, o cach
 conta com mais moedas ganhas no semestre é preservado e reenviado no próximo login.
 Sem Supabase, o botão **CONTA** explica o modo local e o jogo salva apenas neste navegador.
 A tela da conta também mostra a **turma** e o **período do SIGA** (ex.: `CBV018GV-A`,
-`2026/3`), gravados a partir do nome do arquivo da turma.
+`2026/3`), gravados a partir do nome do arquivo da turma. Quem cria a conta pelo
+botão **CRIAR CONTA** não escolhe turma: o professor precisa vincular a conta à
+lista importada para liberar a nota e o envio ao SIGA. No fim do bloco aparece a
+**nota projetada** e o botão **ENVIAR AO SIGA**: o primeiro clique só pede confirmação;
+o segundo envia. O jogo espera o save chegar ao Supabase, e a Edge Function recalcula a
+nota no servidor e grava apenas a matrícula do próprio aluno na avaliação
+`Game Educativo Statown` — ela nunca cria avaliação. A `SIGA_API_KEY` fica no segredo
+da função, não no navegador. O detalhe operacional está em
+[docs/SUPABASE.md](docs/SUPABASE.md#botao-enviar-nota-ao-siga).
 
 O passo a passo, o SQL e os limites de segurança estão em
 [docs/SUPABASE.md](docs/SUPABASE.md). O build não contém `service_role`; a chave
 `anon` é pública e a proteção real é a RLS + as RPCs do banco.
 
-> **Estado desta entrega (24/11/2026):** a integração foi validada no projeto
-> Supabase real do StaTown: login, download em um navegador novo, retomada da
-> semana salva e upload manual funcionaram. O build atual usa
-> `config/supabase.json` com `habilitado: true`; a chave `anon` é pública e a
-> proteção real continua sendo a RLS + as RPCs. O passo a passo para criar outro
-> projeto está em [docs/SUPABASE.md](docs/SUPABASE.md) (seções 2 e 7). Se a
+> **Estado desta entrega (28/11/2026):** login, download em navegador novo, retomada
+> da semana salva, upload manual e o botão **ENVIAR AO SIGA** foram testados no
+> projeto Supabase real do StaTown. A Edge Function `enviar-nota-siga` está publicada
+> com JWT obrigatório e a `SIGA_API_KEY` em segredo; o cliente não recebe a chave e a
+> função nunca cria avaliação. O build atual usa `config/supabase.json` com
+> `habilitado: true`; a chave `anon` é pública e a proteção real continua sendo a RLS +
+> as RPCs. O passo a passo para criar outro projeto está em
+> [docs/SUPABASE.md](docs/SUPABASE.md) (seções 2, 7 e “Botão ENVIAR AO SIGA”). Se a
 > configuração for removida, o jogo abre em modo local.
 
 ### Como ler os números (e por que a ocupação passa de 100%)
@@ -262,13 +272,13 @@ godot --headless res://tests/TestAudio.tscn
 # 5. navegação: roda, arrasto, pinça, limites e teclado
 godot --headless res://tests/TestCamera.tscn
 
-# 6. tráfego: 55 veículos, 2 asas-deltas, 4 parapentes, máscara e reinício
+# 6. tráfego: 55 veículos, 2 asas-deltas, 4 parapentes, altitudes, máscara e reinício
 godot --headless res://tests/TestTrafego.tscn
 
-# 7. economia: óbitos, surto, nota, game over, carregamento e semestre
+# 7. economia: óbitos, surto, nota, game over, carregamento e semestre (50)
 godot --headless res://tests/TestEconomia.tscn
 
-# 8. desafios do LAB: banco, checagem, pagamento e reset semanal
+# 8. desafios do LAB: banco, checagem, pagamento e reset semanal (22)
 godot --headless res://tests/TestDesafios.tscn
 
 # 9. auditoria: 52 semanas de simulação
@@ -356,7 +366,10 @@ assets/art/           mapa bakeado (world_map.png + 16 chunkes), decor.png,
 assets/audio/         mus (15 temas), vila (20 stings), amb (6 loops), sfx (10)
 data/audio.json       mapa vila -> zona/ambiente/acento (Python + jogo leem o mesmo)
 tests/                test_statcore.gd, SmokeUI, TestCamera, TestAudio, TestAudit,
-                      TestTrafego, TestEconomia, TestDesafios, TestRevista, Capture
+                      TestTrafego, TestEconomia, TestMoedas, TestConta,
+                      TestDesafios, TestRevista, Capture
+supabase/functions/enviar-nota-siga/  Edge Function do botao ENVIAR AO SIGA
+                      (JWT, RLS, SIGA_API_KEY no segredo, sem criar avaliacao)
 tools/                render_world.py (mapa), split_world.py (fatia o mapa editado),
                       extract_map_geometry.py,
                       audio/render_audio.py + audio/fetch_freesound.py

@@ -25,6 +25,10 @@ var _confirmar_senha: LineEdit
 var _status_senha: Label
 var _botao_senha: Button
 var _detalhes_conta: VBoxContainer
+var _lbl_nota_siga: Label
+var _botao_nota_siga: Button
+var _status_nota_siga: Label
+var _confirmar_nota_siga := false
 
 
 func _init(m: Control, obrig: bool = false) -> void:
@@ -36,6 +40,7 @@ func _init(m: Control, obrig: bool = false) -> void:
 	Conta.login_concluido.connect(_ao_login)
 	Conta.cadastro_pendente.connect(_ao_cadastro_pendente)
 	Conta.senha_alterada.connect(_ao_senha_alterada)
+	Conta.nota_siga_enviada.connect(_ao_nota_siga)
 	Conta.sync_alterado.connect(_ao_sync)
 
 
@@ -121,6 +126,33 @@ func _build_conta_ativa(v: VBoxContainer) -> void:
 		d.add_child(UITheme.botao("SINCRONIZAR AGORA", func():
 			Conta.sincronizar_agora()
 			_definir_status("Sincronizando...", UITheme.INFO), null, UITheme.INFO))
+
+	# Envio da nota: compacto para o painel continuar cabendo em 720 px.
+	var nota := Economy.nota_participacao()
+	var perfil_siga_ok := Conta.turma_aluno().strip_edges() != "" \
+		and Conta.periodo_siga_aluno().strip_edges() != "" \
+		and Conta.matricula_aluno().strip_edges() != ""
+	var linha_nota := UITheme.hbox(8)
+	var info_nota := UITheme.vbox(1)
+	info_nota.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_nota.add_child(UITheme.rotulo("NOTA PROJETADA", 11, UITheme.ROXO))
+	_lbl_nota_siga = UITheme.paragrafo("Projetada: %s / %s" % [
+		_fmt_nota(float(nota["nota"])), _fmt_nota(float(nota["nota_maxima"]))], 13, UITheme.TEXTO)
+	info_nota.add_child(_lbl_nota_siga)
+	linha_nota.add_child(info_nota)
+	_botao_nota_siga = UITheme.botao("ENVIAR AO SIGA", _acao_nota_siga, null, UITheme.ROXO)
+	_botao_nota_siga.custom_minimum_size.x = 170
+	_botao_nota_siga.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_botao_nota_siga.disabled = not Conta.progresso_pronto() or not perfil_siga_ok
+	linha_nota.add_child(_botao_nota_siga)
+	d.add_child(linha_nota)
+	_status_nota_siga = UITheme.paragrafo(
+		("1000 moedas ganhas = 40,0. A nota so e gravada depois da sua confirmacao.")
+		if perfil_siga_ok else
+		("Falta matricula, turma ou periodo do SIGA no seu perfil. Avise o professor."),
+		11, UITheme.TEXTO_DIM if perfil_siga_ok else UITheme.PERIGO)
+	_status_nota_siga.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.add_child(_status_nota_siga)
 
 	v.add_child(UITheme.separador())
 	_botao_senha = UITheme.botao("ALTERAR SENHA", _alternar_bloco_senha, null, UITheme.BORDA_CLARA)
@@ -217,6 +249,10 @@ func mostrar_conta_ativa() -> void:
 	_status_senha = null
 	_botao_senha = null
 	_detalhes_conta = null
+	_lbl_nota_siga = null
+	_botao_nota_siga = null
+	_status_nota_siga = null
+	_confirmar_nota_siga = false
 	_build()
 
 
@@ -230,6 +266,47 @@ func _campo(destino: VBoxContainer, titulo_txt: String, dica: String,
 	e.add_theme_font_size_override("font_size", 15)
 	destino.add_child(e)
 	return e
+
+
+func _acao_nota_siga() -> void:
+	if _botao_nota_siga == null:
+		return
+	if not _confirmar_nota_siga:
+		_confirmar_nota_siga = true
+		_botao_nota_siga.text = "CONFIRMAR ENVIO"
+		_status_nota_siga.text = ("Confirme: a nota do semestre sera gravada na avaliacao "
+			+ "Game Educativo Statown. Clique de novo para enviar.")
+		_status_nota_siga.add_theme_color_override("font_color", UITheme.ACENTO)
+		return
+	_confirmar_nota_siga = false
+	_botao_nota_siga.disabled = true
+	_botao_nota_siga.text = "ENVIANDO..."
+	_status_nota_siga.text = "Sincronizando o progresso e enviando a nota ao SIGA..."
+	_status_nota_siga.add_theme_color_override("font_color", UITheme.INFO)
+	Conta.enviar_nota_siga()
+
+
+func _ao_nota_siga(ok: bool, msg: String, dados: Dictionary) -> void:
+	if _botao_nota_siga == null or _status_nota_siga == null:
+		return
+	_botao_nota_siga.disabled = false
+	_confirmar_nota_siga = false
+	if ok:
+		_botao_nota_siga.text = "ENVIAR NOVAMENTE"
+		_status_nota_siga.text = msg
+		_status_nota_siga.add_theme_color_override("font_color", UITheme.SUCESSO)
+		if _lbl_nota_siga != null and dados.has("nota"):
+			_lbl_nota_siga.text = "No SIGA: %s / %s" % [
+				_fmt_nota(float(dados.get("nota", 0.0))),
+				_fmt_nota(float(dados.get("nota_maxima", 40.0)))]
+	else:
+		_botao_nota_siga.text = "TENTAR DE NOVO"
+		_status_nota_siga.text = msg
+		_status_nota_siga.add_theme_color_override("font_color", UITheme.PERIGO)
+
+
+func _fmt_nota(valor: float) -> String:
+	return ("%.1f" % valor).replace(".", ",")
 
 
 func _alternar_bloco_senha() -> void:

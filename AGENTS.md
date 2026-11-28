@@ -41,14 +41,17 @@ GODOT=/home/marcio/opt/godot/godot        # binário usado no desenvolvimento
 
 $GODOT --headless --import                                    # gate de compilação
 $GODOT --headless --script tests/test_statcore.gd             # 47 verificações
-$GODOT --headless res://tests/SmokeUI.tscn                    # 97 passos de UI (inclui CONTA e Revista)
+$GODOT --headless res://tests/SmokeUI.tscn                    # 101 passos de UI (inclui CONTA e Revista)
 $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de navegação
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
-$GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
+$GODOT --headless res://tests/TestTrafego.tscn               # 17 passos de tráfego/máscara/altitude
 $GODOT --headless res://tests/TestEconomia.tscn              # 50 verificações de moedas/nota/semestre/persistência
 $GODOT --headless res://tests/TestMoedas.tscn                # 15 verificações do teto de moedas
-$GODOT --headless res://tests/TestConta.tscn                 # 4 verificações da fila do login/sync
+$GODOT --headless res://tests/TestConta.tscn                 # 8 verificações da fila do login/sync
+# função de envio (Deno; sem rede): 3 verificações
+docker run --rm --entrypoint deno -v "$PWD:/work" -w /work denoland/deno:latest \
+  test --allow-env supabase/functions/enviar-nota-siga/nota_test.ts
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
 $GODOT --headless res://tests/TestRevista.tscn               # 1802 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
@@ -195,6 +198,34 @@ reiniciar/carregar, para não apagar o cache da conta.
 Regra de ouro: **nunca** coloque a `service_role` no cliente; a `anon key` é pública e
 as RPCs/RLS filtram por `auth.uid()`. O SQL completo e o checklist estão em
 [`docs/SUPABASE.md`](docs/SUPABASE.md) e [`docs/SUPABASE.sql`](docs/SUPABASE.sql).
+
+### Envio da nota ao SIGA (`enviar-nota-siga`)
+
+O aluno vê a nota projetada em **CONTA** e pode enviá-la com **ENVIAR AO SIGA**; o
+primeiro clique pede confirmação (segundo clique envia). O cliente chama
+`Conta.enviar_nota_siga()`, que **primeiro espera o save chegar ao Supabase** e só
+depois chama a Edge Function `supabase/functions/enviar-nota-siga/index.ts` com o
+JWT do aluno e `{"semestre": GameState.semestre_atual()}`. A função:
+
+- valida o JWT em `/auth/v1/user` e lê **o próprio** perfil/progresso via PostgREST
+  com RLS; não aceita matrícula, turma, nota ou `aluno_id` do cliente;
+- exige matrícula, turma e período SIGA no perfil e o semestre interno atual
+  (calculado no fuso `America/Sao_Paulo`); esses campos são gravados pelo
+  importador do professor, não pelo auto-cadastro (o trigger ignora metadata);
+- lê `GET /api/notas` e exige **exatamente uma** avaliação existente chamada
+  `Game Educativo Statown`; se não existir ou houver duplicata, para — **nunca cria
+  avaliação**;
+- recalcula `nota = min(peso, floor(min(moedas_ganhas,1000) * peso * 10 / 1000)/10)`
+  no servidor com o peso real da avaliação, confere a matrícula na turma e faz
+  `POST /api/lancar-notas` só para ela; depois confere por um segundo GET;
+- devolve apenas status, nota, máximo, turma, período e mensagem; não devolve nome,
+  e-mail, lista da turma nem corpo bruto do SIGA.
+
+A `SIGA_API_KEY` fica em **segredo da Edge Function** (`supabase secrets set`), nunca
+em `config/supabase.json`, no PCK ou no GitHub. O botão do aluno é individual; o
+script `scripts/lancar_nota_siga.py` continua disponível para o professor conferir e
+lancar em lote, com dry-run. O deploy e os testes estão em
+[`docs/SUPABASE.md`](docs/SUPABASE.md), seção “Botão ENVIAR AO SIGA”.
 
 ### Áudio (`Audio`)
 
@@ -433,14 +464,17 @@ cobre buses e volumes, não a decodificação do navegador.
 
 - [ ] `godot --headless --import` sem erro
 - [ ] `tests/test_statcore.gd` 47/47
-- [ ] `SmokeUI` 97/97
+- [ ] `SmokeUI` 101/101
 - [ ] `TestCamera` 93/93
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
-- [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
+- [ ] `TestTrafego` 17/17 (55 veículos, 2 deltas, 4 parapentes, tamanhos/altitudes, sombras, máscara e recarga)
 - [ ] `TestEconomia` 50/50
 - [ ] `TestMoedas` 15/15
-- [ ] `TestConta` 4/4 (login e upload encadeado sem perder a requisição)
+- [ ] `TestConta` 8/8 (login, upload encadeado, semestre e envio da nota)
+- [ ] `nota_test.ts` 3/3 (nota, pesos alternativos e virada de semestre)
+- [ ] trigger `statown_novo_usuario` ignora matrícula/turma/período do metadata
+      (só o importador do professor grava a identidade acadêmica)
 - [ ] `TestDesafios` 22/22
 - [ ] `TestRevista` 1802/1802 (50 artigos, 10 por area, DOI/PMID unicos e traducao PT-BR)
 - [ ] `Capture` 24 PNGs, 0 `SCRIPT ERROR`

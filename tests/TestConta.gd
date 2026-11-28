@@ -58,6 +58,49 @@ func _ready() -> void:
 	_ok(tag == "salvar", "o upload disparado pelo callback deveria estar em _atual, veio '%s'" % tag)
 	_ok(Conta._ocupado, "o upload deveria ter sido iniciado imediatamente")
 
+	# --- envio da nota: salva primeiro e so entao chama a funcao Edge ---
+	Conta._http.cancel_request()
+	Conta._fila.clear()
+	Conta._atual = {}
+	Conta._ocupado = false
+	Conta._bloquear_sync = false
+	Conta._progresso_pronto = true
+	Conta._sync_pendente = false
+	Conta._enviando_nota_siga = false
+	Conta._nota_siga_aguardando_save = false
+	Conta.usuario = {
+		"email": "teste@example.invalid",
+		"user_metadata": {
+			"nome": "Teste", "matricula": "000000000",
+			"turma": "TESTE-A", "periodo_siga": "2026/3",
+		},
+	}
+	var nota_resultado := {"ok": false, "msg": ""}
+	var captura := func(ok: bool, msg: String, _dados: Dictionary) -> void:
+		nota_resultado["ok"] = ok
+		nota_resultado["msg"] = msg
+	Conta.nota_siga_enviada.connect(captura)
+	Conta.enviar_nota_siga()
+	_ok(str(Conta._atual.get("tag", "")) == "salvar",
+		"enviar_nota_siga deve sincronizar o save antes de tudo")
+	Conta._http.cancel_request()
+	Conta._fila.clear()
+	Conta._ao_http(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(),
+		"{}".to_utf8_buffer())
+	var req_nota: Dictionary = Conta._atual
+	_ok(str(req_nota.get("caminho", "")) == "/functions/v1/enviar-nota-siga",
+		"o save deve enfileirar a funcao Edge, veio '%s'" % str(req_nota.get("caminho", "")))
+	_ok(str((req_nota.get("corpo", {}) as Dictionary).get("semestre", "")) != "",
+		"a funcao Edge deve receber o semestre interno")
+	Conta._http.cancel_request()
+	Conta._fila.clear()
+	Conta._ao_http(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(),
+		'{"ok":true,"mensagem":"Nota 13,3 enviada ao SIGA.","nota":13.3,"nota_maxima":40.0}'.to_utf8_buffer())
+	_ok(bool(nota_resultado["ok"]) and str(nota_resultado["msg"]).contains("13,3")
+		and not Conta._enviando_nota_siga,
+		"o resultado da funcao Edge deve chegar ao painel")
+	Conta.nota_siga_enviada.disconnect(captura)
+
 	print("CONTA: fila pos-carregar=%s, %d verificacoes, %d falhas"
 		% [tag if tag != "" else "vazia", _checks, _falhas])
 
@@ -67,8 +110,11 @@ func _ready() -> void:
 	Conta._ocupado = false
 	Conta._autenticado = false
 	Conta.access_token = ""
+	Conta.usuario = {}
 	Conta._progresso_pronto = false
 	Conta._bloquear_sync = false
+	Conta._enviando_nota_siga = false
+	Conta._nota_siga_aguardando_save = false
 	_servidor.stop()
 	GameState.reiniciar_partida()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))

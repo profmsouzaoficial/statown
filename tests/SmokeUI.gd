@@ -48,6 +48,7 @@ func _ready() -> void:
 	_ok(not (" SIGA" in hud_txt), "HUD nao expoe mais o botao SIGA")
 
 	await _testar_conta_local()
+	await _testar_conta_ativa()
 	await _testar_abas_lab()
 	await _testar_minigames()
 	await _testar_bayes()
@@ -114,6 +115,46 @@ func _testar_conta_local() -> void:
 		await get_tree().process_frame
 		passos += 1
 	_ok(main._login_layer == null, "VOLTAR AO JOGO deveria fechar a tela de conta")
+
+
+func _testar_conta_ativa() -> void:
+	# Painel ativo sem rede: valida o botao de envio ao SIGA e a confirmacao.
+	var cfg_antes: Dictionary = Conta.cfg.duplicate(true)
+	var usuario_antes: Dictionary = Conta.usuario.duplicate(true)
+	var autenticado_antes := Conta._autenticado
+	var pronto_antes := Conta._progresso_pronto
+	var token_antes := Conta.access_token
+	Conta.cfg["habilitado"] = true
+	Conta.cfg["url"] = "https://example.invalid"
+	Conta.cfg["anon_key"] = "chave-de-teste-sem-valor-real"
+	Conta._autenticado = true
+	Conta.access_token = "token-de-teste"
+	Conta._progresso_pronto = true
+	Conta.usuario = {
+		"email": "teste@example.invalid",
+		"user_metadata": {
+			"nome": "Aluno Teste", "matricula": "000000000",
+			"turma": "TESTE-A", "periodo_siga": "2026/3",
+		},
+	}
+	var painel := PanelLogin.new(main, false)
+	main.add_child(painel)
+	await get_tree().process_frame
+	var b := _botao_em(painel, "ENVIAR AO SIGA")
+	_ok(b != null, "conta ativa deve ter o botao ENVIAR AO SIGA")
+	_ok(b != null and not b.disabled, "botao de envio deve estar habilitado com perfil completo")
+	if b != null:
+		b.pressed.emit()
+		await get_tree().process_frame
+		_ok(b.text == "CONFIRMAR ENVIO", "primeiro clique deve pedir confirmacao")
+		passos += 1
+	painel.queue_free()
+	await get_tree().process_frame
+	Conta.cfg = cfg_antes
+	Conta.usuario = usuario_antes
+	Conta._autenticado = autenticado_antes
+	Conta._progresso_pronto = pronto_antes
+	Conta.access_token = token_antes
 
 
 func _textos(raiz: Node) -> String:

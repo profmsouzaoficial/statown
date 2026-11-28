@@ -8,9 +8,9 @@ semestre.
 > **Princípio:** o build web é público. Qualquer chave embutida no jogo pode ser lida
 > no navegador. Por isso a única chave aceitável no cliente é a **anon key**, que é
 > pública por projeto. A `service_role` **nunca** entra no jogo, no GitHub ou no
-> Vercel. As regras de acesso ficam no banco (RLS + RPCs). A senha inicial dos alunos
-> importados é o próprio e-mail institucional; trate-a como **provisória** e peça a
-> troca no primeiro acesso.
+> Vercel. A `SIGA_API_KEY` fica **somente** no segredo da Edge Function. As regras de
+> acesso ficam no banco (RLS + RPCs). A senha inicial dos alunos importados é o próprio
+> e-mail institucional; trate-a como **provisória** e peça a troca no primeiro acesso.
 
 ---
 
@@ -25,9 +25,11 @@ semestre.
 | Tela de login aberta | A simulação fica pausada; nenhuma semana passa atrás do formulário. |
 | Sem internet | O jogo avisa, mantém o save local e tenta de novo; a nota no servidor pode ficar atrasada. |
 | Semestre novo (`2026/1` → `2026/2`) | Começa uma linha nova no banco e uma participação nova; o save do semestre anterior não é reaproveitado. |
+| Aluno clica em **ENVIAR AO SIGA** | O save pendente sobe; a Edge Function autenticada recalcula e grava **somente a matrícula do próprio aluno** em uma avaliação `Game Educativo Statown` que já exista. Se o download inicial não terminou, o botão fica desabilitado. |
 
 O semestre é calculado pela data do sistema: **janeiro a junho = `AAAA/1`**;
-**julho a dezembro = `AAAA/2`**.
+**julho a dezembro = `AAAA/2`**. No servidor, a função usa o fuso
+`America/Sao_Paulo` e recusa um semestre que não seja o atual.
 
 ---
 
@@ -79,6 +81,117 @@ avaliação `Game Educativo Statown`, cujo peso é **40,0**, a conta fica
 999 valem 39,9; 1000 ou mais valem 40,0. O teto de 1000 moedas é aplicado antes da
 proporção. Ela usa as moedas **ganhas no semestre**, não o saldo que sobrou: gastar
 numa intervenção não reduz a nota duas vezes.
+
+---
+
+<a id="botao-enviar-nota-ao-siga"></a>
+## 2.1. Botão ENVIAR AO SIGA (aluno)
+
+A partir desta entrega, o aluno pode enviar a **própria** nota sem pedir ao professor
+que rode o script. O botão fica no fim do painel **CONTA**, ao lado da nota projetada:
+
+```text
+NOTA PROJETADA
+Projetada: 13,3 / 40,0                       [ ENVIAR AO SIGA ]
+1000 moedas ganhas = 40,0. A nota so e gravada depois da sua confirmacao.
+```
+
+1. O aluno clica em **ENVIAR AO SIGA**; o botão vira **CONFIRMAR ENVIO** e o texto
+   explica que a nota do semestre será gravada na avaliação existente. Isso evita
+   envio por clique acidental.
+2. O segundo clique chama `Conta.enviar_nota_siga()`. O cliente **primeiro espera o
+   save pendente chegar ao Supabase** (se houver) e só então chama a Edge Function
+   `enviar-nota-siga` com o JWT do aluno e `{"semestre": "AAAA/N"}`. O cliente não
+   envia nota, matrícula, turma, período nem `aluno_id`.
+3. A função recalcula a nota no servidor com as moedas **ganhas** do semestre e o
+   **peso real** da avaliação; grava somente a matrícula do próprio aluno; confere o
+   resultado por um segundo `GET /api/notas`.
+4. Em sucesso, o painel mostra **No SIGA: 13,3 / 40,0** e o botão vira **ENVIAR
+   NOVAMENTE**. Em falha, mostra a mensagem pública e **TENTAR DE NOVO**. O aluno
+   nunca vê nome, e-mail ou notas de colegas.
+
+### Implantar a função
+
+O código está em
+[`supabase/functions/enviar-nota-siga/index.ts`](../supabase/functions/enviar-nota-siga/index.ts).
+A função exige `verify_jwt = true` e usa dois segredos:
+
+| Segredo | Obrigatório | Uso |
+|---|---|---|
+| `SIGA_API_KEY` | sim | chave `X-API-Key` da AUTO-SIGA; fica só no servidor |
+| `SIGA_API_BASE` | não | troca a URL base em testes; padrão `https://siga-api.sparklingtech.com.br` |
+
+Com o Supabase CLI logado no projeto:
+
+```bash
+supabase secrets set SIGA_API_KEY="..." --project-ref SEU_PROJECT_REF
+supabase functions deploy enviar-nota-siga --project-ref SEU_PROJECT_REF
+# NÃO use --no-verify-jwt: o gateway deve exigir o JWT do aluno.
+```
+
+A função também pode ser publicada pela Management API (foi assim na validação):
+`POST /v1/projects/{ref}/functions/deploy?slug=enviar-nota-siga`, com o arquivo e o
+metadata `{"entrypoint_path":"index.ts","verify_jwt":true,...}`. O segredo entra por
+`POST /v1/projects/{ref}/secrets`; não coloque a chave no repositório nem no Vercel.
+
+Teste mínimo **sem** gravar nota (a função para antes do SIGA quando falta perfil):
+
+```bash
+# preflight CORS
+curl -i -X OPTIONS "$SUPABASE_URL/functions/v1/enviar-nota-siga"
+
+# sem JWT: deve responder 401
+curl -i -X POST "$SUPABASE_URL/functions/v1/enviar-nota-siga" \
+  -H 'Content-Type: application/json' \
+  --data '{"semestre":"2026/2"}'
+
+# com JWT de teste e sem progresso/perfil: 422 ou 409, sem POST no SIGA
+curl -i -X POST "$SUPABASE_URL/functions/v1/enviar-nota-siga" \
+  -H "Authorization: Bearer $TOKEN_DE_TESTE" \
+  -H 'Content-Type: application/json' \
+  --data '{"semestre":"2026/2"}'
+```
+
+Nunca use uma matrícula real em teste de gravação. Para validar a escrita, use uma
+turma/avaliação de teste e confira a resposta; o projeto não cria avaliação.
+
+### Regras e erros
+
+| Situação | Resposta | O que acontece |
+|---|---|---|
+| Sem JWT ou JWT expirado | 401 | nada é lido nem gravado |
+| Sem `semestre` ou formato inválido | 400 | nada é gravado |
+| Semestre diferente do calendário atual | 409 | recarregar a página; evita enviar save antigo |
+| Perfil sem matrícula/turma/período | 422 | avisa o professor; nada é gravado |
+| Sem progresso sincronizado no semestre | 409 | jogar/sincronizar primeiro |
+| Avaliação inexistente na turma | 409 | **não cria**; avisa a coordenação |
+| Mais de uma avaliação com o mesmo nome | 409 | avisa o professor |
+| Peso ausente/inválido | 422 | não envia |
+| Matrícula fora da turma no SIGA | 409 | não envia |
+| SIGA indisponível ou conferência divergente | 502 | não confirma; aluno pode tentar de novo |
+| Nota já igual no SIGA | 200, `enviado:false` | não repete o POST; mostra “já estava registrada” |
+
+### Segurança e limites
+
+- O gateway valida o JWT (`verify_jwt=true`); a função ainda confirma a identidade em
+  `/auth/v1/user` e lê `statown_alunos`/`statown_progresso` **com o token do aluno**.
+  A RLS garante que ele só enxerga a própria linha; não há `aluno_id` vindo do corpo.
+- A matrícula vem do perfil, não do cliente; o `POST /api/lancar-notas` contém **uma
+  única** matrícula (a do próprio aluno).
+- A função exige que `Game Educativo Statown` **já exista** e seja única. Não existe
+  chamada de criação de avaliação em nenhum ponto do código.
+- A `SIGA_API_KEY` e a `service_role` nunca entram no cliente, no PCK, no GitHub ou
+  no Vercel. A função não devolve o corpo bruto do SIGA, nomes, e-mails ou a lista da
+  turma; erros são mensagens públicas.
+- **Limite conhecido:** o save ainda vem do navegador. Um aluno com conhecimento
+  técnico pode alterar as próprias moedas antes de sincronizar. A função recalcula a
+  nota a partir do save, mas não prova que a jogada aconteceu. Para nota formal,
+  combine com conferência do extrato, atividade presencial e/ou simulação
+  autoritativa no servidor.
+
+O script [`scripts/lancar_nota_siga.py`](../scripts/lancar_nota_siga.py) continua
+útil para o professor conferir a turma inteira, fazer dry-run e lançar em lote; ele
+não foi substituído pelo botão individual.
 
 ---
 
@@ -192,7 +305,9 @@ conta no Auth, grava `nome`, `matricula`, `turma` e `periodo_siga` no perfil e n
 `user_metadata`, e é **idempotente**: rodar de novo atualiza os dados sem duplicar
 contas e **sem trocar a senha** de quem já existe. Se encontrar uma matrícula já
 cadastrada com outro e-mail, ele para e pede resolução manual, para não criar duas
-contas para a mesma pessoa.
+contas para a mesma pessoa. A identidade acadêmica usada na nota é a do **perfil**,
+gravada pelo importador com a `service_role`; o trigger de auto-cadastro **não**
+aceita matrícula/turma/período do metadata do aluno.
 
 > **Não versione** os CSVs, o arquivo `statown.env`, a lista de e-mails nem os
 > hashes de senha. A `service_role` só é usada nesse script, no computador do
@@ -256,11 +371,12 @@ order by turma, nome;
 
 ### Lançar no SIGA
 
-O jogo **não** envia a nota para o SIGA sozinho, e a chave da API **nunca** entra
-no build web. O fluxo seguro é uma chamada server-side (Edge Function, script do
-professor ou backend próprio) com a `SIGA_API_KEY` guardada em segredo. Os campos
-`turma` e `periodo_siga` existem exatamente para montar essa chamada sem depender
-do texto do nome do arquivo.
+O jogo pode enviar a nota **individualmente** pelo botão **ENVIAR AO SIGA** da tela
+**CONTA** (seção 2.1). A chamada é server-side, feita pela Edge Function, e a
+`SIGA_API_KEY` **nunca** entra no build web. O professor também pode lançar a turma
+inteira pelo script, com dry-run e conferência; os dois caminhos usam a mesma regra e
+o mesmo contrato. Os campos `turma` e `periodo_siga` existem exatamente para montar
+essa chamada sem depender do texto do nome do arquivo.
 
 O contrato da **AUTO-SIGA UFJF** (conferido no `openapi.json` do serviço) é:
 
@@ -318,15 +434,18 @@ nunca em `config/supabase.json`, no PCK ou no repositório.
 ## 6. Segurança e limites (leia antes de avaliar)
 
 O modelo atual protege **isolamento entre alunos** e **autoria da escrita**: um aluno
-não consegue alterar a linha de outro, e a RPC sempre usa `auth.uid()`. Ele **não**
-protege contra um aluno que edite o próprio save antes de enviar: as moedas e a nota
-vêm do cliente.
+não consegue alterar a linha de outro, e a RPC sempre usa `auth.uid()`. A
+`matricula`, a `turma` e o `periodo_siga` são gravados pelo importador do professor
+com a `service_role`; o trigger de auto-cadastro **ignora esses campos do metadata**,
+para um aluno não forjar a matrícula de um colega. Ele **não** protege contra um
+aluno que edite o próprio save antes de enviar: as moedas e a nota vêm do cliente.
 
 | Risco | Situação atual | Mitigação |
 |---|---|---|
 | Aluno adultera o save | possível | auditoria do extrato, conferência por amostragem, simulação no servidor no futuro |
 | Aluno lê a linha de outro | bloqueado pela RLS | manter policies e `security definer` com `search_path` fixo |
 | Aluno chama a RPC com outro `aluno_id` | bloqueado: a função ignora o parâmetro e usa `auth.uid()` | não criar RPC que aceite `aluno_id` do cliente |
+| Aluno tenta forjar matrícula/turma no auto-cadastro | bloqueado: o trigger preserva a identidade acadêmica e só o importador a grava | manter `statown_novo_usuario` sem ler `raw_user_meta_data` para esses campos; em projeto antigo, rode de novo `docs/SUPABASE_TURMAS.sql` |
 | Chave `service_role` vaza | catastrófico | nunca embutir; rotacionar se vazar |
 | E-mail/telefone vazam | dados pessoais | coletar o mínimo; política de retenção e exclusão |
 
@@ -442,6 +561,42 @@ Validações executadas, sem expor dados pessoais:
 - a contagem final ficou em 61 usuários Auth e 61 perfis (60 alunos + 1
   professor), sem contas órfãs.
 
+### 7.4. Botão do aluno e Edge Function (28/11/2026)
+
+A função `enviar-nota-siga` foi publicada no projeto real com `verify_jwt: true`,
+versão 2 e status **ACTIVE**; o segredo `SIGA_API_KEY` foi cadastrado pelo endpoint
+de secrets da Management API. Ensaios sem JWT e com JWT sintético confirmaram:
+
+- `OPTIONS` devolveu **204** com CORS `*`;
+- `POST` sem bearer devolveu **401**;
+- bearer inválido devolveu **401**;
+- JWT sintético, sem matrícula/turma/período válidos, parou em **422** antes de
+  qualquer escrita no SIGA;
+- JWT sintético com perfil `TESTE-A` (turma fictícia) passou pela autenticação e
+  pela leitura do progresso, mas o SIGA recusou a turma e a função parou em **502**,
+  sem POST de nota;
+- uma conta Auth sintética foi criada com `user_metadata` contendo matrícula, turma e
+  período forjados; o trigger gravou o perfil com esses campos **vazios** (o nome foi
+  preservado). A conta foi removida no mesmo ensaio;
+- `GET /api/notas` com a chave do servidor devolveu **200**, quatro avaliações e
+  exatamente uma `Game Educativo Statown` com peso **40,0** na turma conferida.
+
+Os testes puros da função rodam sem rede e cobrem a nota e a virada de semestre:
+
+```bash
+docker run --rm --entrypoint deno -v "$PWD:/work" -w /work denoland/deno:latest \
+  test --allow-env supabase/functions/enviar-nota-siga/nota_test.ts
+# 3 passed; 0 failed
+```
+
+No build web local, a tela **CONTA** foi aberta com uma conta sintética (sem nome ou
+matrícula reais), mostrou `Projetada: 0,0 / 40,0`, habilitou o botão e o primeiro
+clique o transformou em **CONFIRMAR ENVIO**. O segundo clique **não** foi disparado
+nesse ensaio para não gravar nota sintética; a chamada real de gravação deve ser
+testada com uma turma/avaliação de teste. Nenhuma avaliação foi criada em nenhum
+ensaio. A suíte Godot ficou em **8/8** `TestConta`, **17/17** `TestTrafego` e
+**101/101** `SmokeUI`.
+
 ---
 
 ## 8. Problemas comuns
@@ -522,8 +677,11 @@ completo depende do acesso da instituição.
       `statown_alunos` e testar o login de uma conta nova.
 - [ ] `config/supabase.json` com URL e **anon key**, `habilitado: true`.
 - [ ] Nenhuma `service_role` no repositório, no build ou em variável pública.
-- [ ] `SIGA_API_KEY` (se usar lançamento) somente no servidor/segredo, nunca no
-      cliente.
+- [ ] `SIGA_API_KEY` somente no segredo da Edge Function, nunca no cliente.
+- [ ] Edge Function `enviar-nota-siga` publicada com `verify_jwt: true`; testar
+      `OPTIONS` e um `POST` sem JWT (401) antes de liberar o botão.
+- [ ] Botão **ENVIAR AO SIGA** testado com conta sintética; confirmar que a
+      avaliação `Game Educativo Statown` já existia e que **nenhuma** foi criada.
 - [ ] Confirmação de e-mail decidida (ligada em produção, desligada só em teste).
 - [ ] URL da Vercel cadastrada em **Authentication → URL Configuration**.
 - [ ] Professor promovido e consulta `statown_notas` testada.

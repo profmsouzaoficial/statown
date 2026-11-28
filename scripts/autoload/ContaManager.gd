@@ -14,6 +14,7 @@ signal cadastro_pendente(mensagem: String)
 signal sessao_alterada()
 signal progresso_carregado(ok: bool, mensagem: String)
 signal progresso_salvo(ok: bool, mensagem: String)
+signal nota_siga_enviada(ok: bool, mensagem: String, dados: Dictionary)
 signal senha_alterada(ok: bool, mensagem: String)
 signal sync_alterado(texto: String, ok: bool)
 
@@ -35,6 +36,8 @@ var _fila: Array = []
 var _atual: Dictionary = {}
 var _ocupado := false
 var _sync_pendente := false
+var _enviando_nota_siga := false
+var _nota_siga_aguardando_save := false
 var _autenticado := false
 var _bloquear_sync := false   # evita subir save local antes de baixar a nuvem
 var _progresso_pronto := false # true somente apos carregar (ou confirmar conta nova)
@@ -320,6 +323,44 @@ func sincronizar_agora() -> void:
 	salvar_progresso(true)
 
 
+## Sincroniza o save atual e, so depois, pede ao servidor que envie a nota
+## para o SIGA. O cliente nunca ve a SIGA_API_KEY: a funcao Edge guarda a
+## chave e recalcula a nota a partir do progresso que esta no Supabase.
+func enviar_nota_siga() -> void:
+	if not configurado():
+		_falha_nota_siga("Supabase nao configurado.")
+		return
+	if not autenticado():
+		_falha_nota_siga("Entre na conta antes de enviar a nota.")
+		return
+	if not _progresso_pronto or _bloquear_sync:
+		_falha_nota_siga("O progresso ainda nao foi baixado; tente de novo em instantes.")
+		return
+	if _enviando_nota_siga:
+		return
+	if turma_aluno().strip_edges() == "" or periodo_siga_aluno().strip_edges() == "" \
+			or matricula_aluno().strip_edges() == "":
+		_falha_nota_siga("Seu perfil nao tem matricula, turma e periodo do SIGA. Avise o professor.")
+		return
+	_enviando_nota_siga = true
+	_nota_siga_aguardando_save = true
+	_sync_pendente = true
+	salvar_progresso(true)
+
+
+func _tem_salvar_na_fila() -> bool:
+	for item in _fila:
+		if str((item as Dictionary).get("tag", "")) == "salvar":
+			return true
+	return false
+
+
+func _falha_nota_siga(mensagem: String, dados: Dictionary = {}) -> void:
+	_enviando_nota_siga = false
+	_nota_siga_aguardando_save = false
+	nota_siga_enviada.emit(false, mensagem, dados)
+
+
 func agendar_sync() -> void:
 	if not autenticado() or _bloquear_sync or not _progresso_pronto:
 		return
@@ -360,9 +401,14 @@ func _bombear() -> void:
 	var err := _http.request(url, headers, int(_atual["metodo"]), corpo)
 	if err != OK:
 		_ocupado = false
-		if str(_atual.get("tag", "")) == "senha":
+		var tag_falha := str(_atual.get("tag", ""))
+		if tag_falha == "senha":
 			senha_alterada.emit(false, "Falha ao iniciar a conexao (%d)." % err)
+		elif tag_falha == "nota_siga":
+			_falha_nota_siga("Falha ao iniciar o envio da nota (%d)." % err)
 		else:
+			if tag_falha == "salvar" and _nota_siga_aguardando_save:
+				_falha_nota_siga("Falha ao sincronizar antes de enviar a nota.")
 			_erro_rede("Falha ao iniciar a conexao (%d)." % err)
 		_atual.clear()
 		_bombear()
@@ -384,12 +430,16 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 		var msg_rede := "Sem conexao com o servidor (resultado %d)." % result
 		if tag == "senha":
 			senha_alterada.emit(false, msg_rede)
+		elif tag == "nota_siga":
+			_falha_nota_siga(msg_rede)
 		elif tag == "carregar":
 			# Mantem o bloqueio: sem o save da nuvem, subir o local poderia
 			# apagar a partida de outro computador.
 			_progresso_pronto = false
 			progresso_carregado.emit(false, msg_rede)
 		else:
+			if tag == "salvar" and _nota_siga_aguardando_save:
+				_falha_nota_siga(msg_rede)
 			_erro_rede(msg_rede)
 		_bombear()
 		return
@@ -407,7 +457,11 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 			progresso_carregado.emit(false, "Sessao expirada. Entre novamente.")
 		elif tag == "senha":
 			senha_alterada.emit(false, "Sessao expirada. Entre novamente.")
+		elif tag == "nota_siga":
+			_falha_nota_siga("Sessao expirada. Entre novamente.")
 		else:
+			if tag == "salvar" and _nota_siga_aguardando_save:
+				_falha_nota_siga("Sessao expirada. Entre novamente.")
 			_erro_rede("Sessao expirada. Entre novamente.")
 		sessao_alterada.emit()
 	else:
@@ -419,10 +473,14 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 			erro_sync = msg
 			progresso_salvo.emit(false, msg)
 			sync_alterado.emit("falha ao salvar: " + msg, false)
+			if _nota_siga_aguardando_save:
+				_falha_nota_siga("Falha ao sincronizar antes do envio: " + msg)
 		elif tag == "carregar":
 			progresso_carregado.emit(false, msg)
 		elif tag == "senha":
 			senha_alterada.emit(false, msg)
+		elif tag == "nota_siga":
+			_falha_nota_siga(msg)
 		else:
 			push_warning("Conta/%s: HTTP %d %s" % [tag, codigo, msg])
 	# A requisicao ja foi retirada de `_atual` no inicio; um callback pode ter
@@ -470,6 +528,20 @@ func _tratar(tag: String, dados) -> void:
 			erro_sync = ""
 			progresso_salvo.emit(true, "Progresso salvo no servidor.")
 			sync_alterado.emit("sincronizado " + ultimo_sync, true)
+			# Se ja existe outro save na fila, espere o ultimo: a funcao Edge
+			# precisa ler a fotografia mais nova das moedas.
+			if _nota_siga_aguardando_save and not _tem_salvar_na_fila():
+				_nota_siga_aguardando_save = false
+				_enfileirar("nota_siga", "/functions/v1/enviar-nota-siga",
+					HTTPClient.METHOD_POST, {"semestre": GameState.semestre_atual()}, true)
+		"nota_siga":
+			_enviando_nota_siga = false
+			_nota_siga_aguardando_save = false
+			var dados_nota: Dictionary = dados if typeof(dados) == TYPE_DICTIONARY else {}
+			var ok_nota := bool(dados_nota.get("ok", false))
+			var msg_nota := str(dados_nota.get("mensagem", dados_nota.get("erro",
+				"O servidor nao confirmou o envio da nota.")))
+			nota_siga_enviada.emit(ok_nota, msg_nota, dados_nota)
 		"senha":
 			if typeof(dados) == TYPE_DICTIONARY:
 				var conta = dados.get("user", dados)
@@ -542,7 +614,7 @@ func _erro_rede(msg: String) -> void:
 
 func _mensagem_erro(dados) -> String:
 	if typeof(dados) == TYPE_DICTIONARY:
-		for chave in ["error_description", "msg", "message", "error", "hint"]:
+		for chave in ["error_description", "msg", "message", "erro", "error", "hint"]:
 			if dados.has(chave):
 				return str(dados[chave])
 	return "Falha de comunicacao com o Supabase."

@@ -65,6 +65,16 @@ jobs:
             "$GODOT_BIN" --headless --path . "res://tests/${scene}.tscn"
           done
 
+      - name: Instalar Deno para os testes da funcao
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Testar funcao de envio ao SIGA
+        run: |
+          set -euo pipefail
+          deno test --allow-env supabase/functions/enviar-nota-siga/nota_test.ts
+
       - name: Conferir configuracao do Supabase
         run: |
           set -euo pipefail

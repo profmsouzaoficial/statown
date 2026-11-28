@@ -380,6 +380,7 @@ footer.rodape a{color:var(--texto2)}
     <span class="rot">Conta do aluno (obrigatória neste build)</span>
     <p>Com o Supabase ativo, antes das boas-vindas aparece a tela <strong>CONTA DO ALUNO</strong> em modo obrigatório. Entre com e-mail e senha para o servidor guardar a semana, o ano e as BioMoedas — assim a partida continua em outro computador. O jogo guarda apenas o <b>token de sessão</b>, nunca a senha. A tela também abre pelo botão <strong>CONTA</strong> da HUD.</p>
     <p><b>Conta criada pelo professor:</b> o login é o <b>e-mail institucional</b> (o mesmo da lista do SIGA) e a senha inicial é esse próprio e-mail. Troque a senha em <b>CONTA → ALTERAR SENHA</b> no primeiro acesso. A tela mostra a sua <b>turma</b> e o <b>período do SIGA</b>; eles vêm do arquivo da turma e são usados na conferência da nota.</p>
+    <p><b>Nota e envio:</b> no fim do painel <b>CONTA</b> aparecem a <b>nota projetada</b> (0,0 a 40,0) e o botão <b>ENVIAR AO SIGA</b>. O primeiro clique só pede confirmação; o segundo envia a nota do semestre. O jogo espera o save chegar ao servidor, e a função do Supabase recalcula a nota e grava <b>somente a sua matrícula</b> em uma avaliação <b>Game Educativo Statown que já exista</b>. O jogo nunca cria avaliação nem envia a nota sozinho. Se o botão estiver desabilitado, falta matrícula, turma ou período no perfil: avise o professor. Em caso de erro, aparece uma mensagem pública e o botão <b>TENTAR DE NOVO</b>.</p>
     <p>O download do progresso acontece antes de liberar a simulação. Se o servidor não responder, a tela mostra o erro e oferece <strong>TENTAR BAIXAR DE NOVO</strong> ou <strong>JOGAR SEM SINCRONIZAR</strong>; nesta segunda opção nada é enviado até um download bem-sucedido, e o progresso feito offline pode ser substituído pelo save da nuvem quando a nuvem tem mais produção — o aviso aparece na própria tela. Se o professor publicar um build sem Supabase, a mesma tela explica o que falta e oferece <strong>CONTINUAR SEM CONTA</strong> (modo local).</p>
     <p>Se o envio da última jogada não chegou ao servidor (por exemplo, você fechou a aba logo depois de ganhar BioMoedas), o jogo compara o cache deste navegador com a nuvem ao entrar de novo. O cache com mais moedas ganhas no semestre é preservado e reenviado; assim um ganho local não é apagado por um save remoto atrasado. A nuvem continua vencendo quando tem produção maior ou quando o cache local não é comprovadamente desta conta.</p>
   </div>
@@ -387,7 +388,7 @@ footer.rodape a{color:var(--texto2)}
     <div class="moldura" data-zoom>
       <img src="shots/19b_conta_login.png" alt="Tela CONTA DO ALUNO com campos de e-mail e senha e os botões ENTRAR e CRIAR CONTA" loading="lazy">
     </div>
-    <figcaption><b>Entrada na conta.</b> Com o Supabase ativo, o aluno informa e-mail e senha; o download da semana e das moedas acontece antes de a simulação ser liberada. O botão <b>CRIAR CONTA</b> abre nome e matrícula. Se o projeto exigir confirmação, confirme o e-mail antes de entrar.</figcaption>
+    <figcaption><b>Entrada na conta.</b> Com o Supabase ativo, o aluno informa e-mail e senha; o download da semana e das moedas acontece antes de a simulação ser liberada. O botão <b>CRIAR CONTA</b> abre nome e matrícula. A matrícula digitada no auto-cadastro não define sozinha a identidade acadêmica: o professor precisa vincular a conta à turma importada para liberar a nota e o envio ao SIGA. Se o projeto exigir confirmação, confirme o e-mail antes de entrar.</figcaption>
   </figure>
 
   <h3><span class="num2">2.2</span> A tela de boas-vindas</h3>
@@ -1315,7 +1316,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   <p class="lead">O StaTown prepara a semana simulada no formato SIGA/SINAN: CSV, resumo, completude e um hash SHA-256 que mostra se o arquivo mudou. A tela é <b>interna</b>: o jogador não a abre pela HUD; ela é usada em testes e pode ser aberta pelo código. A <b>participação do semestre</b> também aparece nela e é o dado que o professor leva para o SIGA.</p>
   <div class="box atencao">
     <span class="rot">Por que o SIGA não está na HUD</span>
-    <p>O relatório é uma responsabilidade de integração e de docência, não uma tarefa do jogador. No build atual, a geração é <b>local</b>; o jogo não chama a API do SIGA sozinho. Com o Supabase ativado, o que sobe é o <b>save</b> e a <b>nota por semestre</b>, não o CSV inteiro. O lançamento oficial, quando a instituição usa a API AUTO-SIGA, é feito por um serviço do professor com a chave guardada no servidor.</p>
+    <p>O relatório é uma responsabilidade de integração e de docência, não uma tarefa do jogador. A geração do CSV é <b>local</b>. Com o Supabase ativado, o jogo envia o <b>save</b> e a <b>nota por semestre</b>, não o CSV inteiro. O aluno pode enviar a <b>própria</b> nota pelo botão <b>ENVIAR AO SIGA</b> da tela <b>CONTA</b>; o professor continua podendo lançar a turma pelo script com dry-run. Nos dois casos, a chave da API fica no servidor e a avaliação <b>Game Educativo Statown</b> precisa existir — nada é criado automaticamente.</p>
   </div>
 
   <figure class="shot">
@@ -1361,7 +1362,8 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   </div>
   <h3><span class="num2">12.3</span> Participação do aluno e lançamento no SIGA</h3>
   <p>Além do boletim semanal, a tela <b>SIGA</b> tem o cartão <b>PARTICIPAÇÃO NO SEMESTRE</b>. Ele mostra as moedas ganhas, a nota projetada em <b>pontos da avaliação</b> e permite baixar um CSV de uma linha com nome, e-mail, matrícula, turma, período do SIGA, semestre interno, moedas e nota. A regra é <code>min(40,0, truncar_1_casa(moedas_ganhas / 1000 × 40,0))</code>: 1000 moedas valem 40,0. O botão usa a conta logada quando existe; no modo local, o nome sai como “Aluno local”.</p>
-  <p>A tela do jogo <b>não envia a nota sozinha</b>. O professor exporta a consulta da turma no Supabase (visão <code>statown_notas</code>, com <code>turma</code> e <code>periodo_siga</code>), confere os casos e usa o script <code>scripts/lancar_nota_siga.py</code> para o lançamento explícito. O script só aceita a avaliação existente <b>Game Educativo Statown</b>, recusa criar avaliação, faz dry-run por padrão e confere o resultado por <code>GET /api/notas</code>. A chave <code>X-API-Key</code> fica no servidor/segredo, nunca no navegador. O contrato e o exemplo de <code>POST /api/lancar-notas</code> estão em <code>docs/SUPABASE.md</code>.</p>
+  <p><b>Envio individual:</b> o aluno abre <b>CONTA</b>, confere a nota projetada e clica em <b>ENVIAR AO SIGA</b>; o primeiro clique pede confirmação. O cliente espera o save e chama uma Edge Function autenticada, que lê o próprio perfil/progresso, recalcula a nota com o peso real da avaliação e grava somente a matrícula do aluno. A função exige exatamente uma avaliação <b>Game Educativo Statown</b> já existente; se ela não existir, para e avisa — <b>nunca cria avaliação</b>. O resultado é conferido por um segundo <code>GET /api/notas</code>. A chave <code>X-API-Key</code> fica no segredo da função, nunca no navegador.</p>
+  <p><b>Envio da turma:</b> o professor pode exportar a consulta da turma no Supabase (visão <code>statown_notas</code>, com <code>turma</code> e <code>periodo_siga</code>), conferir os casos e usar o script <code>scripts/lancar_nota_siga.py</code> para o lançamento em lote. O script também só aceita a avaliação existente, recusa criar avaliação, faz dry-run por padrão e confere o resultado. O contrato completo está em <code>docs/SUPABASE.md</code>.</p>
   <div class="box atencao">
     <span class="rot">Completude não é qualidade</span>
     <p>“100% dos campos preenchidos” não significa “dados corretos”. Um campo pode estar preenchido com valor impossível. Completude mede ausência, não veracidade — a checagem de plausibilidade é a próxima etapa.</p>
@@ -1625,6 +1627,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
     </tbody>
   </table>
   <p>O semestre é o do calendário: janeiro a junho = <code>AAAA/1</code>; julho a dezembro = <code>AAAA/2</code>. Ao virar o semestre, a participação recomeça e o save antigo não é reaproveitado. A tela <b>EXTRATO</b> mostra a nota projetada e a barra de progresso; o CSV do SIGA mostra a mesma conta para o lançamento.</p>
+  <p><b>Como enviar:</b> abra <b>CONTA</b>, confira a linha <b>NOTA PROJETADA</b> e clique em <b>ENVIAR AO SIGA</b>. O botão pede uma confirmação e só então envia o semestre atual; depois mostra <b>No SIGA: ...</b> ou uma mensagem de erro com <b>TENTAR DE NOVO</b>. É um envio individual, feito pela Edge Function autenticada; ele não cria avaliação e não altera as outras avaliações da turma.</p>
   <div class="box atencao">
     <span class="rot">Limite de segurança</span>
     <p>A nota é calculada a partir do save enviado pelo navegador. Isso é suficiente para participação em sala, mas não é uma prova à prova de fraude: um aluno com conhecimento técnico poderia alterar o próprio save. Para nota formal, combine com conferência do extrato, atividade presencial e/ou uma simulação autoritativa no servidor. O professor encontra o checklist em <code>docs/SUPABASE.md</code>.</p>
@@ -1954,7 +1957,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Salvamento</td><td><code>user://statown_save.json</code>, versão 6; autosave após desafios, moedas e semanas</td></tr>
       <tr><td>Idioma</td><td>Português brasileiro (chrome sem acentuação por limitação da fonte pixel; traduções da Revista preservam acentos em Rubik)</td></tr>
       <tr><td>Acessibilidade</td><td>Fonte grande, rótulos no mapa, pausa automática, controle de volume por camada</td></tr>
-      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (97), Revista (1.802), câmera (93), áudio (129), economia (47) e desafios do LAB (22)</td></tr>
+      <tr><td>Testes automatizados</td><td>StatCore (47), SmokeUI (101), Revista (1.802), câmera (93), áudio (129), economia (50), moedas (15), conta (8), tráfego (17) e desafios do LAB (22)</td></tr>
       <tr><td>Documentação</td><td>Este manual + guias internos do projeto</td></tr>
     </tbody>
   </table>
@@ -1993,8 +1996,9 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Área de surto atravessava o rio</td><td>O overlay pintava o retângulo da vila sem recortar a água e o contorno era o tile inteiro.</td><td>Máscara de água no shader, contorno de ~3 px nas bordas da zona e halo pulsante apenas em terra.</td></tr>
       <tr><td>Abrir/fechar painel com som agressivo</td><td>Varreduras de 320→768 Hz e 760→342 Hz, com cauda cortada.</td><td>Quinta de marimba (A3→E4 e o inverso), filtrada, com fade de borda e RMS −24 dB.</td></tr>
       <tr><td>Efeitos pareciam travar ou repetir</td><td>Round-robin cortava o som anterior; stings de 4 s se sobrepunham a cada clique.</td><td>Pool escolhe player ocioso, fade no fim de todo som curto, throttle de 3 s e guarda de 10 s por vila.</td></tr>
-      <tr><td>SIGA no HUD sem função para o jogador</td><td>Relatório é uma ferramenta interna do professor, não uma ação de jogo.</td><td>Saída do HUD; painel SIGA permanece acessível pelo código/testes, com a participação no topo.</td></tr>
+      <tr><td>SIGA no HUD sem função para o jogador</td><td>Relatório é uma ferramenta interna do professor, não uma ação de jogo.</td><td>Saída do HUD; painel SIGA permanece acessível pelo código/testes, com a participação no topo. O envio individual fica em <b>CONTA</b>.</td></tr>
       <tr><td>Mapa sem vida urbana e sem voo livre</td><td>Arte tinha apenas o cenário estático.</td><td>Carros, caminhões, barcos, navio e exatamente duas asas-deltas e quatro parapentes em órbitas harmônicas sobre os bairros.</td></tr>
+      <tr><td>Planadores pareciam colados no mesmo plano</td><td>Todos tinham o mesmo tamanho, a mesma sombra e nenhuma variação de altura.</td><td>Asas-deltas e parapentes recebem fatores de tamanho distintos (0,78–1,14), deslocamento vertical, sombra mais distante/fraca e leve neblina; o teste confere a variação e a leitura de profundidade.</td></tr>
     </tbody>
   </table>
 

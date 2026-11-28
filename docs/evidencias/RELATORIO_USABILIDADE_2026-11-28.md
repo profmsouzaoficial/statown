@@ -27,9 +27,9 @@
 5. Foram lançadas **4 notas sintéticas de teste**, em 3 turmas que já tinham a
    avaliação. A turma `CBV018GV-B`, que **não** tinha a avaliação, não recebeu nota e
    **não teve avaliação criada**.
-6. A suíte final passou: **47/47** StatCore, **97/97** SmokeUI, **93/93** Câmera,
-   **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **4/4** Conta,
-   **22/22** Desafios, **1802/1802** Revista, **13/13** Tráfego e **52 semanas** de
+6. A suíte final passou: **47/47** StatCore, **101/101** SmokeUI, **93/93** Câmera,
+   **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **8/8** Conta,
+   **22/22** Desafios, **1802/1802** Revista, **17/17** Tráfego e **52 semanas** de
    auditoria sem falhas.
 7. Os commits foram enviados para `origin/main`; o workflow **Publicar no Vercel**
    concluiu com sucesso e a branch `deploy` foi atualizada. O build local também está
@@ -196,13 +196,14 @@ As capturas de documentação em `docs/shots/` foram refeitas depois dos ajustes
 |---|---|
 | `--headless --import` | exit 0 |
 | `test_statcore.gd` | **47/47** |
-| `SmokeUI` | **97 passos, 0 falhas** |
+| `SmokeUI` | **101 passos, 0 falhas** |
 | `TestCamera` | **93 passos, 0 falhas** |
 | `TestAudio` | **129 passos, 0 falhas** |
 | `TestAudit` | **52 semanas, 0 falhas, 0 avisos** |
-| `TestTrafego` | **13 passos, 0 falhas** |
+| `TestTrafego` | **17 passos, 0 falhas** |
 | `TestEconomia` | **50 verificações, 0 falhas** |
 | `TestMoedas` | **15 verificações, 0 falhas** |
+| `TestConta` | **8 verificações, 0 falhas** |
 | `TestDesafios` | **22 verificações, 0 falhas** |
 | `TestRevista` | **1802 verificações, 0 falhas** |
 | `Capture` | **24 PNGs, 0 SCRIPT ERROR**, 1600×900 |
@@ -284,7 +285,7 @@ que já documenta 1600 px como largura recomendada.
 5. **SIGA**: a consulta final é somente leitura e foi feita depois dos lançamentos.
    Não há endpoint público de auditoria de “quem alterou o quê”; a garantia de que as
    outras avaliações não foram tocadas vem do escopo do script (só
-   `/api/lancar-notas` com a descrição exata do alvo) e da conferência de nomes,
+   `/api/lancar-notas` com a descrição exata do alvo), da conferência de nomes,
    pesos e quantidades.
 6. **Dados de alunos** não são reproduzidos neste relatório. Os CSVs de turma
    permanecem em `~/.dsh/dados/2026-3/` com permissão 600; os backups do SIGA também.
@@ -298,7 +299,16 @@ que já documenta 1600 px como largura recomendada.
 - `scripts/lancar_nota_siga.py` — lançamento seguro, dry-run, backup, máscara.
 - `docs/SUPABASE_NOTA.sql` — coluna gerada e view.
 - `tests/TestEconomia.gd`, `tests/TestMoedas.gd` — provas da regra.
-- `tests/TestConta.gd` — regressão da requisição de progresso perdida no login.
+- `tests/TestConta.gd` — regressão da requisição de progresso perdida no login e
+  ordem save → Edge Function no envio da nota.
+- `supabase/functions/enviar-nota-siga/index.ts` — Edge Function autenticada que
+  recalcula e envia somente a matrícula do próprio aluno.
+- `supabase/functions/enviar-nota-siga/nota_test.ts` — testes puros da nota e do
+  semestre.
+- `scripts/ui/panels/PanelLogin.gd` — nota projetada, botão **ENVIAR AO SIGA** e
+  confirmação em dois cliques.
+- `scripts/world/WorldView.gd`, `tests/TestTrafego.gd` — fatores de tamanho,
+  altitude, sombra e neblina dos planadores.
 - `scripts/ui/panels/PanelBoasVindas.gd`, `scripts/game/Main.gd` — aviso compacto
   pós-login, sem toast sobre os botões.
 - `scripts/ui/panels/PanelBioLab.gd`, `scripts/ui/StatChartCanvas.gd` — ajustes de
@@ -335,7 +345,7 @@ sem tag, não era tratada e a tela ficava presa.
 A correção guarda a requisição concluída em uma variável local e limpa `_atual`
 **antes** dos callbacks. Assim, a requisição de progresso disparada pelo login (e o
 upload disparado por uma conta nova) continuam com sua tag. `TestConta` cobre o
-encadeamento `carregar -> salvar` com 4 verificações.
+encadeamento `carregar -> salvar` com 8 verificações.
 
 Validação no Chromium, com build web e o mesmo Supabase de produção:
 
@@ -347,3 +357,72 @@ Validação no Chromium, com build web e o mesmo Supabase de produção:
 
 O login manual também foi conferido com o botão **ENTRAR** (não apenas com a tecla
 Enter). O teste de regressão roda no workflow de publicação.
+
+---
+
+## 11. Rodada 2: envio individual ao SIGA e altitude visual
+
+### 11.1 O que mudou
+
+**Envio pelo aluno.** O painel **CONTA**, quando há sessão ativa, passou a mostrar a
+**nota projetada** e o botão **ENVIAR AO SIGA**. O primeiro clique transforma o botão
+em **CONFIRMAR ENVIO** e explica o efeito; o segundo chama
+`Conta.enviar_nota_siga()`. O cliente espera o save pendente terminar de subir e só
+depois chama a Edge Function `enviar-nota-siga`, com o JWT do aluno e apenas o
+semestre interno. A função:
+
+- confirma o JWT em `/auth/v1/user`;
+- lê apenas o perfil e o progresso do próprio aluno (RLS);
+- exige matrícula, turma e período SIGA no perfil e o semestre interno atual;
+- exige **exatamente uma** avaliação `Game Educativo Statown` já existente na turma;
+- recalcula a nota com o peso real da avaliação;
+- grava somente a matrícula do próprio aluno e confere por um segundo GET;
+- não devolve nome, e-mail, lista da turma ou corpo bruto do SIGA.
+
+A `SIGA_API_KEY` ficou no segredo da função; nenhuma chave administrativa entrou no
+build. A função **não tem chamada de criação de avaliação**: se o alvo não existir,
+retorna erro e nada é escrito. O script do professor continua disponível para
+conferência e lançamento em lote.
+
+**Altitude visual.** As duas asas-deltas recebem fatores `0,86` e `1,14`; os quatro
+parapentes recebem `0,78`, `0,90`, `1,02` e `1,14`, embaralhados a cada montagem. O
+fator vira escala, deslocamento vertical, sombra mais distante/fraca e uma neblina
+azulada discreta. O objetivo é dar leitura de profundidade sem tirar a legibilidade
+do mapa. `TestTrafego` confere tamanhos distintos, amplitude dos parapentes, sombra
+mais distante para o planador mais alto e a nova composição.
+
+### 11.2 Evidências técnicas
+
+| Verificação | Resultado |
+|---|---|
+| `TestConta` | **8/8** — fila, login, semestre e ordem save → função |
+| `TestTrafego` | **17/17** — veículos, tamanhos, altitudes, sombras e recarga |
+| `SmokeUI` | **101/101** — inclui painel CONTA ativo e primeiro clique de confirmação |
+| `TestEconomia` | **50/50** — regra de nota e semestre |
+| `nota_test.ts` (Deno) | **3/3** — 1000 → peso, pesos alternativos e virada de semestre |
+| Edge Function | publicada, `verify_jwt=true`; `OPTIONS` 204, sem JWT 401, bearer inválido 401 |
+| Conta sintética sem perfil SIGA | 422 antes de qualquer escrita |
+| Conta sintética com turma fictícia `TESTE-A` | 502 (SIGA recusou a turma), sem POST de nota |
+| Auto-cadastro com matrícula/turma/período forjados no metadata | perfil nasceu com os três campos vazios; conta removida |
+| SIGA `GET /api/notas` | 200, exatamente uma `Game Educativo Statown`, peso 40,0 |
+| Build web local | painel CONTA abriu, mostrou `Projetada: 0,0 / 40,0` e confirmou no primeiro clique |
+
+Capturas (conta sintética, sem dado real):
+[planadores com tamanhos/altitudes](web_planadores_altitude_1600.png) ·
+[CONTA com o botão](web_conta_siga_1600.png) ·
+[confirmação em dois cliques](web_conta_siga_confirmar_1600.png).
+
+**O que não foi feito:** o segundo clique não foi disparado com uma matrícula real
+nesta rodada, para não gravar nota sintética. A escrita do botão deve ser validada em
+uma turma/avaliação de teste; a função já foi testada até os caminhos de erro antes
+do SIGA. Nenhuma avaliação foi criada ou alterada nas outras avaliações.
+
+### 11.3 Limites
+
+1. O save continua vindo do navegador; a função recalcula a nota, mas não prova que
+   a jogada aconteceu. A mitigação continua sendo conferência do extrato, atividade
+   presencial e/ou simulação autoritativa no servidor.
+2. O botão depende de o professor ter preenchido matrícula, turma e período no
+   perfil; sem isso, ele fica desabilitado e a tela explica o motivo.
+3. O servidor recusa semestre diferente do calendário atual no fuso
+   `America/Sao_Paulo`, para não enviar save de um semestre antigo.

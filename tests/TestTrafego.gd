@@ -29,16 +29,41 @@ func _ready() -> void:
 	_ok(mundo._carros.size() == 55, "55 veiculos na cena")
 	var deltas := 0
 	var paras := 0
+	var fatores_delta := {}
+	var fatores_parapente := {}
 	for a in mundo._asas_dados:
+		var fator := snappedf(float(a.get("fator_tamanho", 1.0)), 0.001)
 		if str(a["tipo"]) == "delta":
 			deltas += 1
+			fatores_delta[fator] = true
 		else:
 			paras += 1
+			fatores_parapente[fator] = true
 	_ok(deltas == 2, "exatamente 2 asas-deltas")
 	_ok(paras == 4, "exatamente 4 parapentes")
+	_ok(fatores_delta.size() == 2, "as duas asas-deltas tem tamanhos diferentes")
+	_ok(fatores_parapente.size() == 4, "os quatro parapentes tem tamanhos diferentes")
+	var menor_para := 99.0
+	var maior_para := 0.0
+	for f in fatores_parapente.keys():
+		menor_para = minf(menor_para, float(f))
+		maior_para = maxf(maior_para, float(f))
+	_ok(maior_para / menor_para >= 1.30, "parapentes cobrem uma faixa visivel de altitude")
 
 	# Deixa a animacao rodar e confere o centro de cada veiculo contra a malha.
 	await _esperar(3)
+	var sombra_baixa := INF
+	var sombra_alta := 0.0
+	for a in mundo._asas_dados:
+		var spr := a["sprite"] as Sprite2D
+		var sombra := a["sombra"] as Sprite2D
+		var dist := spr.position.distance_to(sombra.position)
+		if float(a["fator_tamanho"]) <= 0.86:
+			sombra_baixa = minf(sombra_baixa, dist)
+		else:
+			sombra_alta = maxf(sombra_alta, dist)
+	_ok(sombra_alta > sombra_baixa + 4.0,
+		"planador mais alto projeta sombra mais afastada")
 	var fora := 0
 	for c in mundo._carros:
 		var spr := c["sprite"] as Sprite2D

@@ -264,6 +264,6 @@ geometria.
 - [ ] `python3 tools/split_world.py --decor` (se pintou decoração)
 - [ ] `godot --headless --import` sem erro
 - [ ] `F5`: o mapa abre, as vilas continuam clicáveis no lugar certo
-- [ ] `SmokeUI` 97/97, `TestRevista` 1802/1802 e `Capture` sem `SCRIPT ERROR`
+- [ ] `SmokeUI` 101/101, `TestRevista` 1802/1802 e `Capture` sem `SCRIPT ERROR`
 - [ ] exportar web e abrir no navegador (o build não reimporta nada: ele usa o que estava
       no disco na hora da exportação)

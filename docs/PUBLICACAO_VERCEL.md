@@ -181,7 +181,11 @@ falta. Com as chaves ativas, o login só libera a simulação depois de baixar o
 download falhar, o botão **JOGAR SEM SINCRONIZAR** permite continuar, mas o upload fica
 bloqueado até uma nova tentativa bem-sucedida. A nota é
 `min(40,0, truncar_1_casa(moedas_ganhas / 1000 × 40,0))` por semestre: 1000 moedas
-valem 40,0, o peso da avaliação **Game Educativo Statown**. O detalhamento, os
-limites de segurança e o checklist de LGPD estão em [SUPABASE.md](SUPABASE.md).
+valem 40,0, o peso da avaliação **Game Educativo Statown**. Para o aluno poder usar o
+botão **ENVIAR AO SIGA** em **CONTA**, publique também a Edge Function
+`enviar-nota-siga` com `verify_jwt=true` e o segredo `SIGA_API_KEY`; sem isso, a nota
+continua visível, mas o envio individual não funciona. O detalhamento, o deploy da
+função, os limites de segurança e o checklist de LGPD estão em
+[SUPABASE.md](SUPABASE.md) (seção 2.1).
 O build web é para desktop/notebook ou tablet em paisagem com pelo menos 1200 px
 lógicos; celular em retrato não é um alvo suportado.

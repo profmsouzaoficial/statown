@@ -34,9 +34,10 @@ comment on column public.statown_alunos.turma is
 comment on column public.statown_alunos.periodo_siga is
   'Periodo letivo do SIGA (ex.: 2026/3), separado do semestre interno do jogo.';
 
--- O trigger e o mesmo do cadastro: passa a copiar turma/periodo do metadata
--- criado pelo Admin API. Se o metadata nao trouxer o campo, preserva o valor
--- que ja existe no perfil.
+-- O trigger cria o perfil sem copiar matricula/turma/periodo do metadata. O
+-- importador do professor (service_role) e quem grava esses campos no perfil;
+-- atualizacoes de e-mail/metadata preservam o que ja esta gravado. Isso fecha
+-- o auto-cadastro forjado de matricula/turma e o envio de nota por terceiro.
 create or replace function public.statown_novo_usuario()
 returns trigger
 language plpgsql
@@ -44,23 +45,27 @@ security definer
 set search_path = public
 as $$
 begin
+  -- Identidade academica (matricula/turma/periodo) NAO vem do metadata de
+  -- auto-cadastro: um aluno poderia forjar a matricula de um colega e enviar
+  -- nota no lugar dele. O importador do professor grava esses campos no
+  -- perfil com a service_role; o trigger apenas cria a linha vazia e preserva
+  -- o que ja existe em atualizacoes de e-mail/metadata.
   insert into public.statown_alunos
     (id, email, nome, matricula, turma, periodo_siga)
   values (
     new.id,
     coalesce(new.email, ''),
     coalesce(new.raw_user_meta_data->>'nome', ''),
-    nullif(trim(coalesce(new.raw_user_meta_data->>'matricula', '')), ''),
-    coalesce(new.raw_user_meta_data->>'turma', ''),
-    coalesce(new.raw_user_meta_data->>'periodo_siga', '')
+    null,
+    '',
+    ''
   )
   on conflict (id) do update
     set email = excluded.email,
         nome = case when excluded.nome <> '' then excluded.nome else public.statown_alunos.nome end,
-        matricula = coalesce(excluded.matricula, public.statown_alunos.matricula),
-        turma = case when excluded.turma <> '' then excluded.turma else public.statown_alunos.turma end,
-        periodo_siga = case when excluded.periodo_siga <> ''
-          then excluded.periodo_siga else public.statown_alunos.periodo_siga end;
+        matricula = public.statown_alunos.matricula,
+        turma = public.statown_alunos.turma,
+        periodo_siga = public.statown_alunos.periodo_siga;
   return new;
 end;
 $$;

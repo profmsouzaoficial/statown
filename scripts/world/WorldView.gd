@@ -615,6 +615,17 @@ func _montar_asas() -> void:
 		Vector2(126, 86), Vector2(168, 94), Vector2(88, 58),
 	]
 	var tipos := ["delta", "delta", "parapente", "parapente", "parapente", "parapente"]
+	# Perfis de altitude: cada planador do mesmo tipo recebe um tamanho
+	# diferente. Mais alto = maior na tela e sombra mais afastada/fraca, o que
+	# cria a leitura de profundidade mesmo com a camera ortogonal. Os fatores
+	# sao embaralhados para a cena nao ficar sempre com o mesmo "grande" a
+	# esquerda.
+	var fatores_delta := [0.86, 1.14]
+	var fatores_parapente := [0.78, 0.90, 1.02, 1.14]
+	fatores_delta.shuffle()
+	fatores_parapente.shuffle()
+	var usados_delta := 0
+	var usados_parapente := 0
 	for i in range(centros.size()):
 		var tipo: String = tipos[i]
 		var variantes: Array = Assets.deltas if tipo == "delta" else Assets.parapentes
@@ -632,6 +643,14 @@ func _montar_asas() -> void:
 		sombra.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		sombra.z_index = 0
 		_asas.add_child(sombra)
+		var fator := 1.0
+		if tipo == "delta":
+			fator = float(fatores_delta[usados_delta % fatores_delta.size()])
+			usados_delta += 1
+		else:
+			fator = float(fatores_parapente[usados_parapente % fatores_parapente.size()])
+			usados_parapente += 1
+		var altura_norm := clampf(inverse_lerp(0.78, 1.14, fator), 0.0, 1.0)
 		var centro: Vector2 = centros[i] * TILE
 		var vel := _rng_asas.randf_range(0.20, 0.32)
 		if i % 2 == 1:
@@ -643,7 +662,9 @@ func _montar_asas() -> void:
 			"ry": _rng_asas.randf_range(80.0, 155.0),
 			"fase": i * 2.399963 + 0.4 + _rng_asas.randf_range(-0.12, 0.12),
 			"vel": vel,
-			"alt": 12.0 + _rng_asas.randf_range(0.0, 18.0),
+			"fator_tamanho": fator,
+			"altura_norm": altura_norm,
+			"alt": lerpf(14.0, 34.0, altura_norm),
 			"bob": _rng_asas.randf() * TAU,
 			"escala": 1.0,
 			"alvo": 56.0 if tipo == "delta" else 80.0,
@@ -667,6 +688,7 @@ func _sortear_asas() -> void:
 	for a in _asas_dados:
 		var s: Sprite2D = a["sprite"]
 		var tipo := str(a["tipo"])
+		var fator := float(a.get("fator_tamanho", 1.0))
 		if tipo == "delta":
 			if Assets.deltas.is_empty():
 				continue
@@ -674,7 +696,7 @@ func _sortear_asas() -> void:
 			id_delta += 1
 			a["indice"] = 0
 			s.texture = tex_d
-			a["escala"] = float(a["alvo"]) / maxf(float(tex_d.get_width()), 1.0)
+			a["escala"] = float(a["alvo"]) * fator / maxf(float(tex_d.get_width()), 1.0)
 		else:
 			if escolhas_para.is_empty():
 				continue
@@ -682,7 +704,7 @@ func _sortear_asas() -> void:
 			id_para += 1
 			a["indice"] = int(escolha["indice"])
 			s.texture = escolha["textura"]
-			a["escala"] = float(a["alvo"]) / maxf(float((escolha["textura"] as Texture2D).get_width()), 1.0)
+			a["escala"] = float(a["alvo"]) * fator / maxf(float((escolha["textura"] as Texture2D).get_width()), 1.0)
 		s.flip_h = false
 		s.rotation = 0.0
 		s.scale = Vector2.ONE * float(a["escala"])
@@ -738,13 +760,17 @@ func _animar_asas(delta: float) -> void:
 		var ry: float = a["ry"]
 		var vel: float = a["vel"]
 		var pos := centro + Vector2(cos(fase) * rx, sin(fase) * ry * 0.62)
-		var alt := float(a["alt"]) + 12.0 * sin(fase * 1.7 + float(a["bob"]))
+		var altura_norm := clampf(float(a.get("altura_norm", 0.5)), 0.0, 1.0)
+		var alt := float(a["alt"]) + 8.0 * sin(fase * 1.7 + float(a["bob"]))
 		# derivada da orbita = direcao real do voo
 		var vx := -sin(fase) * rx * vel
 		var vy := cos(fase) * ry * 0.62 * vel
 		var s: Sprite2D = a["sprite"]
 		s.position = pos + Vector2(0, -alt)
 		s.scale = Vector2.ONE * float(a["escala"]) * inv
+		# Neblina atmosferica muito leve: o planador mais alto perde um pouco
+		# de contraste, como se estivesse mais longe da camera.
+		s.modulate = Color(1, 1, 1).lerp(Color(0.82, 0.88, 0.96), 0.14 * altura_norm)
 		if str(a["tipo"]) == "delta":
 			# A arte da asa-delta aponta para cima: +90 graus alinha o bico.
 			s.rotation = Vector2(vx, vy).angle() + PI * 0.5
@@ -756,10 +782,14 @@ func _animar_asas(delta: float) -> void:
 			s.rotation = 0.0
 			s.flip_h = vx < -1.0
 		var sombra: Sprite2D = a["sombra"]
-		sombra.position = pos + Vector2(12, 20) * inv
+		# A distancia da sombra cresce com a altura relativa: e o principal
+		# sinal de profundidade, junto com o tamanho do planador. O deslocamento
+		# usa `inv` para continuar legivel quando a camera afasta.
+		var desloc := Vector2(6.0 + 20.0 * altura_norm, 8.0 + 26.0 * altura_norm) * inv
+		sombra.position = pos + desloc
 		sombra.rotation = s.rotation if str(a["tipo"]) == "delta" else 0.0
-		sombra.scale = Vector2.ONE * (0.85 + alt * 0.008) * float(a["escala"]) * inv
-		sombra.modulate = Color(1, 1, 1, 0.30 + 0.12 * (1.0 - alt / 32.0))
+		sombra.scale = Vector2.ONE * (0.92 + 0.12 * altura_norm) * float(a["escala"]) * inv
+		sombra.modulate = Color(1, 1, 1, 0.40 - 0.16 * altura_norm)
 
 func _animar_barcos(delta: float) -> void:
 	var rota := Vilas.boat_route
