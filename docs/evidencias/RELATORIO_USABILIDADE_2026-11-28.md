@@ -451,3 +451,8 @@ do SIGA. Nenhuma avaliação foi criada ou alterada nas outras avaliações.
    perfil; sem isso, ele fica desabilitado e a tela explica o motivo.
 3. O servidor recusa semestre diferente do calendário atual no fuso
    `America/Sao_Paulo`, para não enviar save de um semestre antigo.
+4. A avaliação alvo tem data **18/12/2026**; na reconsulta final a API devolveu 0
+   notas. Sem uma escrita real não é possível distinguir “sem nota” de “nota ainda
+   não exibida”. Por isso o segundo clique não foi disparado. A validação de ponta a
+   ponta exige uma turma/aluno de teste e autorização explícita; não use aluno real
+   para o primeiro ensaio.
