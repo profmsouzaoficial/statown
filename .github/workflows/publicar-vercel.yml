@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --path . --script tests/test_statcore.gd
-          for scene in SmokeUI TestCamera TestAudio TestAudit TestTrafego TestEconomia TestDesafios TestRevista; do
+          for scene in SmokeUI TestCamera TestAudio TestAudit TestTrafego TestEconomia TestMoedas TestDesafios TestRevista; do
             echo "== $scene =="
             "$GODOT_BIN" --headless --path . "res://tests/${scene}.tscn"
           done
