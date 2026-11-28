@@ -7,7 +7,7 @@
 --   * RLS impede ler/escrever dados de outro aluno;
 --   * as RPCs statown_carregar/statown_salvar rodam como SECURITY DEFINER,
 --     sempre filtrando por auth.uid();
---   * a nota e uma coluna GERADA no banco: min(100, moedas_ganhas / 10).
+--   * a nota e uma coluna GERADA no banco: 1000 moedas = 40,0 (nota da avaliacao).
 --   * o professor e marcado manualmente na tabela statown_alunos.
 --
 -- Isto NAO torna o jogo a prova de fraude: o cliente ainda envia o save. Para
@@ -21,12 +21,26 @@ create table if not exists public.statown_alunos (
   email text not null default '',
   nome text not null default '',
   matricula text,
+  turma text not null default '',
+  periodo_siga text not null default '',
   professor boolean not null default false,
   criado_em timestamptz not null default now()
 );
 
+-- Mantem o script idempotente tambem em projetos criados antes de a turma
+-- existir; o create table if not exists sozinho nao adiciona colunas.
+alter table public.statown_alunos
+  add column if not exists turma text not null default '';
+alter table public.statown_alunos
+  add column if not exists periodo_siga text not null default '';
+
 create index if not exists statown_alunos_matricula_idx
   on public.statown_alunos (matricula);
+
+-- Turma e periodo no formato do SIGA (ex.: CBV018GV-A, 2026/3). O semestre
+-- interno do jogo e outro campo e nao substitui o periodo letivo do SIGA.
+create index if not exists statown_alunos_turma_idx
+  on public.statown_alunos (turma, periodo_siga);
 
 -- 2. Progresso por semestre --------------------------------------------------
 create table if not exists public.statown_progresso (
@@ -37,7 +51,9 @@ create table if not exists public.statown_progresso (
   moedas int not null default 0 check (moedas >= 0),
   moedas_ganhas int not null default 0 check (moedas_ganhas >= 0),
   moedas_gastas int not null default 0 check (moedas_gastas >= 0),
-  nota int generated always as (least(100, moedas_ganhas / 10)) stored,
+  nota numeric(4,1) generated always as (
+    least(40.0, floor((moedas_ganhas::numeric / 1000.0) * 40.0 * 10.0) / 10.0)
+  ) stored,
   save_data jsonb not null check (jsonb_typeof(save_data) = 'object'),
   atualizado_em timestamptz not null default now(),
   primary key (aluno_id, semestre)
@@ -54,17 +70,23 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.statown_alunos (id, email, nome, matricula)
+  insert into public.statown_alunos
+    (id, email, nome, matricula, turma, periodo_siga)
   values (
     new.id,
     coalesce(new.email, ''),
     coalesce(new.raw_user_meta_data->>'nome', ''),
-    nullif(trim(coalesce(new.raw_user_meta_data->>'matricula', '')), '')
+    nullif(trim(coalesce(new.raw_user_meta_data->>'matricula', '')), ''),
+    coalesce(new.raw_user_meta_data->>'turma', ''),
+    coalesce(new.raw_user_meta_data->>'periodo_siga', '')
   )
   on conflict (id) do update
     set email = excluded.email,
         nome = case when excluded.nome <> '' then excluded.nome else public.statown_alunos.nome end,
-        matricula = coalesce(excluded.matricula, public.statown_alunos.matricula);
+        matricula = coalesce(excluded.matricula, public.statown_alunos.matricula),
+        turma = case when excluded.turma <> '' then excluded.turma else public.statown_alunos.turma end,
+        periodo_siga = case when excluded.periodo_siga <> ''
+          then excluded.periodo_siga else public.statown_alunos.periodo_siga end;
   return new;
 end;
 $$;
@@ -109,6 +131,11 @@ revoke all on public.statown_alunos from anon;
 revoke all on public.statown_progresso from anon;
 grant select on public.statown_alunos to authenticated;
 grant select on public.statown_progresso to authenticated;
+
+-- O importador local roda com service_role. Ela ignora a RLS, mas ainda precisa
+-- de privilegio de tabela para o PostgREST; o cliente nunca usa esta chave.
+grant select, insert, update, delete on public.statown_alunos to service_role;
+grant select on public.statown_progresso to service_role;
 
 -- 6. Carregar o progresso do aluno logado -----------------------------------
 create or replace function public.statown_carregar(p_semestre text)
@@ -205,12 +232,17 @@ grant execute on function public.statown_salvar(text, jsonb) to authenticated;
 
 -- 8. Visao para o professor --------------------------------------------------
 -- security_invoker faz a view respeitar a RLS de quem consulta. O professor
--- ve a turma; o aluno ve apenas a propria linha.
-create or replace view public.statown_notas
+-- ve a turma; o aluno ve apenas a propria linha. A view e recriada para que
+-- rodar este arquivo num projeto antigo tambem inclua turma/periodo_siga.
+drop view if exists public.statown_notas;
+
+create view public.statown_notas
 with (security_invoker = true)
 as
 select
   p.semestre,
+  a.turma,
+  a.periodo_siga,
   a.nome,
   a.email,
   a.matricula,
@@ -225,15 +257,17 @@ from public.statown_progresso p
 join public.statown_alunos a on a.id = p.aluno_id;
 
 grant select on public.statown_notas to authenticated;
+grant select on public.statown_notas to service_role;
 
 -- 9. Como promover um professor (rode uma vez, trocando o e-mail) ------------
 -- update public.statown_alunos set professor = true
 -- where email = 'professor@instituicao.br';
 
 -- 10. Consulta da turma (professor) -----------------------------------------
--- select * from public.statown_notas
+-- select turma, periodo_siga, matricula, nome, nota
+-- from public.statown_notas
 -- where semestre = '2026/2'
--- order by nome;
+-- order by turma, nome;
 
 -- 11. Revista cientifica: base de artigos reais -----------------------------
 -- A tabela public.statown_artigos e a carga dos 50 artigos do PubMed/NLM
@@ -243,3 +277,6 @@ grant select on public.statown_notas to authenticated;
 --
 -- Consulta util para conferir a carga:
 -- select tema, count(*) from public.statown_artigos group by tema order by tema;
+
+-- Faz o PostgREST enxergar colunas/views novas imediatamente.
+notify pgrst, 'reload schema';

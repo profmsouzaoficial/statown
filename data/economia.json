@@ -13,8 +13,8 @@
     "teto": 60
   },
   "nota_participacao": {
-    "moedas_por_ponto": 10,
-    "nota_maxima": 100,
+    "moedas_para_nota_maxima": 1000,
+    "nota_maxima": 40,
     "base": "moedas_ganhas"
   }
 }

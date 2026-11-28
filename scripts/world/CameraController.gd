@@ -4,8 +4,8 @@ extends Node2D
 ##
 ## Cobre os tres modos exigidos pelo projeto:
 ##   desktop  -> arrastar com o botao esquerdo, roda do mouse, setas/WASD
-##   celular  -> arrastar com um dedo, pinca de dois dedos (InputEventMagnifyGesture
-##               e, como fallback, o calculo direto da distancia entre dois toques)
+##   toque    -> arrastar com um dedo e pinca de dois dedos (tablet em paisagem);
+##               usa InputEventMagnifyGesture e, como fallback, a distancia entre toques
 ##   trackpad -> InputEventPanGesture com dois dedos
 ##
 ## O zoom e sempre ancorado no cursor/dedo, para que o ponto sob o dedo

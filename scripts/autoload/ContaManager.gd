@@ -14,6 +14,7 @@ signal cadastro_pendente(mensagem: String)
 signal sessao_alterada()
 signal progresso_carregado(ok: bool, mensagem: String)
 signal progresso_salvo(ok: bool, mensagem: String)
+signal senha_alterada(ok: bool, mensagem: String)
 signal sync_alterado(texto: String, ok: bool)
 
 const CAMINHO_CONFIG := "res://config/supabase.json"
@@ -115,6 +116,23 @@ func matricula_aluno() -> String:
 	return str(meta.get("matricula", ""))
 
 
+## Turma no formato do SIGA (ex.: CBV018GV-A), copiada do user_metadata.
+## O perfil do Supabase tem a mesma coluna para consultas do professor.
+func turma_aluno() -> String:
+	if usuario.is_empty():
+		return ""
+	var meta: Dictionary = usuario.get("user_metadata", {}) if typeof(usuario.get("user_metadata", {})) == TYPE_DICTIONARY else {}
+	return str(meta.get("turma", ""))
+
+
+## Periodo letivo do SIGA (ex.: 2026/3), que nao e o semestre interno do jogo.
+func periodo_siga_aluno() -> String:
+	if usuario.is_empty():
+		return ""
+	var meta: Dictionary = usuario.get("user_metadata", {}) if typeof(usuario.get("user_metadata", {})) == TYPE_DICTIONARY else {}
+	return str(meta.get("periodo_siga", ""))
+
+
 func status_curto() -> String:
 	if not configurado():
 		return "modo local (Supabase nao configurado)"
@@ -154,6 +172,23 @@ func cadastrar(email: String, senha: String, nome: String, matricula: String) ->
 		"data": {"nome": nome.strip_edges(), "matricula": matricula.strip_edges()},
 	}
 	_enfileirar("cadastro", "/auth/v1/signup", HTTPClient.METHOD_POST, corpo, false)
+
+
+## Troca a senha da sessao atual no Supabase Auth. Nao guarda nem registra a
+## senha; o corpo so existe na requisicao HTTPS e o HTTPRequest e liberado em
+## seguida. O aluno precisa estar autenticado.
+func alterar_senha(nova_senha: String) -> void:
+	if not configurado():
+		senha_alterada.emit(false, "Supabase nao configurado.")
+		return
+	if not autenticado():
+		senha_alterada.emit(false, "Entre na conta antes de alterar a senha.")
+		return
+	if nova_senha.length() < 6:
+		senha_alterada.emit(false, "A nova senha precisa ter pelo menos 6 caracteres.")
+		return
+	_enfileirar("senha", "/auth/v1/user", HTTPClient.METHOD_PUT,
+		{"password": nova_senha}, true)
 
 
 func sair() -> void:
@@ -325,7 +360,11 @@ func _bombear() -> void:
 	var err := _http.request(url, headers, int(_atual["metodo"]), corpo)
 	if err != OK:
 		_ocupado = false
-		_erro_rede("Falha ao iniciar a conexao (%d)." % err)
+		if str(_atual.get("tag", "")) == "senha":
+			senha_alterada.emit(false, "Falha ao iniciar a conexao (%d)." % err)
+		else:
+			_erro_rede("Falha ao iniciar a conexao (%d)." % err)
+		_atual.clear()
 		_bombear()
 
 
@@ -336,13 +375,16 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 	var tag := str(_atual.get("tag", ""))
 	if result != HTTPRequest.RESULT_SUCCESS:
 		var msg_rede := "Sem conexao com o servidor (resultado %d)." % result
-		if tag == "carregar":
+		if tag == "senha":
+			senha_alterada.emit(false, msg_rede)
+		elif tag == "carregar":
 			# Mantem o bloqueio: sem o save da nuvem, subir o local poderia
 			# apagar a partida de outro computador.
 			_progresso_pronto = false
 			progresso_carregado.emit(false, msg_rede)
 		else:
 			_erro_rede(msg_rede)
+		_atual.clear()
 		_bombear()
 		return
 	if codigo >= 200 and codigo < 300:
@@ -357,6 +399,8 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 		if tag == "carregar":
 			_progresso_pronto = false
 			progresso_carregado.emit(false, "Sessao expirada. Entre novamente.")
+		elif tag == "senha":
+			senha_alterada.emit(false, "Sessao expirada. Entre novamente.")
 		else:
 			_erro_rede("Sessao expirada. Entre novamente.")
 		sessao_alterada.emit()
@@ -371,8 +415,13 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 			sync_alterado.emit("falha ao salvar: " + msg, false)
 		elif tag == "carregar":
 			progresso_carregado.emit(false, msg)
+		elif tag == "senha":
+			senha_alterada.emit(false, msg)
 		else:
 			push_warning("Conta/%s: HTTP %d %s" % [tag, codigo, msg])
+	# A requisicao pode ter carregado uma senha; nao a mantenha em memoria depois
+	# de a resposta chegar (o corpo so existe enquanto o HTTPRequest esta ativo).
+	_atual.clear()
 	_bombear()
 
 
@@ -416,6 +465,20 @@ func _tratar(tag: String, dados) -> void:
 			erro_sync = ""
 			progresso_salvo.emit(true, "Progresso salvo no servidor.")
 			sync_alterado.emit("sincronizado " + ultimo_sync, true)
+		"senha":
+			if typeof(dados) == TYPE_DICTIONARY:
+				var conta = dados.get("user", dados)
+				if typeof(conta) == TYPE_DICTIONARY and str(conta.get("id", "")) != "":
+					# O PUT /user pode devolver so id/email; preserve metadados e
+					# refresh token da sessao para a turma nao desaparecer da tela.
+					var atualizado: Dictionary = usuario.duplicate(true)
+					for chave in (conta as Dictionary).keys():
+						atualizado[chave] = (conta as Dictionary)[chave]
+					usuario = atualizado
+					_salvar_sessao()
+				senha_alterada.emit(true, "Senha alterada. Use a nova senha no proximo login.")
+			else:
+				senha_alterada.emit(false, "O servidor nao confirmou a troca de senha.")
 		_:
 			pass
 

@@ -52,6 +52,9 @@ func _build() -> void:
 	pv.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	esq.add_child(pv)
 	var sc := UITheme.scroll()
+	# As linhas do CSV sao longas; a rolagem horizontal permite conferir a
+	# linha inteira sem quebrar o formato monoespaçado.
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	pv.add_child(sc)
 	_preview = UITheme.vbox(0)
 	sc.add_child(_preview)
@@ -70,13 +73,13 @@ func _build() -> void:
 	var c4 := UITheme.conteudo(p4)
 	var nota := Economy.nota_participacao()
 	c4.add_child(UITheme.campo("Moedas ganhas", str(int(nota["base"]))))
-	c4.add_child(UITheme.campo("Nota projetada", "%d / %d" % [
-		int(nota["nota"]), int(nota["nota_maxima"])]))
+	c4.add_child(UITheme.campo("Nota projetada", "%.1f / %.1f" % [
+		float(nota["nota"]), float(nota["nota_maxima"])]))
 	c4.add_child(UITheme.campo("Regra", Economy.texto_regra_nota()))
 	c4.add_child(UITheme.paragrafo(
-		"A nota usa as moedas ganhas, nao o saldo. O CSV abaixo leva esta linha para o SIGA; "
-		+ "com a conta Supabase, o professor baixa a mesma conta para toda a turma pela view "
-		+ "statown_notas.", 12, UITheme.TEXTO_DIM))
+		"A nota usa as moedas ganhas, nao o saldo. A proporcao e 1000 moedas = nota maxima "
+		+ "da avaliacao (40,0 no Game Educativo Statown). O CSV serve para conferencia do "
+		+ "professor; o lancamento oficial e feito por ele no SIGA.", 12, UITheme.TEXTO_DIM))
 	c4.add_child(UITheme.botao("Baixar CSV de participacao", _baixar_participacao,
 		null, UITheme.ACENTO))
 
@@ -116,11 +119,17 @@ func _gerar() -> void:
 		c.queue_free()
 	var linhas := str(_ultimo["csv"]).split("\n")
 	var limite := mini(linhas.size(), 120)
+	var maior_linha := 0
 	for k in range(limite):
 		var l := UITheme.codigo(linhas[k], 13)
 		l.add_theme_color_override("font_color",
 			UITheme.TEXTO_DIM if linhas[k].begins_with("#") else UITheme.TEXTO)
 		_preview.add_child(l)
+		maior_linha = maxi(maior_linha, linhas[k].length())
+	# Sem largura minima propria, a VBox encolhe e as linhas longas do CSV
+	# ficam cortadas sem barra horizontal. 8 px e uma estimativa conservadora
+	# para a fonte monoespacada de 13 px usada no preview.
+	_preview.custom_minimum_size.x = float(maxi(480, maior_linha * 8))
 	if linhas.size() > limite:
 		_preview.add_child(UITheme.rotulo("... %d linhas omitidas" % (linhas.size() - limite),
 			11, UITheme.TEXTO_FRACO))
@@ -159,12 +168,15 @@ func _baixar_participacao() -> void:
 	var email := Conta.email_aluno() if Conta.autenticado() else ""
 	var matricula := Conta.matricula_aluno() if Conta.autenticado() else ""
 	var nome := Conta.nome_aluno() if Conta.autenticado() else "Aluno local"
+	var turma := Conta.turma_aluno() if Conta.autenticado() else ""
+	var periodo_siga := Conta.periodo_siga_aluno() if Conta.autenticado() else ""
 	var linhas := PackedStringArray()
-	linhas.append("nome;email;matricula;semestre;ano;semana;moedas_ganhas;moedas_gastas;saldo;nota;nota_maxima")
-	linhas.append("%s;%s;%s;%s;%d;%d;%d;%d;%d;%d;%d" % [
-		nome, email, matricula, GameState.semestre_atual(), GameState.ano, GameState.semana,
+	linhas.append("nome;email;matricula;turma;periodo_siga;semestre;ano;semana;moedas_ganhas;moedas_gastas;saldo;nota;nota_maxima")
+	linhas.append("%s;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%.1f;%.1f" % [
+		nome, email, matricula, turma, periodo_siga, GameState.semestre_atual(),
+		GameState.ano, GameState.semana,
 		GameState.moedas_ganhas_total, GameState.moedas_gastas_total, GameState.moedas,
-		int(n["nota"]), int(n["nota_maxima"])])
+		float(n["nota"]), float(n["nota_maxima"])])
 	var nome_arq := "statown_participacao_SE%02d.csv" % GameState.semana
 	var r := SigaExporter.baixar(nome_arq, "\n".join(linhas))
 	main.mostrar_toast(str(r["msg"]), "sucesso" if bool(r["ok"]) else "erro")

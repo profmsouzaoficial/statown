@@ -8,7 +8,8 @@ técnica.
 
 ## 1. Regras de ouro
 
-1. **Godot 4.7**, GDScript apenas, renderizador **gl_compatibility** (alvo web/celular).
+1. **Godot 4.7**, GDScript apenas, renderizador **gl_compatibility** (alvo web em
+   desktop/notebook ou tablet em paisagem, com pelo menos 1200 px lógicos).
 2. **Toda string de interface é PT-BR e sem acento** (`Amostragem`, `Grafico`, `nao`).
    Motivo: o Silkscreen (fonte de display) não tem acentuação confiável e o texto é
    desenhado em muitos lugares com fontes diferentes. Textos longos em Rubik também
@@ -45,10 +46,14 @@ $GODOT --headless res://tests/TestCamera.tscn                 # 93 passos de nav
 $GODOT --headless res://tests/TestAudio.tscn                  # 129 verificações de áudio
 $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de simulação
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
-$GODOT --headless res://tests/TestEconomia.tscn              # 47 verificações de moedas/nota/semestre/persistência
+$GODOT --headless res://tests/TestEconomia.tscn              # 50 verificações de moedas/nota/semestre/persistência
+$GODOT --headless res://tests/TestMoedas.tscn                # 15 verificações do teto de moedas
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
 $GODOT --headless res://tests/TestRevista.tscn               # 1802 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
+
+# contas em lote (service_role em ~/.dsh/secrets/statown.env; nao roda no CI)
+python3 scripts/importar_alunos_supabase.py --pasta ~/.dsh/dados/2026-3 --ensaio
 ```
 
 - `--headless --script` **não carrega autoloads**: teste que usa `GameState`, `Vilas` etc.
@@ -163,11 +168,19 @@ cb, icone, cor)`, `rotulo`, `paragrafo`, `badge`, `separador`, `scroll()`, `pain
 `descontar_moedas`, `aplicar_penalidade_obitos`, `nota_participacao`, `extrato`.
 Toda transação tem `delta`, `motivo`, `categoria`, `ref`, hora e saldo depois; a HUD
 **EXTRATO** e o CSV leem esse ledger. Regras em `data/economia.json` (valores iniciais,
-1% por óbito, teto de 25% na semana, bônus de surto, 10 moedas por ponto, teto 100).
+1% por óbito, teto de 25% na semana, bônus de surto, 1000 moedas ganhas = nota máxima
+da avaliação, teto de 1000 moedas para a nota). O jogo não limita o saldo: repetir
+conteúdo pode render mais de 1000 moedas, mas o excedente não aumenta a nota.
 
 `Conta` lê `config/supabase.json`, guarda **apenas o token** em
 `user://statown_sessao.json` e troca o save local para
-`user://statown_save_<hash-do-id>.json`. O download do servidor é aplicado por
+`user://statown_save_<hash-do-id>.json`. `Conta.alterar_senha()` chama
+`PUT /auth/v1/user` com o token da sessão; a senha não é guardada no jogo.
+`turma_aluno()`/`periodo_siga_aluno()` leem o `user_metadata` copiado do perfil
+(`statown_alunos.turma` / `periodo_siga`); os valores vêm do nome do CSV do SIGA
+(`CBV018GV_A_2026_3.csv` -> `CBV018GV-A`, `2026/3`) pelo importador idempotente
+`scripts/importar_alunos_supabase.py`. A `service_role` só é usada nesse script
+local; nunca entra no build. O download do servidor é aplicado por
 `GameState.aplicar_save`; o upload é `statown_salvar(p_semestre, p_save)`.
 `Conta.progresso_pronto()` só fica `true` depois do download (ou da confirmação de
 conta nova). Enquanto for `false`, `_bloquear_sync` impede qualquer upload — uma falha
@@ -254,13 +267,18 @@ Detalhes em `docs/CREDITOS_AUDIO.md`.
 
 ## 7. Capturas e documentação
 
-`tests/Capture.tscn` percorre o jogo e salva 23 PNGs em `docs/shots/`. O roteiro usa
+`tests/Capture.tscn` percorre o jogo e salva 24 PNGs em `docs/shots/`. O roteiro usa
 `_pressionar(texto)` (acha um `Button` visível pelo texto), `_aba(i)` e `_esperar(n)`.
 Ao adicionar tela nova, acrescente um passo e rode de novo; o teste imprime
-`SCRIPT ERROR` se algo quebrar — o alvo é **zero**. A captura `19b_conta_login.png`
-é feita à mão (login ativo) e não é sobrescrita pelo `Capture`; as demais são do roteiro.
+`SCRIPT ERROR` se algo quebrar — o alvo é **zero**. Use sempre
+`--resolution 1600x900`; o Capture **não** chama `window_set_size` (no X11 isso
+devolvia 1600x932 nas duas primeiras capturas e desalinhava os pins do manual).
+Com o Supabase configurado, o
+`Capture` fotografa a tela de login em `19b_conta_login.png` antes de fechá-la; sem
+configuração, ele mantém a imagem existente. O modo local é forçado em memória para
+`19_conta_local.png`; as demais capturas vêm do roteiro.
 
-O **manual do usuário** é `docs/manual.html`: arquivo único, 23 capítulos, 20 figuras e
+O **manual do usuário** é `docs/manual.html`: arquivo único, 23 capítulos, 19 figuras e
 hiperlinks internos (`href="#cap..."`). As capturas vêm de `docs/shots/`; os números
 circulares sobre as figuras (`.pin`) são posicionados em porcentagem da imagem — se
 recapturar uma tela, confira os pins no navegador antes de publicar. A checagem de links
@@ -378,7 +396,7 @@ que sobe é o save e a nota por semestre; não há API gerando/assinando o CSV n
 
 Exclui do pacote: `assets/extracted/*`, `assets/audio/raw/*`, `assets/art_backup/*`,
 `assets/*.zip`, `assets/Gemini_Generated_FULL-MAP.jpeg`, `assets/art/world_map.png`,
-`docs/shots/*`, `tests/*`, `tools/*`. Ou seja: a ilustração-fonte e o PNG mestre não
+`docs/shots/*`, `tests/*`, `tools/*`, `scripts/*.py`. Ou seja: a ilustração-fonte e o PNG mestre não
 viajam para o navegador — o jogo usa só os 16 chunkes + `world_mini.png`. O pacote fica
 em ~12 MB (o `index.wasm` de ~39,5 MB é a maior parte do download).
 
@@ -419,10 +437,11 @@ cobre buses e volumes, não a decodificação do navegador.
 - [ ] `TestAudio` 129/129
 - [ ] `TestAudit` 52 semanas, 0 falhas
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
-- [ ] `TestEconomia` 47/47
+- [ ] `TestEconomia` 50/50
+- [ ] `TestMoedas` 15/15
 - [ ] `TestDesafios` 22/22
 - [ ] `TestRevista` 1802/1802 (50 artigos, 10 por area, DOI/PMID unicos e traducao PT-BR)
-- [ ] `Capture` 23 PNGs, 0 `SCRIPT ERROR`
+- [ ] `Capture` 24 PNGs, 0 `SCRIPT ERROR`
 - [ ] `docs/manual.html`: 0 links internos quebrados, 0 imagens ausentes, sem overflow
       horizontal em 390 px e gaveta do sumário opaca
 - [ ] áudio do build web audível (medido, não “no ouvido”)

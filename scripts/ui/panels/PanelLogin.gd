@@ -19,6 +19,12 @@ var _matricula: LineEdit
 var _campos_cadastro: VBoxContainer
 var _botao_principal: Button
 var _modo_cadastro := false
+var _bloco_senha: VBoxContainer
+var _nova_senha: LineEdit
+var _confirmar_senha: LineEdit
+var _status_senha: Label
+var _botao_senha: Button
+var _detalhes_conta: VBoxContainer
 
 
 func _init(m: Control, obrig: bool = false) -> void:
@@ -29,6 +35,7 @@ func _init(m: Control, obrig: bool = false) -> void:
 	# depois de um login manual e a tela precisa virar o painel da conta ativa.
 	Conta.login_concluido.connect(_ao_login)
 	Conta.cadastro_pendente.connect(_ao_cadastro_pendente)
+	Conta.senha_alterada.connect(_ao_senha_alterada)
 	Conta.sync_alterado.connect(_ao_sync)
 
 
@@ -48,11 +55,19 @@ func _build() -> void:
 	var v := UITheme.vbox(9)
 	add_child(v)
 	v.add_child(UITheme.rotulo("STATOWN - CONTA DO ALUNO", 12, UITheme.ACENTO))
-	v.add_child(UITheme.titulo("Seu progresso, em qualquer navegador", 24,
-		UITheme.TEXTO, true))
+	# A promessa de "qualquer navegador" so vale quando o Supabase esta ativo.
+	# No modo local, prometer sincronizacao seria mentira e confundiria o aluno.
+	var tem_conta := Conta.configurado()
+	v.add_child(UITheme.titulo(
+		"Seu progresso, em qualquer navegador" if tem_conta
+		else "Seu progresso neste navegador",
+		24, UITheme.TEXTO, true))
 	v.add_child(UITheme.paragrafo(
-		"A conta guarda a semana epidemiologica, o ano e as BioMoedas no servidor. "
-		+ "Ao entrar em outro computador, a partida continua da semana em que parou.",
+		("A conta guarda a semana epidemiologica, o ano e as BioMoedas no servidor. "
+		+ "Ao entrar em outro computador, a partida continua da semana em que parou.")
+		if tem_conta else
+		("Este build esta em modo local: o progresso fica salvo apenas neste navegador. "
+		+ "Para continuar em outro computador, o professor precisa ativar o Supabase."),
 		13, UITheme.TEXTO_DIM))
 
 	if Conta.autenticado():
@@ -69,32 +84,59 @@ func _build() -> void:
 
 
 func _build_conta_ativa(v: VBoxContainer) -> void:
-	v.add_child(UITheme.separador())
-	v.add_child(UITheme.card_info("SESSAO ATIVA", Conta.nome_aluno(), UITheme.SUCESSO))
-	v.add_child(UITheme.paragrafo("E-mail: " + Conta.email_aluno(), 13, UITheme.TEXTO))
+	# O bloco de senha substitui os detalhes da conta (em vez de empilhar mais
+	# 200 px): a tela tambem precisa caber em 720 px de altura.
+	_detalhes_conta = UITheme.vbox(9)
+	v.add_child(_detalhes_conta)
+	var d := _detalhes_conta
+	d.add_child(UITheme.separador())
+	d.add_child(UITheme.card_info("SESSAO ATIVA", Conta.nome_aluno(), UITheme.SUCESSO))
+	d.add_child(UITheme.paragrafo("E-mail: " + Conta.email_aluno(), 13, UITheme.TEXTO))
 	if Conta.matricula_aluno() != "":
-		v.add_child(UITheme.paragrafo("Matricula: " + Conta.matricula_aluno(), 13, UITheme.TEXTO))
+		d.add_child(UITheme.paragrafo("Matricula: " + Conta.matricula_aluno(), 13, UITheme.TEXTO))
+	if Conta.turma_aluno() != "":
+		d.add_child(UITheme.paragrafo(
+			"Turma: %s   Periodo SIGA: %s" % [
+				Conta.turma_aluno(),
+				Conta.periodo_siga_aluno() if Conta.periodo_siga_aluno() != "" else "nao informado"],
+			13, UITheme.TEXTO))
 	_status_ativo = UITheme.paragrafo(
 		"Baixando o progresso do servidor..." if not Conta.progresso_pronto()
 		else Conta.status_curto(), 12,
 		UITheme.INFO if not Conta.progresso_pronto() else UITheme.TEXTO_DIM)
-	v.add_child(_status_ativo)
+	d.add_child(_status_ativo)
 	if not Conta.progresso_pronto():
-		v.add_child(UITheme.botao("TENTAR BAIXAR DE NOVO", func():
+		d.add_child(UITheme.botao("TENTAR BAIXAR DE NOVO", func():
 			Conta.baixar_progresso()
 			_definir_status("Baixando o progresso...", UITheme.INFO), null, UITheme.INFO))
-		v.add_child(UITheme.paragrafo(
+		d.add_child(UITheme.paragrafo(
 			"Se o servidor nao responder, voce pode jogar agora, mas nada sera "
 			+ "enviado ate o download terminar. O progresso feito sem sincronizar "
 			+ "fica so neste navegador e pode ser substituido pelo save da nuvem "
 			+ "quando a conexao voltar. Ao recuperar a conexao, use CONTA.", 11,
 			UITheme.TEXTO_FRACO))
-		v.add_child(UITheme.botao("JOGAR SEM SINCRONIZAR", func(): cancelado.emit(),
+		d.add_child(UITheme.botao("JOGAR SEM SINCRONIZAR", func(): cancelado.emit(),
 			null, UITheme.PERIGO))
 	else:
-		v.add_child(UITheme.botao("SINCRONIZAR AGORA", func():
+		d.add_child(UITheme.botao("SINCRONIZAR AGORA", func():
 			Conta.sincronizar_agora()
 			_definir_status("Sincronizando...", UITheme.INFO), null, UITheme.INFO))
+
+	v.add_child(UITheme.separador())
+	_botao_senha = UITheme.botao("ALTERAR SENHA", _alternar_bloco_senha, null, UITheme.BORDA_CLARA)
+	v.add_child(_botao_senha)
+	_bloco_senha = UITheme.vbox(6)
+	_bloco_senha.visible = false
+	_nova_senha = _campo(_bloco_senha, "Nova senha", "minimo 6 caracteres", true)
+	_confirmar_senha = _campo(_bloco_senha, "Confirmar nova senha", "repita a nova senha", true)
+	_status_senha = UITheme.paragrafo("", 11, UITheme.TEXTO_DIM)
+	_bloco_senha.add_child(_status_senha)
+	_bloco_senha.add_child(UITheme.botao("SALVAR NOVA SENHA", _alterar_senha,
+		null, UITheme.SUCESSO))
+	_bloco_senha.add_child(UITheme.paragrafo(
+		"A nova senha substitui a senha inicial (o seu e-mail institucional). "
+		+ "O progresso e as BioMoedas nao sao apagados.", 11, UITheme.TEXTO_FRACO))
+	v.add_child(_bloco_senha)
 	v.add_child(UITheme.botao("SAIR DA CONTA", _sair, null, UITheme.PERIGO))
 
 
@@ -102,8 +144,8 @@ func _build_sem_config(v: VBoxContainer) -> void:
 	v.add_child(UITheme.card_info("MODO LOCAL ATIVO",
 		"O Supabase ainda nao foi configurado neste build.", UITheme.ACENTO))
 	v.add_child(UITheme.paragrafo(
-		"O jogo funciona e salva neste navegador, mas a semana/ano e as moedas NAO "
-		+ "vao para o SIGA. Para ativar as contas, o professor precisa:", 13, UITheme.TEXTO))
+		"O jogo funciona e salva neste navegador, mas a semana, o ano e as moedas NAO "
+		+ "vao para o servidor nem para outro computador. Para ativar as contas:", 13, UITheme.TEXTO))
 	var passos := [
 		"Criar um projeto gratuito em supabase.com.",
 		"Rodar docs/SUPABASE.sql no SQL Editor do projeto.",
@@ -137,8 +179,19 @@ func _build_form(v: VBoxContainer) -> void:
 	v.add_child(alternar)
 	v.add_child(UITheme.paragrafo(
 		"A senha vai direto para o Supabase Auth; o jogo guarda apenas o token de sessao. "
-		+ "Se o projeto exigir confirmacao, confirme o e-mail antes de entrar.", 11,
+		+ "Alunos cadastrados pelo professor entram com o e-mail institucional e a senha "
+		+ "inicial igual ao e-mail; depois use CONTA > ALTERAR SENHA.", 11,
 		UITheme.TEXTO_FRACO))
+	if obrigatorio:
+		# Sem esta saida, uma falha do Supabase (ou do e-mail institucional)
+		# deixa o aluno preso na tela inicial, sem conseguir estudar.
+		v.add_child(UITheme.separador())
+		v.add_child(UITheme.botao("JOGAR SEM CONTA NESTE NAVEGADOR",
+			func(): concluido.emit("local"), null, UITheme.PERIGO))
+		v.add_child(UITheme.paragrafo(
+			"O jogo abre, mas o progresso fica so neste navegador e NAO sera enviado "
+			+ "ao SIGA. Use esta opcao apenas se o login estiver indisponivel; "
+			+ "depois entre em CONTA para sincronizar.", 11, UITheme.TEXTO_FRACO))
 
 
 ## Depois de um login manual que baixou a sessao mas falhou no download, troca
@@ -158,6 +211,12 @@ func mostrar_conta_ativa() -> void:
 	_campos_cadastro = null
 	_botao_principal = null
 	_modo_cadastro = false
+	_bloco_senha = null
+	_nova_senha = null
+	_confirmar_senha = null
+	_status_senha = null
+	_botao_senha = null
+	_detalhes_conta = null
 	_build()
 
 
@@ -171,6 +230,54 @@ func _campo(destino: VBoxContainer, titulo_txt: String, dica: String,
 	e.add_theme_font_size_override("font_size", 15)
 	destino.add_child(e)
 	return e
+
+
+func _alternar_bloco_senha() -> void:
+	if _bloco_senha == null:
+		return
+	var abrir := not _bloco_senha.visible
+	_bloco_senha.visible = abrir
+	if _detalhes_conta != null:
+		_detalhes_conta.visible = not abrir
+	_botao_senha.text = "CANCELAR ALTERACAO" if abrir else "ALTERAR SENHA"
+	if abrir and _nova_senha != null:
+		_nova_senha.grab_focus()
+	elif _status_senha != null:
+		_status_senha.text = ""
+
+
+func _alterar_senha() -> void:
+	if _nova_senha == null or _confirmar_senha == null:
+		return
+	var nova := _nova_senha.text
+	if nova.length() < 6:
+		_status_nova_senha("A nova senha precisa ter pelo menos 6 caracteres.", UITheme.PERIGO)
+		return
+	if nova != _confirmar_senha.text:
+		_status_nova_senha("As duas senhas nao sao iguais.", UITheme.PERIGO)
+		return
+	if _status_senha != null:
+		_status_senha.text = "Alterando a senha no servidor..."
+		_status_senha.add_theme_color_override("font_color", UITheme.INFO)
+	Conta.alterar_senha(nova)
+
+
+func _status_nova_senha(texto: String, cor: Color) -> void:
+	if _status_senha != null:
+		_status_senha.text = texto
+		_status_senha.add_theme_color_override("font_color", cor)
+
+
+func _ao_senha_alterada(ok: bool, msg: String) -> void:
+	if _status_senha != null:
+		_status_senha.text = msg
+		_status_senha.add_theme_color_override("font_color",
+			UITheme.SUCESSO if ok else UITheme.PERIGO)
+	if ok:
+		if _nova_senha != null:
+			_nova_senha.text = ""
+		if _confirmar_senha != null:
+			_confirmar_senha.text = ""
 
 
 func _alternar_modo() -> void:

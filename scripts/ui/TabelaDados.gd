@@ -23,11 +23,15 @@ func _init() -> void:
 	sb.content_margin_bottom = 8
 	add_theme_stylebox_override("panel", sb)
 	_scroll = UITheme.scroll()
+	# A tabela tem 9 colunas. Em 1200 px a soma dos rotulos passa da largura
+	# do cartao; sem rolagem horizontal a ultima coluna era cortada em silencio.
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	add_child(_scroll)
 	_grade = GridContainer.new()
 	_grade.add_theme_constant_override("h_separation", 10)
 	_grade.add_theme_constant_override("v_separation", 2)
 	_grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_grade.custom_minimum_size = Vector2(1010, 0)
 	_scroll.add_child(_grade)
 
 

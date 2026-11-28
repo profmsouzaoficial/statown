@@ -19,7 +19,7 @@ não quebrar).
 | `assets/art/world/chunk_C_L.png` | 16 × 960×720 | pedaços do mapa (grade 4×4) | `WorldView` desenha só o que aparece na tela |
 | `assets/art/world_mini.png` | 960×720 | miniatura | `Assets.mini_mapa` |
 | `assets/art/decor.png` | 3840×2880 RGBA | **camada de decoração**, transparente | desenhada **por cima** do mapa (opcional) |
-| `assets/art/decor/chunk_C_L.png` | 16 × 960×720 | decoração fatiada (gerada) | idem, versão leve para celular |
+| `assets/art/decor/chunk_C_L.png` | 16 × 960×720 | decoração fatiada (gerada) | idem, versão leve para tablet/web |
 | `data/map_data.json` | — | âncoras das vilas, máscaras de água/zona, rotas | **lógica**, não é arte (ver seção 8) |
 | `tools/bake_map.py` | — | **gera o mapa atual** a partir da ilustração (bake pixel-art) | pipeline (não é editor) |
 | `tools/render_world.py` | — | gerador legado (estilo Kenney); `--terreno` tenta reler a ilustração em tiles | pipeline (não é editor) |
@@ -123,7 +123,7 @@ coisa que você queira desenhar à mão.
 4. **No editor do Godot**: aperte `F5`. O Godot reimporta o PNG sozinho ao salvar e o
    desenho aparece na hora. (Se o jogo já estiver rodando fora do editor, feche e rode de
    novo — ou rode `godot --headless --import` antes.)
-5. **Para o build web/celular**: rode o fatiador e exporte:
+5. **Para o build web/tablet**: rode o fatiador e exporte:
    ```bash
    python3 tools/split_world.py --decor
    /home/marcio/opt/godot/godot --headless --export-release "Web" exports/web/index.html

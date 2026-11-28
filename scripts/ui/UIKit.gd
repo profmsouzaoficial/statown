@@ -168,10 +168,14 @@ func construir_tema() -> Theme:
 
 	# --- ScrollContainer / ScrollBar ---
 	t.set_stylebox("panel", "ScrollContainer", _sb(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0, 0))
-	var grab := _sb(BORDA_CLARA, BORDA_CLARA, 4, 0, 0, 0)
-	grab.content_margin_left = 0
-	grab.content_margin_right = 0
-	var track := _sb(Color(0, 0, 0, 0.25), Color(0, 0, 0, 0), 4, 0, 0, 0)
+	# 9 px de largura e cor de acento: a barra de 4 px anterior sumia no fundo
+	# escuro e o aluno nao percebia que havia mais conteudo abaixo.
+	var grab := _sb(ACENTO_2, ACENTO_2, 5, 0, 0, 0)
+	grab.content_margin_left = 2
+	grab.content_margin_right = 2
+	var track := _sb(Color(0, 0, 0, 0.35), BORDA, 5, 0, 0, 0)
+	track.content_margin_left = 2
+	track.content_margin_right = 2
 	t.set_stylebox("grabber", "VScrollBar", grab)
 	t.set_stylebox("grabber_highlight", "VScrollBar", _sb(ACENTO, ACENTO, 4, 0, 0, 0))
 	t.set_stylebox("grabber_pressed", "VScrollBar", _sb(ACENTO, ACENTO, 4, 0, 0, 0))

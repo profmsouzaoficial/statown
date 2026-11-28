@@ -29,6 +29,9 @@ func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	# o painel tem muito conteudo (KPIs, graficos e projecao): rola na vertical
 	var rol := UITheme.scroll()
+	# A projecao de leitos fica abaixo dos graficos; a barra permanente deixa
+	# claro que ha mais conteudo mesmo antes de o aluno rolar.
+	rol.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	rol.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(rol)
 	var margem := MarginContainer.new()

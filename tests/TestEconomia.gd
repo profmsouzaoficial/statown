@@ -87,19 +87,35 @@ func _testar_surto() -> void:
 
 
 func _testar_nota() -> void:
-	GameState.moedas_ganhas_total = 1390
-	var n := Economy.nota_participacao()
-	_ok(int(n["pontos_brutos"]) == 139, "1390 moedas deveriam gerar 139 pontos brutos")
-	_ok(int(n["nota"]) == 100, "nota deveria ser truncada no teto de 100")
-	_ok(int(n["excedente"]) == 39, "excedente acima do teto deveria ser 39")
-
-	GameState.moedas_ganhas_total = 99
-	n = Economy.nota_participacao()
-	_ok(int(n["nota"]) == 9, "99 moedas deveriam gerar nota 9 (divisao inteira por 10)")
-
 	GameState.moedas_ganhas_total = 1000
+	var n := Economy.nota_participacao()
+	_ok(is_equal_approx(float(n["nota"]), 40.0), "1000 moedas deveriam gerar nota 40,0")
+	_ok(is_equal_approx(float(n["nota_maxima"]), 40.0), "a nota maxima deveria ser 40,0")
+
+	GameState.moedas_ganhas_total = 500
 	n = Economy.nota_participacao()
-	_ok(int(n["nota"]) == 100, "1000 moedas deveriam gerar nota 100")
+	_ok(is_equal_approx(float(n["nota"]), 20.0), "500 moedas deveriam gerar nota 20,0")
+
+	GameState.moedas_ganhas_total = 285
+	n = Economy.nota_participacao()
+	_ok(is_equal_approx(float(n["nota"]), 11.4),
+		"285 moedas deveriam gerar 11,4 sem artefato de ponto flutuante")
+
+	GameState.moedas_ganhas_total = 999
+	n = Economy.nota_participacao()
+	_ok(is_equal_approx(float(n["nota"]), 39.9),
+		"999 moedas deveriam gerar 39,9 (truncado, sem arredondar para 40,0)")
+
+	GameState.moedas_ganhas_total = 1390
+	n = Economy.nota_participacao()
+	_ok(is_equal_approx(float(n["nota"]), 40.0),
+		"1390 moedas deveriam ficar no teto de 40,0")
+	_ok(int(n["excedente_moedas"]) == 390,
+		"o excedente acima de 1000 deveria ser 390 moedas")
+
+	GameState.moedas_ganhas_total = 0
+	n = Economy.nota_participacao()
+	_ok(is_equal_approx(float(n["nota"]), 0.0), "zero moedas deveria gerar nota 0,0")
 
 
 func _testar_game_over() -> void:

@@ -13,6 +13,7 @@ var _lbl_placar: Label
 var _tema_atual := 0
 var _auditados := {}
 var _respondido := false
+var _botoes_resposta: Array[Button] = []
 
 const TEMAS := [
 	{
@@ -177,7 +178,7 @@ func _build() -> void:
 	aviso.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cr.add_child(aviso)
 
-	esq.add_child(UITheme.rotulo("PERGUNTAS AO TUTOR", 11, UITheme.ACENTO))
+	esq.add_child(UITheme.rotulo("ESCOLHA UMA PERGUNTA", 11, UITheme.ACENTO))
 	var sc := UITheme.scroll()
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	esq.add_child(sc)
@@ -213,6 +214,7 @@ func _build() -> void:
 func _abrir_tema(i: int) -> void:
 	_tema_atual = i
 	_respondido = false
+	_botoes_resposta.clear()
 	for c in _area_resposta.get_children():
 		c.queue_free()
 	var t: Dictionary = TEMAS[i]
@@ -247,12 +249,15 @@ func _abrir_tema(i: int) -> void:
 		b.add_theme_stylebox_override("normal", sb)
 		b.pressed.connect(_auditar.bind(k))
 		c.add_child(b)
+		_botoes_resposta.append(b)
 
 	var acoes := HBoxContainer.new()
 	acoes.add_theme_constant_override("separation", 10)
 	c.add_child(acoes)
-	acoes.add_child(UITheme.botao("Esta resposta esta correta", _auditar.bind(-1),
-		null, UITheme.SUCESSO))
+	var b_correta := UITheme.botao("Esta resposta esta correta", _auditar.bind(-1),
+		null, UITheme.SUCESSO)
+	acoes.add_child(b_correta)
+	_botoes_resposta.append(b_correta)
 	acoes.add_child(UITheme.botao("Nova pergunta", func(): _abrir_tema(
 		(_tema_atual + 1) % TEMAS.size()), null, UITheme.INFO))
 
@@ -261,8 +266,9 @@ func _abrir_tema(i: int) -> void:
 	_area_resposta.add_child(area)
 
 	var dica := UITheme.paragrafo(
-		"Voce tambem pode perguntar ao tutor sobre IC, p-valor, correlacao, testes "
-		+ "diagnosticos, R0, amostragem, regressao logistica e fragilidade estatistica.",
+		"Os oito temas acima cobrem IC, p-valor, correlacao, testes diagnosticos, R0, "
+		+ "amostragem, regressao logistica e fragilidade estatistica. Use Nova pergunta "
+		+ "para percorrer o corpus; nao ha resposta livre neste tutor.",
 		12, UITheme.TEXTO_FRACO)
 	dica.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_area_resposta.add_child(dica)
@@ -276,6 +282,29 @@ func _auditar(escolha: int) -> void:
 	var t: Dictionary = TEMAS[_tema_atual]
 	var erro := int(t["erro"])
 	var acertou := escolha == erro
+	# Depois da resposta, as opcoes ficam desabilitadas: o aluno ve o que
+	# escolheu, mas nao tenta outra alternativa para "acertar" a mesma rodada.
+	for i in range(_botoes_resposta.size()):
+		var b := _botoes_resposta[i] as Button
+		if not is_instance_valid(b):
+			continue
+		# disabled nao muda a aparencia do estilo customizado; marque a escolha
+		# (verde/vermelho) e a frase correta (verde) para o aluno aprender com
+		# o erro, sem deixar os botoes com cara de ainda clicaveis.
+		var base := b.get_theme_stylebox("normal")
+		if base is StyleBoxFlat:
+			var off := (base as StyleBoxFlat).duplicate() as StyleBoxFlat
+			var cor := UITheme.BORDA
+			if i == escolha:
+				cor = UITheme.SUCESSO if acertou else UITheme.PERIGO
+			elif i == erro:
+				cor = UITheme.SUCESSO
+			off.border_color = cor
+			if i == escolha or i == erro:
+				off.set_border_width_all(2)
+			b.add_theme_stylebox_override("disabled", off)
+		b.add_theme_color_override("font_disabled_color", UITheme.TEXTO_DIM)
+		b.disabled = true
 
 	var area := _area_resposta.find_child("Veredito", true, false) as VBoxContainer
 	if area == null:

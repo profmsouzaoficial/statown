@@ -75,8 +75,8 @@ func _montar_hub() -> void:
 	t.add_theme_color_override("font_color", UITheme.ACENTO)
 	v.add_child(t)
 	v.add_child(UITheme.rotulo(
-		"Cada desafio vale BioMoedas. O melhor aproveitamento fica registrado.", 13,
-		UITheme.TEXTO_DIM))
+		"Cada partida vale de 10 a 70 BioMoedas. Repetir rende de novo, mas a nota "
+		+ "usa no maximo 1000 moedas ganhas.", 13, UITheme.TEXTO_DIM))
 	var total := GameState.minigames_concluidos.size()
 	cab.add_child(UITheme.badge("%d de 9 concluidos" % total,
 		UITheme.SUCESSO if total >= 9 else UITheme.TEXTO_DIM, 14))

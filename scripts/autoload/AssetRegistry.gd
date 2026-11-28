@@ -235,7 +235,7 @@ func _carregar_chunks() -> void:
 ##
 ## Dois modos, escolhidos em tempo de carga:
 ##   - chunkes (assets/art/decor/chunk_*.png): memoria igual a de uma camada so,
-##     e o modo que vai para o build web/celular;
+##     e o modo que vai para o build web;
 ##   - mestre inteiro (decor.png): pratico no editor antes de fatiar, pesado.
 ## Um mestre mais novo que os chunkes significa edicao sem split: nesse caso o
 ## mestre vence, para a arte recem-pintada aparecer de imediato no editor.

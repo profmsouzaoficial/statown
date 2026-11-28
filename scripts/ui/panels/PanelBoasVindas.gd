@@ -1,13 +1,17 @@
 class_name PanelBoasVindas
 extends Control
 ## Tela de abertura: apresenta o universo, os tres verbos do jogo
-## (explorar, investigar, decidir) e as instrucoes de toque/pinca no celular.
+## (explorar, investigar, decidir) e as instrucoes de toque/pinca no tablet.
 
 var main: Control
+var _aviso: String
+var _tipo_aviso: String
 
 
-func _init(m: Control) -> void:
+func _init(m: Control, aviso: String = "", tipo_aviso: String = "info") -> void:
 	main = m
+	_aviso = aviso
+	_tipo_aviso = tipo_aviso
 	_build()
 
 
@@ -64,6 +68,34 @@ func _build() -> void:
 		+ "dados brutos em decisoes que salvam vidas — e aprender bioestatistica no caminho.")
 		% _formatar(Vilas.populacao_total()),
 		17, UITheme.TEXTO_DIM))
+	if _aviso != "":
+		var titulo_aviso := "CONTA"
+		var cor_aviso := UITheme.INFO
+		if _tipo_aviso == "sucesso":
+			titulo_aviso = "CONTA CONECTADA"
+			cor_aviso = UITheme.SUCESSO
+		elif _tipo_aviso == "local":
+			titulo_aviso = "MODO LOCAL"
+			cor_aviso = UITheme.PERIGO
+		elif _tipo_aviso == "info":
+			titulo_aviso = "CONTA ENCERRADA"
+		# Faixa compacta: o aviso de login nao pode empurrar os botoes de
+		# entrada para fora do painel em 1200/1280 px.
+		var faixa := PanelContainer.new()
+		var estilo := StyleBoxFlat.new()
+		estilo.bg_color = Color(0.10, 0.14, 0.19)
+		estilo.border_color = cor_aviso
+		estilo.set_border_width_all(1)
+		estilo.border_width_left = 4
+		estilo.set_corner_radius_all(7)
+		estilo.content_margin_left = 12
+		estilo.content_margin_right = 12
+		estilo.content_margin_top = 7
+		estilo.content_margin_bottom = 7
+		faixa.add_theme_stylebox_override("panel", estilo)
+		faixa.add_child(UITheme.paragrafo(
+			"%s: %s" % [titulo_aviso, _aviso], 12, cor_aviso))
+		raiz.add_child(faixa)
 	raiz.add_child(UITheme.espacador(2))
 
 	# --- tres verbos -----------------------------------------------------
@@ -95,7 +127,8 @@ func _build() -> void:
 	dicas.add_child(UITheme.rotulo("COMO JOGAR", 12, UITheme.ACENTO))
 	dicas.add_child(UITheme.paragrafo(
 		"· No computador: arraste com o mouse, use a roda para o zoom e as setas para andar.\n"
-		+ "· No celular: arraste com um dedo e faca pinca com dois dedos para ampliar.\n"
+		+ "· Em tablet: arraste com um dedo e faca pinca com dois dedos para ampliar.\n"
+		+ "· O layout pede pelo menos 1200 px de largura; em telas menores, use computador ou tablet em paisagem.\n"
 		+ "· Cada vila tem sua propria trilha e ambiencia: aproxime o zoom para ouvi-las.\n"
 		+ "· A simulacao roda em semanas epidemiologicas (SE). Use os botoes || > >> >>> para mudar a velocidade.\n"
 		+ "· Ganhe BioMoedas acertando os desafios e concluindo auditorias; gaste-as em intervencoes.",

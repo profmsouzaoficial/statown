@@ -174,9 +174,9 @@ func _mostrar_game_over() -> void:
 	_game_over_msg.text = ("Suas BioMoedas chegaram a zero na SE %d do ano %d. A simulacao "
 		+ "parou; nenhuma semana avanca ate voce reiniciar.") % [GameState.semana, GameState.ano]
 	_game_over_resumo.text = ("Semestre preservado: %d moedas ganhas, %d gastas, nota projetada "
-		+ "%d/%d. Saldo inicial do proximo ciclo: %d BioMoedas.") % [
+		+ "%.1f/%.1f. Saldo inicial do proximo ciclo: %d BioMoedas.") % [
 		GameState.moedas_ganhas_total, GameState.moedas_gastas_total,
-		int(n["nota"]), int(n["nota_maxima"]), GameState.MOEDAS_INICIAIS]
+		float(n["nota"]), float(n["nota_maxima"]), GameState.MOEDAS_INICIAIS]
 	_game_over_layer.visible = true
 	Audio.duck(-10.0)
 
@@ -857,7 +857,10 @@ func _ao_progresso_carregado(ok: bool, msg: String) -> void:
 				if Conta.autenticado():
 					_login_panel.mostrar_conta_ativa()
 				_login_panel.definir_status("Conta: " + msg, UITheme.PERIGO)
-			mostrar_toast("Conta: " + msg, "erro")
+			# O erro ja aparece no proprio painel; um toast aqui voltaria a
+			# cobrir os botoes de tentar de novo / jogar offline.
+			if _login_layer == null:
+				mostrar_toast("Conta: " + msg, "erro")
 			return
 		if _login_aguardando_progresso:
 			_login_aguardando_progresso = false
@@ -890,16 +893,13 @@ func _finalizar_login(modo: String) -> void:
 		_vila_sel = 1
 		mundo.definir_overlay(GameState.overlay_ativo)
 		_atualizar_card_vila(1)
-		abrir_boas_vindas()
-		mostrar_toast("Conta conectada. O progresso sera sincronizado.", "sucesso")
+		abrir_boas_vindas("O progresso sera sincronizado.", "sucesso")
 	elif modo == "logout":
 		_vila_sel = 1
 		mundo.definir_overlay(GameState.overlay_ativo)
-		abrir_boas_vindas()
-		mostrar_toast("Conta encerrada. O progresso desta conta continua no servidor.", "info")
+		abrir_boas_vindas("O progresso desta conta continua no servidor.", "info")
 	else:
-		abrir_boas_vindas()
-		mostrar_toast("Modo local: a semana e as moedas nao serao enviadas ao SIGA.", "info")
+		abrir_boas_vindas("A semana e as moedas nao serao enviadas ao SIGA.", "local")
 
 
 func _abrir_conta() -> void:
@@ -1011,8 +1011,8 @@ func _ao_tocar_mapa(vila_id: int, _pos: Vector2) -> void:
 # NAVEGACAO
 # ============================================================================
 
-func abrir_boas_vindas() -> void:
-	var p := PanelBoasVindas.new(self)
+func abrir_boas_vindas(aviso: String = "", tipo_aviso: String = "info") -> void:
+	var p := PanelBoasVindas.new(self, aviso, tipo_aviso)
 	abrir_modal("StaTown", p, 1180, 730)
 
 
@@ -1021,7 +1021,7 @@ func _abrir_vila(id: int) -> void:
 		id = _vila_sel if _vila_sel > 0 else 1
 	_vila_sel = id
 	var p := PanelVila.new(self, id)
-	abrir_modal("Vila - " + str(Vilas.get_vila(id).get("nome", "")), p, 1240, 800)
+	abrir_modal("Vila", p, 1240, 800)
 
 
 func _abrir_lab() -> void:

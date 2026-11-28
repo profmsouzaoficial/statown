@@ -179,5 +179,9 @@ considere Cloudflare Pages ou GitHub Pages como alternativas estáticas.
 Sem esses passos, o jogo continua em modo local e a tela CONTA explica exatamente o que
 falta. Com as chaves ativas, o login só libera a simulação depois de baixar o save; se o
 download falhar, o botão **JOGAR SEM SINCRONIZAR** permite continuar, mas o upload fica
-bloqueado até uma nova tentativa bem-sucedida. A nota é `min(100, moedas_ganhas / 10)` por semestre; o detalhamento, os limites
-de segurança e o checklist de LGPD estão em [SUPABASE.md](SUPABASE.md).
+bloqueado até uma nova tentativa bem-sucedida. A nota é
+`min(40,0, truncar_1_casa(moedas_ganhas / 1000 × 40,0))` por semestre: 1000 moedas
+valem 40,0, o peso da avaliação **Game Educativo Statown**. O detalhamento, os
+limites de segurança e o checklist de LGPD estão em [SUPABASE.md](SUPABASE.md).
+O build web é para desktop/notebook ou tablet em paisagem com pelo menos 1200 px
+lógicos; celular em retrato não é um alvo suportado.

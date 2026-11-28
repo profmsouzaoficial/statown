@@ -191,12 +191,18 @@ func _preencher_lista() -> void:
 func _botao_artigo(i: int) -> Button:
 	var a: Dictionary = ARTIGOS[i]
 	var lido := GameState.artigos_lidos.has(str(a["id"]))
-	var b := UITheme.botao(("* " if lido else "") + "%d. %s" % [i + 1, _titulo_lista(a)],
-		_abrir_artigo.bind(i), null, UITheme.SUCESSO if lido else UITheme.BORDA)
+	var rotulo := ("%d. %s" % [i + 1, _titulo_lista(a)])
+	rotulo += "\n%s  ·  %s%s" % [
+		str(a.get("tema", "Artigo")), str(int(a.get("ano", 0))),
+		"  ·  LIDO" if lido else ""]
+	var b := UITheme.botao(rotulo, _abrir_artigo.bind(i), null,
+		UITheme.SUCESSO if lido else UITheme.BORDA)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(0, 78)
-	b.clip_text = true
-	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# O cartao mostra o inicio do titulo, o tema e o ano; o tooltip e o leitor
+	# trazem o titulo completo, sem cortar palavras no meio.
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size = Vector2(0, 100)
+	b.clip_text = false
 	b.tooltip_text = _titulo(a) + "\n" + str(a["autores_exibicao"]) + "\nDOI: " + str(a["doi"])
 	if _tem_traducao(a):
 		b.tooltip_text += "\nTraducao PT-BR; texto original no DOI."
@@ -218,8 +224,12 @@ func _tem_traducao(a: Dictionary) -> bool:
 
 func _titulo_lista(a: Dictionary) -> String:
 	var t := _titulo(a)
-	if t.length() > 88:
-		t = t.substr(0, 85).strip_edges() + "..."
+	if t.length() > 120:
+		t = t.substr(0, 120)
+		var corte := t.rfind(" ")
+		if corte > 80:
+			t = t.substr(0, corte)
+		t = t.strip_edges() + "..."
 	return t
 
 

@@ -43,7 +43,7 @@ func _carregar_config() -> void:
 			"bonus_sem_obitos": 15, "teto": 60,
 		},
 		"nota_participacao": {
-			"moedas_por_ponto": 10, "nota_maxima": 100,
+			"moedas_para_nota_maxima": 1000, "nota_maxima": 40,
 			"base": "moedas_ganhas",
 		},
 	}
@@ -203,31 +203,42 @@ func _ao_surto_encerrado(vila_id: int) -> void:
 
 ## Converte a producao do semestre em nota. A base padrao e o total de moedas
 ## GANHAS (nao o saldo): gastar em intervencoes nao pode punir o aluno duas
-## vezes. O teto e aplicado depois da divisao, exatamente como pedido:
-## 1390 moedas -> 139 pontos -> 100 (teto), e nao 139.
+## vezes. A regra e proporcional: 1000 moedas valem a nota maxima registrada
+## na avaliacao (40 pontos no "Game Educativo Statown"). O teto e aplicado
+## depois da proporcao; 1390 moedas continuam valendo 40, e nao 55,6.
+##
+## O truncamento em uma casa decimal e proposital: nao presenteia o aluno com
+## 40,0 em 999 moedas por arredondamento e deixa o valor conferivel no SIGA.
 func nota_participacao() -> Dictionary:
 	var n: Dictionary = cfg.get("nota_participacao", {})
-	var por_ponto := maxi(1, int(n.get("moedas_por_ponto", 10)))
-	var maxima := maxi(1, int(n.get("nota_maxima", 100)))
+	var moedas_teto := maxi(1, int(n.get("moedas_para_nota_maxima", 1000)))
+	var maxima := clampf(float(n.get("nota_maxima", 40.0)), 0.1, 1000.0)
 	var base_tipo := str(n.get("base", "moedas_ganhas"))
 	var base := GameState.moedas_ganhas_total if base_tipo == "moedas_ganhas" else GameState.moedas
-	var pontos_brutos := int(floor(float(base) / float(por_ponto)))
-	var nota := mini(pontos_brutos, maxima)
+	var proporcao := clampf(float(base) / float(moedas_teto), 0.0, 1.0)
+	var nota_bruta := proporcao * maxima
+	# Truncar em decimos com aritmetica inteira evita o artefato binario que
+	# transformava 285 moedas em 11,3 (285 * 40 / 1000 = 11,4).
+	var limite_decimos := maxi(1, int(round(maxima * 10.0)))
+	var nota_decimos := mini(limite_decimos,
+		int(floor(float(base) * float(limite_decimos) / float(moedas_teto))))
+	var nota := float(nota_decimos) / 10.0
 	return {
 		"base": base,
 		"base_tipo": base_tipo,
-		"moedas_por_ponto": por_ponto,
-		"pontos_brutos": pontos_brutos,
+		"moedas_para_nota_maxima": moedas_teto,
+		"nota_bruta": nota_bruta,
 		"nota": nota,
 		"nota_maxima": maxima,
-		"excedente": maxi(0, pontos_brutos - maxima),
+		"excedente_moedas": maxi(0, base - moedas_teto),
 	}
 
 
 func texto_regra_nota() -> String:
 	var n := nota_participacao()
-	return "nota = min(%d, floor(%d / %d)) = %d" % [
-		int(n["nota_maxima"]), int(n["base"]), int(n["moedas_por_ponto"]), int(n["nota"])]
+	return "nota = min(%.1f, %d / %d * %.1f) = %.1f" % [
+		float(n["nota_maxima"]), int(n["base"]), int(n["moedas_para_nota_maxima"]),
+		float(n["nota_maxima"]), float(n["nota"])]
 
 
 # ---------------------------------------------------------------------------

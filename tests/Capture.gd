@@ -19,14 +19,30 @@ func _ready() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_TESTE))
 	GameState.reiniciar_partida()
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
-	DisplayServer.window_set_size(Vector2i(1600, 900))
+	# O tamanho vem de --resolution 1600x900 (documentado no cabecalho). Nao
+	# chamar window_set_size aqui: no X11 isso pode devolver 1600x932 na primeira
+	# captura, antes do login fechar, e desalinhar os pins do manual.
 	var cena: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(cena)
 	main = cena
 	await _esperar(30)
+	# Com Supabase configurado o jogo abre no login obrigatorio; a captura de
+	# boas-vindas precisa ser feita depois de fechar essa camada.
+	if main._login_layer != null:
+		await _shot("19b_conta_login")
+		main._fechar_login()
+		await _esperar(6)
+	if not GameState.modal_aberto:
+		main.abrir_boas_vindas()
+	await _esperar(6)
 	await _shot("01_boas_vindas")
+	main.fechar_modal()
+	await _esperar(4)
 
 	# Tela de conta no modo local (sem Supabase configurado neste build).
+	Conta.cfg["habilitado"] = false
+	Conta._autenticado = false
+	Conta.access_token = ""
 	main._abrir_conta()
 	await _esperar(12)
 	await _shot("19_conta_local")

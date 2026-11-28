@@ -356,13 +356,14 @@ footer.rodape a{color:var(--texto2)}
   <p class="lead">O StaTown roda direto no navegador, sem instalação. Nesta seção você abre o jogo, libera o som, entende a tela de boas-vindas e faz a primeira semana avançar.</p>
 
   <h3><span class="num2">2.1</span> Abrir o jogo</h3>
-  <p>No computador em que o jogo está instalado, abra o jogo em <a href="index.html" target="_blank" rel="noopener"><code>index.html</code></a> (o arquivo fica na mesma pasta deste manual). Para jogar no celular conectado à mesma rede Wi-Fi, use o endereço de rede local informado pelo servidor — por exemplo <code>http://192.168.68.110:8090</code> (o número varia conforme a máquina).</p>
+  <p>No computador em que o jogo está instalado, abra o jogo em <a href="index.html" target="_blank" rel="noopener"><code>index.html</code></a> (o arquivo fica na mesma pasta deste manual). Para abrir em outro computador ou tablet na mesma rede Wi-Fi, use o endereço local informado pelo servidor — por exemplo <code>http://192.168.68.110:8090</code> (o número varia conforme a máquina). O layout exige pelo menos <b>1200 px lógicos de largura</b>; para leitura confortável use 1600 px ou mais (ou ative <b>Fonte grande</b> no menu). Celular em retrato não é suportado.</p>
   <table class="tabela">
     <caption>Requisitos e recomendações</caption>
     <thead><tr><th>Item</th><th>Mínimo</th><th>Recomendado</th></tr></thead>
     <tbody>
       <tr><td>Navegador</td><td>Chrome, Edge, Firefox ou Safari atualizados</td><td>Chrome/Edge recentes (WebGL 2 e áudio estáveis)</td></tr>
       <tr><td>Gráficos</td><td>WebGL 2.0</td><td>GPU com aceleração de hardware</td></tr>
+      <tr><td>Tela</td><td>1200 px lógicos de largura</td><td>1600×900 ou mais, em paisagem (leitura confortável)</td></tr>
       <tr><td>Tela</td><td>1280 × 720</td><td>1600 × 900 ou maior; tela cheia</td></tr>
       <tr><td>Memória</td><td>2 GB livres</td><td>4 GB ou mais</td></tr>
       <tr><td>Áudio</td><td>Saída de som ativa</td><td>Fones ou caixas; volume do sistema em 50%</td></tr>
@@ -378,6 +379,7 @@ footer.rodape a{color:var(--texto2)}
   <div class="box dica">
     <span class="rot">Conta do aluno (obrigatória neste build)</span>
     <p>Com o Supabase ativo, antes das boas-vindas aparece a tela <strong>CONTA DO ALUNO</strong> em modo obrigatório. Entre com e-mail e senha para o servidor guardar a semana, o ano e as BioMoedas — assim a partida continua em outro computador. O jogo guarda apenas o <b>token de sessão</b>, nunca a senha. A tela também abre pelo botão <strong>CONTA</strong> da HUD.</p>
+    <p><b>Conta criada pelo professor:</b> o login é o <b>e-mail institucional</b> (o mesmo da lista do SIGA) e a senha inicial é esse próprio e-mail. Troque a senha em <b>CONTA → ALTERAR SENHA</b> no primeiro acesso. A tela mostra a sua <b>turma</b> e o <b>período do SIGA</b>; eles vêm do arquivo da turma e são usados na conferência da nota.</p>
     <p>O download do progresso acontece antes de liberar a simulação. Se o servidor não responder, a tela mostra o erro e oferece <strong>TENTAR BAIXAR DE NOVO</strong> ou <strong>JOGAR SEM SINCRONIZAR</strong>; nesta segunda opção nada é enviado até um download bem-sucedido, e o progresso feito offline pode ser substituído pelo save da nuvem quando a nuvem tem mais produção — o aviso aparece na própria tela. Se o professor publicar um build sem Supabase, a mesma tela explica o que falta e oferece <strong>CONTINUAR SEM CONTA</strong> (modo local).</p>
     <p>Se o envio da última jogada não chegou ao servidor (por exemplo, você fechou a aba logo depois de ganhar BioMoedas), o jogo compara o cache deste navegador com a nuvem ao entrar de novo. O cache com mais moedas ganhas no semestre é preservado e reenviado; assim um ganho local não é apagado por um save remoto atrasado. A nuvem continua vencendo quando tem produção maior ou quando o cache local não é comprovadamente desta conta.</p>
   </div>
@@ -543,13 +545,13 @@ footer.rodape a{color:var(--texto2)}
     </div>
   </div>
   <div class="cartao" style="margin-top:14px">
-    <h4>📱 Toque (celular e tablet)</h4>
+    <h4>📱 Toque (tablet em paisagem)</h4>
     <ul>
       <li><strong>Um dedo arrastando</strong>: move o mapa.</li>
       <li><strong>Pinça com dois dedos</strong>: zoom contínuo (aproxima e afasta).</li>
       <li><strong>Toque</strong> em uma vila: seleciona; toque em <em>Investigar</em> para abrir o painel.</li>
-      <li><strong>Toque no HUD</strong>: os botões foram redimensionados para dedos.</li>
-      <li>Gire o aparelho para paisagem — o layout se reorganiza e ganha área útil.</li>
+      <li><strong>Toque no HUD</strong>: os botões funcionam com dedo em tablet.</li>
+      <li>Use o aparelho em paisagem e com pelo menos 1200 px lógicos de largura.</li>
     </ul>
   </div>
 
@@ -567,7 +569,7 @@ footer.rodape a{color:var(--texto2)}
   </table>
 
   <div class="box dica">
-    <span class="rot">Pinça no celular</span>
+    <span class="rot">Pinça no tablet</span>
     <p>O zoom por pinça é contínuo e independente dos botões. Se a pinça “escapar”, toque em <b>FIT</b> para voltar ao enquadramento inicial. O jogo lembra a posição do mapa enquanto você abre e fecha painéis.</p>
   </div>
 </section>
@@ -1313,7 +1315,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   <p class="lead">O StaTown prepara a semana simulada no formato SIGA/SINAN: CSV, resumo, completude e um hash SHA-256 que mostra se o arquivo mudou. A tela é <b>interna</b>: o jogador não a abre pela HUD; ela é usada em testes e pode ser aberta pelo código. A <b>participação do semestre</b> também aparece nela e é o dado que o professor leva para o SIGA.</p>
   <div class="box atencao">
     <span class="rot">Por que o SIGA não está na HUD</span>
-    <p>O relatório é uma responsabilidade de integração e de docência, não uma tarefa do jogador. No build atual, a geração é <b>local</b> (não há uma API de backend gerando o CSV); ela continua no código como ferramenta de desenvolvimento e de conferência. Com o Supabase ativado, o que sobe é o <b>save</b> e a <b>nota por semestre</b>, não o CSV inteiro.</p>
+    <p>O relatório é uma responsabilidade de integração e de docência, não uma tarefa do jogador. No build atual, a geração é <b>local</b>; o jogo não chama a API do SIGA sozinho. Com o Supabase ativado, o que sobe é o <b>save</b> e a <b>nota por semestre</b>, não o CSV inteiro. O lançamento oficial, quando a instituição usa a API AUTO-SIGA, é feito por um serviço do professor com a chave guardada no servidor.</p>
   </div>
 
   <figure class="shot">
@@ -1358,8 +1360,8 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
     <p>Peça a dois grupos que gerem o relatório na mesma semana e comparem os hashes. Depois, avance uma semana e gere de novo: o hash deve mudar. Isso demonstra, na prática, o que é integridade de dados.</p>
   </div>
   <h3><span class="num2">12.3</span> Participação do aluno e lançamento no SIGA</h3>
-  <p>Além do boletim semanal, a tela <b>SIGA</b> tem o cartão <b>PARTICIPAÇÃO NO SEMESTRE</b>. Ele mostra as moedas ganhas, a nota projetada (<code>min(100, moedas_ganhas / 10)</code>) e permite baixar um CSV de uma linha com nome, e-mail, matrícula, semestre, moedas e nota. O botão usa a conta logada quando existe; no modo local, o nome sai como “Aluno local”.</p>
-  <p>O lançamento no SIGA <b>não é automático</b>. O professor exporta a consulta da turma no Supabase (visão <code>statown_notas</code>), confere os casos e lança manualmente. O passo a passo do backend, incluindo a promoção da conta de professor e a RLS, está em <code>docs/SUPABASE.md</code>.</p>
+  <p>Além do boletim semanal, a tela <b>SIGA</b> tem o cartão <b>PARTICIPAÇÃO NO SEMESTRE</b>. Ele mostra as moedas ganhas, a nota projetada em <b>pontos da avaliação</b> e permite baixar um CSV de uma linha com nome, e-mail, matrícula, turma, período do SIGA, semestre interno, moedas e nota. A regra é <code>min(40,0, truncar_1_casa(moedas_ganhas / 1000 × 40,0))</code>: 1000 moedas valem 40,0. O botão usa a conta logada quando existe; no modo local, o nome sai como “Aluno local”.</p>
+  <p>A tela do jogo <b>não envia a nota sozinha</b>. O professor exporta a consulta da turma no Supabase (visão <code>statown_notas</code>, com <code>turma</code> e <code>periodo_siga</code>), confere os casos e usa o script <code>scripts/lancar_nota_siga.py</code> para o lançamento explícito. O script só aceita a avaliação existente <b>Game Educativo Statown</b>, recusa criar avaliação, faz dry-run por padrão e confere o resultado por <code>GET /api/notas</code>. A chave <code>X-API-Key</code> fica no servidor/segredo, nunca no navegador. O contrato e o exemplo de <code>POST /api/lancar-notas</code> estão em <code>docs/SUPABASE.md</code>.</p>
   <div class="box atencao">
     <span class="rot">Completude não é qualidade</span>
     <p>“100% dos campos preenchidos” não significa “dados corretos”. Um campo pode estar preenchido com valor impossível. Completude mede ausência, não veracidade — a checagem de plausibilidade é a próxima etapa.</p>
@@ -1494,7 +1496,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Nenhum som, nem nos botões de teste</td><td>Áudio bloqueado, aba muda ou saída errada</td><td>Clique na página, confira o mixer do sistema e a aba.</td></tr>
       <tr><td>Teste toca, música não</td><td>Slider de música em 0 ou faixa ausente</td><td>Suba o slider <em>Música</em>; recarregue a página.</td></tr>
       <tr><td>Música toca, efeitos não</td><td>Slider de efeitos em 0</td><td>Suba o slider <em>Efeitos</em>.</td></tr>
-      <tr><td>Som só no computador, não no celular</td><td>Modo silencioso ou volume de mídia</td><td>Desative o silencioso e aumente a mídia.</td></tr>
+      <tr><td>Som só no computador, não no tablet</td><td>Modo silencioso ou volume de mídia</td><td>Desative o silencioso e aumente a mídia.</td></tr>
     </tbody>
   </table>
   <div class="box curiosidade">
@@ -1564,7 +1566,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <div class="pin" style="left:13%;top:18%">1</div>
       <div class="pin teal" style="left:41%;top:18%">2</div>
     </div>
-    <figcaption><b>Extrato (valores ilustrativos de uma partida de teste).</b> Saldo de 253 B, 285 B ganhas e 180 B gastas; a nota usa as 285 ganhas e projeta 28/100. A intervenção de 180 B aparece como saída, mas não apaga o esforço que gerou as moedas.</figcaption>
+    <figcaption><b>Extrato (valores ilustrativos de uma partida de teste).</b> A nota usa as moedas <b>ganhas</b>, não o saldo: 1000 moedas valem 40,0 pontos na avaliação Game Educativo Statown. A intervenção aparece como saída, mas não apaga o esforço que gerou as moedas.</figcaption>
   </figure>
   <ul class="legenda-pins">
     <li><span class="n">1</span><b>Saldo e nota</b> — saldo disponível, ganhas/gastas do semestre, nota projetada e a regra em texto.</li>
@@ -1610,13 +1612,16 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
   </div>
 
   <h3><span class="num2">16.7</span> A nota do semestre</h3>
-  <p>A nota de participação é <code>min(100, floor(moedas_ganhas_no_semestre / 10))</code>. Ou seja: <b>10 BioMoedas ganhas = 1 ponto</b>, e o teto é 100. 1390 moedas viram 100 pontos, não 139. O cálculo usa as moedas <b>ganhas</b>, não o saldo restante — gastar numa intervenção não reduz a nota duas vezes.</p>
+  <p>A nota de participação é <code>min(40,0, floor(moedas_ganhas_no_semestre / 1000 × 40,0 × 10) / 10)</code>. Ou seja: <b>1000 BioMoedas ganhas = 40,0 pontos</b>, o peso da avaliação <b>Game Educativo Statown</b> no SIGA. 333 moedas valem 13,3; 500 valem 20,0; 999 valem 39,9; 1000 ou mais valem 40,0. O cálculo usa as moedas <b>ganhas</b>, não o saldo restante — gastar numa intervenção não reduz a nota duas vezes.</p>
   <table class="tabela">
     <thead><tr><th>Moedas ganhas no semestre</th><th>Nota</th><th>Excedente</th></tr></thead>
     <tbody>
-      <tr><td class="num-col">99</td><td class="num-col">9</td><td class="num-col">9</td></tr>
-      <tr><td class="num-col">1000</td><td class="num-col">100</td><td class="num-col">0</td></tr>
-      <tr><td class="num-col">1390</td><td class="num-col">100</td><td class="num-col">390 B (não viram pontos)</td></tr>
+      <tr><td class="num-col">0</td><td class="num-col">0,0</td><td class="num-col">0 B</td></tr>
+      <tr><td class="num-col">333</td><td class="num-col">13,3</td><td class="num-col">0 B</td></tr>
+      <tr><td class="num-col">500</td><td class="num-col">20,0</td><td class="num-col">0 B</td></tr>
+      <tr><td class="num-col">999</td><td class="num-col">39,9</td><td class="num-col">0 B</td></tr>
+      <tr><td class="num-col">1000</td><td class="num-col">40,0</td><td class="num-col">0 B</td></tr>
+      <tr><td class="num-col">1390</td><td class="num-col">40,0</td><td class="num-col">390 B (não aumentam a nota)</td></tr>
     </tbody>
   </table>
   <p>O semestre é o do calendário: janeiro a junho = <code>AAAA/1</code>; julho a dezembro = <code>AAAA/2</code>. Ao virar o semestre, a participação recomeça e o save antigo não é reaproveitado. A tela <b>EXTRATO</b> mostra a nota projetada e a barra de progresso; o CSV do SIGA mostra a mesma conta para o lançamento.</p>
@@ -1785,7 +1790,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Música toca, efeitos não</td><td>Slider de efeitos em 0%</td><td>MENU › SOM &amp; MÚSICA › Efeitos.</td></tr>
       <tr><td>Efeitos tocam, música não</td><td>Slider de música em 0%</td><td>MENU › SOM &amp; MÚSICA › Música.</td></tr>
       <tr><td>Silêncio total mesmo com tudo alto</td><td>“Silenciar tudo” marcado</td><td>Desmarque a opção.</td></tr>
-      <tr><td>Som no PC, silêncio no celular</td><td>Modo silencioso ou volume de mídia baixo</td><td>Desative o silencioso e aumente a mídia.</td></tr>
+      <tr><td>Som no PC, silêncio no tablet</td><td>Modo silencioso ou volume de mídia baixo</td><td>Desative o silencioso e aumente a mídia.</td></tr>
       <tr><td>Após reexportar, ficou mudo no navegador</td><td>Playback type web voltou para “Sample”</td><td>Garanta <code>audio/general/default_playback_type.web = 0</code> no projeto e reexporte.</td></tr>
     </tbody>
   </table>
@@ -1938,7 +1943,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
       <tr><td>Título</td><td>StaTown — Vale do Rio Doce</td></tr>
       <tr><td>Gênero</td><td>Simulação educacional de vigilância epidemiológica</td></tr>
       <tr><td>Engine</td><td>Godot 4.7 (GDScript)</td></tr>
-      <tr><td>Plataformas</td><td>Web (WebGL 2), desktop e mobile</td></tr>
+      <tr><td>Plataformas</td><td>Web (WebGL 2) em desktop/notebook ou tablet em paisagem; mínimo 1200 px lógicos</td></tr>
       <tr><td>Resolução base</td><td>1600 × 900, com escala <code>canvas_items</code> e modo <code>expand</code></td></tr>
       <tr><td>Território</td><td>20 vilas, mapa em pixel art com tiles de 16 px</td></tr>
       <tr><td>População</td><td>41.650 moradores sintéticos no início (cresce com nascimentos)</td></tr>
@@ -2014,7 +2019,7 @@ AUC = 0,5 → modelo inútil; 1,0 → separação perfeita</div>
 
 <div id="lightbox" role="dialog" aria-label="Imagem ampliada">
   <button class="fechar" aria-label="Fechar">×</button>
-  <img src="" alt="">
+  <img alt="">
 </div>
 
 <script>

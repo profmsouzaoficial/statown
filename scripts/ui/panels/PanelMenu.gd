@@ -24,7 +24,7 @@ func _build() -> void:
 
 	# ---------------- coluna esquerda: opcoes ----------------
 	# A coluna esquerda cresceu com o mixer de audio: ganha rolagem para caber
-	# tambem em telas de celular (onde o modal e reduzido).
+	# tambem em janelas de 1200 px, o minimo suportado pelo contrato do projeto.
 	var sc_esq := UITheme.scroll()
 	col.add_child(sc_esq)
 	var molde := MarginContainer.new()
@@ -96,7 +96,7 @@ func _build() -> void:
 	c2.add_child(linha_sv)
 	linha_sv.add_child(UITheme.botao("Salvar", func():
 		GameState.salvar_partida()
-		main.mostrar_toast("Partida salva em user://statown_save.json", "sucesso"), null, UITheme.SUCESSO))
+		main.mostrar_toast("Partida salva neste dispositivo.", "sucesso"), null, UITheme.SUCESSO))
 	linha_sv.add_child(UITheme.botao("Carregar", func():
 		if GameState.carregar_partida():
 			main.mostrar_toast("Partida carregada", "sucesso")
@@ -147,7 +147,7 @@ func _build() -> void:
 		14, UITheme.TEXTO_DIM))
 	c4.add_child(UITheme.separador())
 	c4.add_child(UITheme.rotulo("TECNOLOGIA", 11, UITheme.TEXTO_FRACO))
-	c4.add_child(UITheme.paragrafo("Godot 4.7 · GDScript · exportacao web/mobile (WebGL2) · "
+	c4.add_child(UITheme.paragrafo("Godot 4.7 · GDScript · exportacao web (WebGL2) · "
 		+ "pixel art Kenney (CC0) · fontes Silkscreen, Rubik e VT323 (SIL OFL 1.1).",
 		13, UITheme.TEXTO_DIM))
 	c4.add_child(UITheme.rotulo("COMO OS NUMEROS SAO CALCULADOS", 11, UITheme.TEXTO_FRACO))

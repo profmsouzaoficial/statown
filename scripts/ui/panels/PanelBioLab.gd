@@ -340,7 +340,9 @@ func _aba_amostragem() -> void:
 
 	# controles
 	var p := UITheme.card("PLANO DE AMOSTRAGEM", UITheme.ACENTO_2)
-	p.custom_minimum_size.x = 330
+	# 300 px deixa a tabela de 9 colunas mais larga sem espremer os controles; os
+	# nomes completos das vilas cabem e o OptionButton continua legivel.
+	p.custom_minimum_size.x = 300
 	raiz.add_child(p)
 	var c := UITheme.conteudo(p)
 
@@ -353,6 +355,7 @@ func _aba_amostragem() -> void:
 		sel_vila.add_item(str(v["nome"]))
 	sel_vila.item_selected.connect(func(i):
 		_filtro_vila = 0 if i == 0 else int(Vilas.vilas[i - 1]["id"]))
+	sel_vila.select(0)
 	c.add_child(sel_vila)
 
 	c.add_child(UITheme.rotulo("METODO", 11, UITheme.TEXTO_FRACO))
@@ -365,6 +368,7 @@ func _aba_amostragem() -> void:
 	sel_met.add_item("Por conglomerados (vilas)")
 	sel_met.item_selected.connect(func(i):
 		_metodo = ["aas", "sistematica", "estratificada", "conglomerados"][i])
+	sel_met.select(0)
 	c.add_child(sel_met)
 
 	c.add_child(UITheme.rotulo("TAMANHO DA AMOSTRA (n)", 11, UITheme.TEXTO_FRACO))
@@ -424,8 +428,7 @@ func _atualizar_tabela() -> void:
 	if t == null:
 		return
 	var cols := [
-		{"id": "id", "rotulo": "ID", "largura": 0.7, "tipo": "num"},
-		{"id": "vila_nome", "rotulo": "Vila", "largura": 1.1},
+		{"id": "vila_nome", "rotulo": "Vila", "largura": 1.4},
 		{"id": "idade", "rotulo": "Idade", "largura": 0.7, "tipo": "num"},
 		{"id": "faixa_etaria", "rotulo": "Faixa", "largura": 1.2},
 		{"id": "genero", "rotulo": "Sexo", "largura": 0.9},
@@ -450,6 +453,10 @@ func _atualizar_tabela() -> void:
 				v = ""
 			if typeof(v) == TYPE_FLOAT:
 				linha.append("%.1f" % float(v))
+			elif str(c2["id"]) == "vila_nome" and str(v).begins_with("Vila "):
+				# A coluna ja se chama Vila; sem o prefixo repetido os 20 nomes
+				# cabem inteiros na largura de 1600 px (e continuam inteiros no CSV).
+				linha.append(str(v).substr(5))
 			else:
 				linha.append(str(v))
 		rows.append(linha)
@@ -531,16 +538,20 @@ func _aba_descritiva() -> void:
 	var sv := OptionButton.new()
 	sv.fit_to_longest_item = false
 	sv.clip_text = true
+	sv.custom_minimum_size = Vector2(210, 34)
 	for v in _numericas():
 		sv.add_item(str(v["rotulo"]))
+	sv.select(0)
 	controles.add_child(sv)
 	controles.add_child(UITheme.rotulo("AGRUPAR POR", 11, UITheme.TEXTO_FRACO))
 	var sg := OptionButton.new()
 	sg.fit_to_longest_item = false
 	sg.clip_text = true
+	sg.custom_minimum_size = Vector2(220, 34)
 	sg.add_item("(sem agrupamento)")
 	for v in _categoricas():
 		sg.add_item(str(v["rotulo"]))
+	sg.select(0)
 	controles.add_child(sg)
 	var esp := Control.new()
 	esp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -592,8 +603,11 @@ func _atualizar_descritiva() -> void:
 		return
 	var nums := _numericas()
 	var cats := _categoricas()
-	var var_num := str(nums[clampi(sv.selected, 0, nums.size() - 1)]["id"])
+	var escolha_num: Dictionary = nums[clampi(sv.selected, 0, nums.size() - 1)]
+	var var_num := str(escolha_num["id"])
+	var rot_num := str(escolha_num["rotulo"])
 	var var_cat := "" if sg.selected <= 0 else str(cats[sg.selected - 1]["id"])
+	var rot_cat := "" if sg.selected <= 0 else str(cats[sg.selected - 1]["rotulo"])
 	_ultima_descritiva = {"var": var_num, "grupo": var_cat}
 
 	var v := Population.vetor_numerico(_amostra, var_num)
@@ -625,16 +639,16 @@ func _atualizar_descritiva() -> void:
 	var hist := aba.find_child("Hist", true, false) as StatChartCanvas
 	var h := StatCore.histogram(v, 0)
 	if hist:
-		hist.titulo = "Distribuicao de " + var_num
+		hist.titulo = "Distribuicao de " + rot_num
 		hist.formato_y = "int"
-		hist.definir_histograma(_centros_de(h), h["counts"], var_num)
+		hist.definir_histograma(_centros_de(h), h["counts"], rot_num)
 
 	# boxplot por grupo
 	var box := aba.find_child("Box", true, false) as StatChartCanvas
 	if box:
 		if var_cat == "":
 			box.titulo = "Distribuicao geral (boxplot)"
-			box.definir_boxplot([_caixa_de("amostra", v, UITheme.ACENTO)], var_num)
+			box.definir_boxplot([_caixa_de("amostra", v, UITheme.ACENTO)], rot_num)
 		else:
 			var grupos := _grupos(var_num, var_cat)
 			var caixas: Array = []
@@ -644,8 +658,8 @@ func _atualizar_descritiva() -> void:
 			for nome in grupos:
 				caixas.append(_caixa_de(nome, grupos[nome], cores[k % cores.size()]))
 				k += 1
-			box.titulo = "%s por %s" % [var_num, var_cat]
-			box.definir_boxplot(caixas, var_num)
+			box.titulo = "%s por %s" % [rot_num, rot_cat]
+			box.definir_boxplot(caixas, rot_num)
 
 
 func _centros_de(h: Dictionary) -> Array:
@@ -685,6 +699,7 @@ func _aba_graficos() -> void:
 	st.add_item("Dispersao (X vs Y)")
 	st.add_item("Barras (categorias)")
 	st.add_item("Histograma")
+	st.select(0)
 	ctrl.add_child(st)
 	var sx := OptionButton.new()
 	sx.fit_to_longest_item = false
@@ -692,6 +707,7 @@ func _aba_graficos() -> void:
 	sx.custom_minimum_size = Vector2(165, 34)
 	for v in _numericas():
 		sx.add_item(str(v["rotulo"]))
+	sx.select(0)
 	ctrl.add_child(sx)
 	var sy := OptionButton.new()
 	sy.fit_to_longest_item = false
@@ -708,6 +724,7 @@ func _aba_graficos() -> void:
 	sc.add_item("(categoria)")
 	for v in _categoricas():
 		sc.add_item(str(v["rotulo"]))
+	sc.select(0)
 	ctrl.add_child(sc)
 	var esp := Control.new()
 	esp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -719,6 +736,13 @@ func _aba_graficos() -> void:
 	g.name = "Canvas"
 	g.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	raiz.add_child(g)
+
+	# O canvas comeca vazio de proposito: o aluno precisa escolher as variaveis.
+	# Sem esta pista, a area grande e vazia parecia um erro de carregamento.
+	raiz.add_child(UITheme.paragrafo(
+		"Escolha o tipo de grafico e as variaveis, depois clique em Desenhar. "
+		+ "O grafico aparece aqui e a leitura estatistica fica no botao de cada eixo.",
+		12, UITheme.TEXTO_FRACO))
 
 	var nota := UITheme.paragrafo(
 		"Dica: antes de escolher o grafico, pergunte-se qual e o tipo das duas variaveis. "
@@ -849,6 +873,7 @@ func _construir_distribuicoes() -> void:
 	sel.add_item("Binomial")
 	sel.add_item("Poisson")
 	sel.add_item("Qui-quadrado")
+	sel.select(0)
 	c.add_child(sel)
 
 	var campos := GridContainer.new()
@@ -1086,11 +1111,16 @@ func _aba_testes() -> void:
 	raiz.add_child(dir)
 	var g := StatChartCanvas.new()
 	g.name = "Canvas"
+	g.titulo = "GRAFICO DO TESTE"
 	g.custom_minimum_size.y = 260
 	dir.add_child(g)
 	var saida := UITheme.card("RESULTADO", UITheme.ACENTO_2)
 	saida.name = "Saida"
 	dir.add_child(saida)
+	UITheme.conteudo(saida).add_child(UITheme.paragrafo(
+		"Escolha o delineamento e as variaveis, depois clique em Executar teste. "
+		+ "O resultado, o p-valor e a interpretacao aparecem neste cartao.",
+		13, UITheme.TEXTO_DIM))
 
 	_construir_testes()
 
@@ -1118,6 +1148,7 @@ func _construir_testes() -> void:
 	sel.add_item("3+ grupos, nao-parametrico (Kruskal-Wallis)")
 	sel.add_item("Associacao entre categorias (qui-quadrado)")
 	sel.add_item("Proporcoes 2x2 (OR e RR)")
+	sel.select(0)
 	c.add_child(sel)
 
 	var nums := _numericas()
@@ -1129,6 +1160,7 @@ func _construir_testes() -> void:
 	sy.custom_minimum_size = Vector2(165, 34)
 	for v in nums:
 		sy.add_item(str(v["rotulo"]))
+	sy.select(0)
 	c.add_child(sy)
 	c.add_child(UITheme.rotulo("GRUPO / EXPOSICAO (categorica)", 10, UITheme.TEXTO_FRACO))
 	var sg := OptionButton.new()

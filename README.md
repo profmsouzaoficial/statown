@@ -1,7 +1,8 @@
 # StaTown — o Vale do Rio Doce
 
 Jogo educacional de **bioestatística e epidemiologia** feito em **Godot 4.7** (GDScript),
-pensado para rodar no **computador e no celular** (exportação web). O jogador é o novo
+pensado para rodar no **navegador em computador ou tablet**, em paisagem, com pelo
+menos **1200 px lógicos de largura** (exportação web). O jogador é o novo
 coordenador de vigilância epidemiológica de um vale fictício com 20 vilas, 41.650
 habitantes simulados e um agravo infeccioso circulando.
 
@@ -23,7 +24,7 @@ regressão, leitura crítica de artigos e comunicação de resultados.
 | Abrir uma vila | clicar sobre ela (ou usar o botão *Investigar* no rodapé) |
 | Fechar um painel | `X` no canto superior direito ou `Esc` |
 
-### No celular (navegador)
+### Em tablet (navegador, paisagem)
 
 | Gesto | Efeito |
 |---|---|
@@ -32,9 +33,12 @@ regressão, leitura crítica de artigos e comunicação de resultados.
 | toque simples | abre a vila tocada |
 | botões `+` `-` `FIT` `MAP` `HQ` | atalhos de zoom, mapa inteiro, camada de dados e retorno à vila central |
 
-O jogo já está configurado com `emulate_mouse_from_touch`, `canvas_items` + `expand` e
-resolução de projeto 1600×900 — em telas 20:9 na horizontal o campo de visão lógico
-chega a ~2000 px de largura, e a barra superior usa `HFlowContainer` para não estourar.
+O layout foi desenhado para **1200 a 2000 px lógicos** de largura. Em um tablet de
+1280×800 em paisagem a interface cabe e permanece utilizável, mas a leitura fica
+apertada; para conforto, use 1600 px ou mais (ou ative **Fonte grande** no menu). Em
+celular, principalmente em retrato, ela fica pequena demais. Para o celular seria
+necessário um layout responsivo próprio, que este projeto **não** implementa. O `canvas_items` + `expand` mantém a cena estável,
+mas não transforma uma tela de 390 px em uma tela de desktop.
 
 ### Som: a hierarquia sonora
 
@@ -106,21 +110,40 @@ Se o saldo chegar a **zero**, é **game over**. O botão **REINICIAR PARTIDA** r
 simulação na SE 1, mas preserva as moedas **ganhas** e o extrato do semestre — é isso
 que conta para a nota. O menu “reiniciar tudo” apaga também a participação.
 
-A nota é `min(100, moedas_ganhas_no_semestre / 10)` (divisão inteira): 1390 moedas
-viram 100 pontos, não 139. Gastar moedas não reduz a nota; o que conta é o total
-**ganho**. No início de um novo semestre (`AAAA/1` ou `AAAA/2`), a participação
-recomeça.
+A nota é proporcional e truncada em uma casa decimal:
+
+```text
+nota = min(40,0, floor(min(moedas_ganhas, 1000) * 40,0 * 10 / 1000) / 10)
+```
+
+Ou seja, **1000 moedas ganhas = 40,0 pontos**, o peso da avaliação
+`Game Educativo Statown` no SIGA. 333 moedas valem 13,3; 500 valem 20,0; 999 valem
+39,9; 1000 ou mais valem 40,0. O teto de **1000 moedas** é aplicado antes da
+proporção. Gastar moedas não reduz a nota; o que conta é o total **ganho**. No início
+de um novo semestre (`AAAA/1` ou `AAAA/2`), a participação recomeça.
+
+**Qual é o máximo de moedas?** O jogo não limita o saldo: repetir minigames, semanas,
+auditorias do Dr. Bayes e surtos pode render moedas sem fim. Só o conteúdo de uma
+primeira passagem já soma **1886 moedas**: 9 minigames perfeitos (630), 50 artigos
+(1000), 6 desafios do LAB (160) e 8 temas do Dr. Bayes (96). Surtos controlados
+acrescentam até 60 por vila e também podem se repetir. Por isso a nota usa no máximo
+**1000 moedas ganhas**; o excedente continua no saldo e no extrato, mas não aumenta a
+nota.
 
 ### Conta do aluno
 
 Com o Supabase configurado, o aluno cria conta e o progresso (semana, ano, moedas,
-extrato e desafios) é gravado por aluno e por semestre. Ao entrar em outro computador,
-o jogo baixa o save e continua da semana em que parou. O login só libera a simulação
+extrato e desafios) é gravado por aluno e por semestre. Turmas podem ser importadas
+em lote das listas do SIGA: o login é o **e-mail institucional**, a senha inicial é
+esse mesmo e-mail e o aluno troca a senha em **CONTA › ALTERAR SENHA**. Ao entrar em
+outro computador, o jogo baixa o save e continua da semana em que parou. O login só libera a simulação
 depois do download; se a rede falhar, a tela oferece tentar de novo ou jogar sem
 sincronizar, mantendo o upload bloqueado para não sobrescrever a nuvem. Ganhos e
 gastos são gravados no save local na hora; se o envio ainda não chegou, o cache desta
 conta com mais moedas ganhas no semestre é preservado e reenviado no próximo login.
 Sem Supabase, o botão **CONTA** explica o modo local e o jogo salva apenas neste navegador.
+A tela da conta também mostra a **turma** e o **período do SIGA** (ex.: `CBV018GV-A`,
+`2026/3`), gravados a partir do nome do arquivo da turma.
 
 O passo a passo, o SQL e os limites de segurança estão em
 [docs/SUPABASE.md](docs/SUPABASE.md). O build não contém `service_role`; a chave
@@ -288,8 +311,9 @@ O preset exclui `assets/extracted/`, `assets/*.zip`, `docs/shots/`, `docs/eviden
 `tests/` e `tools/` do pacote — a pasta `assets/extracted/` também tem `.gdignore` para
 não ser importada.
 
-Prova de que roda no navegador: `docs/web_desktop.png` (1280×720) e
-`docs/web_celular.png` (844×390, paisagem de celular).
+Prova de que roda no navegador: `docs/web_desktop.png` (1280×720). A captura
+`docs/web_celular.png` (844×390) existe apenas como registro histórico; ela **não**
+representa uma experiência suportada.
 
 ---
 
@@ -336,9 +360,12 @@ tests/                test_statcore.gd, SmokeUI, TestCamera, TestAudio, TestAudi
 tools/                render_world.py (mapa), split_world.py (fatia o mapa editado),
                       extract_map_geometry.py,
                       audio/render_audio.py + audio/fetch_freesound.py
-docs/shots/           24 capturas usadas no manual e na documentação (23 geradas pelo Capture)
+docs/shots/           24 capturas usadas no manual e na documentação, geradas pelo Capture
 docs/manual.html       manual do usuário (23 capítulos, figuras, links internos)
 docs/SUPABASE_ARTIGOS.sql  tabela statown_artigos + carga dos 50 artigos
+docs/SUPABASE_TURMAS.sql  migration de turma/periodo_siga para projetos existentes
+scripts/importar_alunos_supabase.py  cria contas em lote a partir dos CSVs do SIGA
+                                      (service_role local; nao entra no build)
 docs/manual_preview.png captura da capa do manual (para divulgação)
 docs/CREDITOS_AUDIO.md  arquitetura sonora e créditos CC0 do freesound
 docs/CREDITOS_ARTE.md   origem e licença dos sprites de veículos e parapentes

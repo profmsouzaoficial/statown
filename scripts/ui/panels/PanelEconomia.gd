@@ -29,6 +29,9 @@ func _build() -> void:
 
 	# ---- coluna esquerda: resumo e regras ----
 	var esq_scroll := UITheme.scroll()
+	# A coluna esquerda sempre tem mais regras do que cabe em 900/720 px.
+	# Mostrar a barra evita a impressao de que o cartao termina no meio.
+	esq_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	esq_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	esq_scroll.size_flags_stretch_ratio = 0.85
 	col.add_child(esq_scroll)
@@ -44,15 +47,21 @@ func _build() -> void:
 	c1.add_child(UITheme.campo("Moedas gastas no semestre", "%d" % GameState.moedas_gastas_total))
 	var n := Economy.nota_participacao()
 	c1.add_child(UITheme.separador())
-	c1.add_child(UITheme.campo("Nota projetada", "%d / %d" % [int(n["nota"]), int(n["nota_maxima"])]))
+	c1.add_child(UITheme.campo("Nota projetada", "%.1f / %.1f" % [
+		float(n["nota"]), float(n["nota_maxima"])]))
 	c1.add_child(UITheme.barra(float(n["nota"]) / float(n["nota_maxima"]),
 		float(n["nota_maxima"]), UITheme.SUCESSO))
 	c1.add_child(UITheme.codigo(Economy.texto_regra_nota(), 14))
 	c1.add_child(UITheme.paragrafo(
 		"A nota usa as moedas GANHAS, nao o saldo: comprar uma intervencao reduz o saldo, "
-		+ "mas nao apaga o aprendizado que gerou aquelas moedas. O teto e aplicado depois "
-		+ "da divisao por %d; por isso 1390 moedas viram 100, e nao 139." % int(n["moedas_por_ponto"]),
+		+ "mas nao apaga o aprendizado que gerou aquelas moedas. A regra e uma proporcao "
+		+ "simples: %d moedas valem %.1f pontos; acima disso a nota fica no teto." % [
+		int(n["moedas_para_nota_maxima"]), float(n["nota_maxima"])],
 		12, UITheme.TEXTO_DIM))
+	c1.add_child(UITheme.paragrafo(
+		"O excedente continua no saldo e no extrato, mas nao aumenta a nota. "
+		+ "Assim, repetir um minigame nao empurra a nota para cima do teto.",
+		12, UITheme.TEXTO_FRACO))
 
 	var p2 := UITheme.card("COMO GANHAR E PERDER", UITheme.INFO)
 	esq.add_child(p2)
@@ -98,6 +107,7 @@ func _build() -> void:
 	var esp := Control.new()
 	esp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cab.add_child(esp)
+	cab.add_child(UITheme.botao("Baixar CSV", _baixar_csv, null, UITheme.ACENTO))
 	cab.add_child(UITheme.botao("Atualizar", _atualizar, null, UITheme.INFO))
 	var p4 := UITheme.card("", UITheme.BORDA)
 	p4.size_flags_vertical = Control.SIZE_EXPAND_FILL

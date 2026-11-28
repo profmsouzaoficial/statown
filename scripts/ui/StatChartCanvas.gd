@@ -647,12 +647,11 @@ func _draw_dispersao() -> void:
 func _draw_roc() -> void:
 	var xi := Vector2(0.0, 1.0)
 	var yi := Vector2(0.0, 1.0)
-	_draw_eixos(xi, yi)
-	_draw_tracejada(_mapa(Vector2(0, 0), xi, yi), _mapa(Vector2(1, 1), xi, yi),
-		Color(1, 1, 1, 0.25), 1.2)
+	var pts := PackedVector2Array()
+	var cor: Color = UITheme.ACENTO
 	if not series.is_empty():
-		var pts: PackedVector2Array = series[0]["pontos"]
-		var cor: Color = series[0].get("cor", UITheme.ACENTO)
+		pts = series[0]["pontos"]
+		cor = series[0].get("cor", UITheme.ACENTO)
 		if pts.size() > 1:
 			# a curva pode repetir pontos (degraus da ROC); vertice repetido faz
 			# o triangulate_polygon do Godot falhar ("Invalid polygon data")
@@ -671,12 +670,18 @@ func _draw_roc() -> void:
 					for k in range(0, triangulos.size(), 3):
 						draw_colored_polygon(PackedVector2Array([
 							poli[triangulos[k]], poli[triangulos[k + 1]], poli[triangulos[k + 2]]
-						]), Color(cor.r, cor.g, cor.b, 0.18))
-			var ant := _mapa(pts[0], xi, yi)
-			for k in range(1, pts.size()):
-				var cur := _mapa(pts[k], xi, yi)
-				draw_line(ant, cur, cor, 2.6, true)
-				ant = cur
+						]), Color(cor.r, cor.g, cor.b, 0.10))
+	# A area sob a curva e desenhada primeiro para nao cobrir a grade, a diagonal
+	# de referencia e a propria linha da ROC. Antes ela escondia os eixos.
+	_draw_eixos(xi, yi)
+	_draw_tracejada(_mapa(Vector2(0, 0), xi, yi), _mapa(Vector2(1, 1), xi, yi),
+		Color(1, 1, 1, 0.25), 1.2)
+	if pts.size() > 1:
+		var ant := _mapa(pts[0], xi, yi)
+		for k in range(1, pts.size()):
+			var cur := _mapa(pts[k], xi, yi)
+			draw_line(ant, cur, cor, 2.6, true)
+			ant = cur
 
 
 func _draw_hover() -> void:
