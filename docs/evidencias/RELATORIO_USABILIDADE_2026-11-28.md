@@ -20,13 +20,14 @@
    Dr. Bayes. O saldo inicial de 150 **não** entra nessa conta.
 3. **Para a nota, valem no máximo 1.000 moedas ganhas.** O excedente continua no
    extrato e no saldo, mas não aumenta a nota.
-4. A regra implementada é **1000 moedas ganhas = nota máxima da avaliação**. Como o
-   peso de `Game Educativo Statown` nas quatro turmas verificadas é **40,0**, a nota
+4. A regra implementada é **1000 moedas ganhas = nota máxima da avaliação**. Nas
+   **três turmas com o alvo**, o peso de `Game Educativo Statown` é **40,0**; a nota
    vai de 0,0 a 40,0, truncada em uma casa decimal:
    `nota = min(40,0; floor(min(moedas_ganhas, 1000) * 40,0 * 10 / 1000) / 10)`.
-5. Foram lançadas **4 notas sintéticas de teste**, em 3 turmas que já tinham a
-   avaliação. A turma `CBV018GV-B`, que **não** tinha a avaliação, não recebeu nota e
-   **não teve avaliação criada**.
+5. A reconsulta final, somente leitura, encontrou **0 nota no alvo** nas três turmas
+   com a avaliação; o relatório intermediário registrava 4 valores sintéticos, mas eles
+   **não reapareceram** e não foram recriados. A turma `CBV018GV-B`, que **não** tem a
+   avaliação, não recebeu nota e **não teve avaliação criada**.
 6. A suíte final passou: **47/47** StatCore, **101/101** SmokeUI, **93/93** Câmera,
    **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **8/8** Conta,
    **22/22** Desafios, **1802/1802** Revista, **17/17** Tráfego e **52 semanas** de
@@ -70,8 +71,8 @@ aparecem **11,4**. A truncagem é intencional: 999 moedas valem 39,9 e só 1000 
 |---:|---:|---:|---|
 | 0 | 0 | 0,0 | sem participação |
 | 285 | floor(285 × 400 / 1000) = 114 | **11,4** | caso do bug antigo (11,3) |
-| 333 | 133 | **13,3** | nota lançada em `CBV018GV-A` |
-| 500 | 200 | **20,0** | nota lançada em `CBV044GV-A` |
+| 333 | 133 | **13,3** | exemplo do plano de teste de `CBV018GV-A` |
+| 500 | 200 | **20,0** | exemplo do plano de teste de `CBV044GV-A` |
 | 740 | 296 | **29,6** | exemplo intermediário |
 | 999 | 399 | **39,9** | não arredonda para 40,0 |
 | 1.000 | 400 | **40,0** | teto da nota |
@@ -116,29 +117,42 @@ for “quanto precisarei para garantir 40,0?”, a resposta é **1.000 moedas ga
 
 ---
 
-## 4. Notas sintéticas lançadas no SIGA
+## 4. Estado do alvo no SIGA
 
-### 4.1 Situação atual (consulta somente leitura)
+### 4.1 Reconsulta final (28/11/2026, 17:59, somente leitura)
 
 | Turma | Alunos | Avaliações | Alvo | Peso | Notas do alvo | Valores |
 |---|---:|---:|---|---:|---:|---|
-| `CBV018GV-A` | 7 | 4 | `602508` | 40,0 | 1 | **13,3** |
-| `CBV044GV-A` | 31 | 4 | `602512` | 40,0 | 2 | **20,0; 39,9** |
-| `EST006GV-A` | 2 | 4 | `602511` | 40,0 | 1 | **40,0** |
+| `CBV018GV-A` | 7 | 4 | `602508` | 40,0 | **0** | — |
+| `CBV044GV-A` | 31 | 4 | `602512` | 40,0 | **0** | — |
+| `EST006GV-A` | 2 | 4 | `602511` | 40,0 | **0** | — |
 | `CBV018GV-B` | 20 | 3 | — | — | **0** | **sem alvo; nada criado** |
 
-Total: **4 notas** em 3 turmas. O lançamento usou `POST /api/lancar-notas` com
-`descricao_avaliacao = "Game Educativo Statown"`; nenhuma chamada a
-`/api/criar-avaliacao` existe no script.
+Total: **0 nota** no alvo. O `GET /api/notas?turma=...&periodo=2026/3` devolveu
+HTTP 200, exatamente uma avaliação `Game Educativo Statown` por turma (peso 40,0) e
+nenhum valor preenchido nela. A turma `CBV018GV-B` continua com três avaliações e
+**sem** o alvo. Nenhum `POST /api/lancar-notas` foi feito nesta rodada; o botão do
+aluno foi levado até a confirmação, mas o segundo clique não foi disparado.
 
-### 4.2 Correspondência moedas → nota lançada
+### 4.2 Histórico do relatório intermediário
 
-| Turma | Moedas de teste | Nota esperada | Nota no SIGA |
+A versão anterior deste relatório registrava quatro valores sintéticos lançados por
+`POST /api/lancar-notas`:
+
+| Turma | Moedas de teste | Nota esperada | Valor registrado então |
 |---|---:|---:|---:|
 | `CBV018GV-A` | 333 | 13,3 | 13,3 |
 | `CBV044GV-A` | 500 | 20,0 | 20,0 |
 | `CBV044GV-A` | 999 | 39,9 | 39,9 |
 | `EST006GV-A` | 1.000 | 40,0 | 40,0 |
+
+Esses valores **não estão presentes na reconsulta final**. Os quatro backups locais
+gravados pelo lançador têm 231 bytes e `notas_antes` vazio, portanto não servem como
+prova do estado anterior. A API do SIGA não oferece endpoint público de auditoria de
+alterações; não é possível determinar, por essa via, se os valores foram removidos,
+se nunca chegaram a ser gravados ou se outra pessoa os apagou. Por segurança, este
+relatório passa a tratar **0 nota** como o estado atual e **não recria** nenhum valor
+sem autorização explícita do professor.
 
 ### 4.3 Outras avaliações
 
@@ -151,9 +165,10 @@ exclusão ou alteração de peso em:
 - `EST006GV-A`: `Exercícios` (10), `Prova` (20), `Trabalho sobre Probabilidades` (30).
 - `CBV018GV-B`: `Introdução ao método estatístico` (100), `Técnicas de Amostragem nas Ciências da Saúde` (100), `Análise Exploratória de Dados` (100).
 
-### 4.4 Backups antes de cada escrita
+### 4.4 Backups locais das tentativas
 
-Guardados em `~/.dsh/dados/siga_backups/` (modo 600):
+Guardados em `~/.dsh/dados/siga_backups/` (modo 600), mas com `notas_antes` vazio
+(231 bytes); não comprovam as quatro notas do relatório intermediário:
 
 - `siga_backup_CBV018GV-A_20261128_103409.json`
 - `siga_backup_CBV018GV-A_20261128_103436.json`
@@ -270,10 +285,10 @@ que já documenta 1600 px como largura recomendada.
 
 ## 7. Riscos e limites
 
-1. **Publicação:** o push para `main` acionou o workflow **Publicar no Vercel**; ele
-   concluiu com sucesso no commit `715e935` e atualizou a branch `deploy`. A Vercel
-   reportou esse commit como `success`. O domínio público é o configurado no painel
-   da Vercel e não está registrado no repositório.
+1. **Publicação:** o push do commit `41d9910` acionou o workflow **Publicar no
+   Vercel** (`46172949371`), que concluiu com sucesso, rodou a etapa Deno e atualizou
+   a branch `deploy`. A produção respondeu em `https://statown.vercel.app` e foi
+   testada com a conta sintética.
 2. **Áudio do navegador**: `TestAudio` cobre buses e volumes, mas não foi medida a
    saída RMS no navegador nesta rodada. O ajuste
    `general/default_playback_type.web=0` continua no `project.godot`; uma verificação
@@ -282,9 +297,10 @@ que já documenta 1600 px como largura recomendada.
    notebook ou tablet em paisagem.
 4. **1200 px** é o mínimo técnico, mas a fonte fica pequena; 1600 px (ou “Fonte
    grande” em 1280) é o uso confortável.
-5. **SIGA**: a consulta final é somente leitura e foi feita depois dos lançamentos.
-   Não há endpoint público de auditoria de “quem alterou o quê”; a garantia de que as
-   outras avaliações não foram tocadas vem do escopo do script (só
+5. **SIGA**: a reconsulta final é somente leitura e encontrou **0 nota no alvo**,
+   embora o relatório intermediário registrasse 4. Não há endpoint público de
+   auditoria de “quem alterou o quê”; os backups locais estão vazios. A garantia de que
+   as outras avaliações não foram tocadas vem do escopo do script (só
    `/api/lancar-notas` com a descrição exata do alvo), da conferência de nomes,
    pesos e quantidades.
 6. **Dados de alunos** não são reproduzidos neste relatório. Os CSVs de turma
@@ -322,12 +338,14 @@ que já documenta 1600 px como largura recomendada.
 
 - [x] Regra 1000 moedas → nota máxima implementada e testada.
 - [x] Máximo de conteúdo único calculado (1.886) e teto de crédito (1.000) separados.
-- [x] 4 notas sintéticas lançadas apenas em `Game Educativo Statown`.
-- [x] Turma sem a avaliação não recebeu nota nem avaliação nova.
+- [x] Nenhuma avaliação nova criada; turma sem o alvo não recebeu nota.
+- [x] Reconsulta final somente leitura: 0 nota no alvo; valores antigos não recriados.
 - [x] Suíte Godot completa sem falhas.
 - [x] 24 capturas em 1600×900 e manual com 0 links/imagens quebrados.
 - [x] Build web local abre, login local funciona e o mapa carrega.
-- [x] Commit e push para `origin/main`; workflow e Vercel com sucesso.
+- [x] Commit `41d9910` e push para `origin/main`; workflow `46172949371` e produção
+      Vercel com sucesso (28/11/2026).
+- [ ] Repor/validar notas de teste no SIGA (exige autorização e escrita real).
 - [x] Login com Supabase validado no Chromium; painel fecha após baixar o progresso.
 - [ ] Medição de RMS de áudio no navegador (recomendada antes de publicar).
 
@@ -404,13 +422,19 @@ mais distante para o planador mais alto e a nova composição.
 | Conta sintética sem perfil SIGA | 422 antes de qualquer escrita |
 | Conta sintética com turma fictícia `TESTE-A` | 502 (SIGA recusou a turma), sem POST de nota |
 | Auto-cadastro com matrícula/turma/período forjados no metadata | perfil nasceu com os três campos vazios; conta removida |
-| SIGA `GET /api/notas` | 200, exatamente uma `Game Educativo Statown`, peso 40,0 |
+| SIGA `GET /api/notas` | 200, exatamente uma `Game Educativo Statown`, peso 40,0; **0 nota no alvo** na reconsulta |
 | Build web local | painel CONTA abriu, mostrou `Projetada: 0,0 / 40,0` e confirmou no primeiro clique |
+| GitHub Actions `46172949371` | sucesso; etapa Deno `3/3` e todos os testes Godot passaram |
+| Produção `https://statown.vercel.app` | login sintético, CONTA e confirmação em dois cliques; console sem erro |
 
 Capturas (conta sintética, sem dado real):
 [planadores com tamanhos/altitudes](web_planadores_altitude_1600.png) ·
 [CONTA com o botão](web_conta_siga_1600.png) ·
-[confirmação em dois cliques](web_conta_siga_confirmar_1600.png).
+[confirmação em dois cliques](web_conta_siga_confirmar_1600.png) ·
+[produção: confirmação](web_producao_conta_1280.png).
+
+A conta sintética usada nas capturas (`...@example.invalid`) foi removida do
+Supabase Auth ao fim do ensaio; nenhum aluno real foi usado.
 
 **O que não foi feito:** o segundo clique não foi disparado com uma matrícula real
 nesta rodada, para não gravar nota sintética. A escrita do botão deve ser validada em

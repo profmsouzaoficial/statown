@@ -579,7 +579,11 @@ de secrets da Management API. Ensaios sem JWT e com JWT sintético confirmaram:
   período forjados; o trigger gravou o perfil com esses campos **vazios** (o nome foi
   preservado). A conta foi removida no mesmo ensaio;
 - `GET /api/notas` com a chave do servidor devolveu **200**, quatro avaliações e
-  exatamente uma `Game Educativo Statown` com peso **40,0** na turma conferida.
+  exatamente uma `Game Educativo Statown` com peso **40,0** na turma conferida;
+- a reconsulta final de 28/11/2026 encontrou **0 nota** no alvo nas três turmas com a
+  avaliação; o relatório intermediário registrava 4 valores sintéticos que não
+  reapareceram. Nenhum valor foi recriado nesta rodada; para gravar de novo, use uma
+  turma/avaliação de teste e autorização explícita.
 
 Os testes puros da função rodam sem rede e cobrem a nota e a virada de semestre:
 
