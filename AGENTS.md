@@ -48,6 +48,7 @@ $GODOT --headless res://tests/TestAudit.tscn                  # 52 semanas de si
 $GODOT --headless res://tests/TestTrafego.tscn               # 13 passos de tráfego/máscara
 $GODOT --headless res://tests/TestEconomia.tscn              # 50 verificações de moedas/nota/semestre/persistência
 $GODOT --headless res://tests/TestMoedas.tscn                # 15 verificações do teto de moedas
+$GODOT --headless res://tests/TestConta.tscn                 # 4 verificações da fila do login/sync
 $GODOT --headless res://tests/TestDesafios.tscn              # 22 verificações dos desafios do LAB
 $GODOT --headless res://tests/TestRevista.tscn               # 1802 verificações da base de artigos
 DISPLAY=:0 $GODOT --path . res://tests/Capture.tscn --resolution 1600x900
@@ -439,6 +440,7 @@ cobre buses e volumes, não a decodificação do navegador.
 - [ ] `TestTrafego` 13/13 (55 veículos, 2 deltas, 4 parapentes, máscara, sprites e recarga)
 - [ ] `TestEconomia` 50/50
 - [ ] `TestMoedas` 15/15
+- [ ] `TestConta` 4/4 (login e upload encadeado sem perder a requisição)
 - [ ] `TestDesafios` 22/22
 - [ ] `TestRevista` 1802/1802 (50 artigos, 10 por area, DOI/PMID unicos e traducao PT-BR)
 - [ ] `Capture` 24 PNGs, 0 `SCRIPT ERROR`

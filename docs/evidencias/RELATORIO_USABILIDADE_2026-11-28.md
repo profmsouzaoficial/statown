@@ -28,8 +28,9 @@
    avaliação. A turma `CBV018GV-B`, que **não** tinha a avaliação, não recebeu nota e
    **não teve avaliação criada**.
 6. A suíte final passou: **47/47** StatCore, **97/97** SmokeUI, **93/93** Câmera,
-   **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **22/22** Desafios,
-   **1802/1802** Revista, **13/13** Tráfego e **52 semanas** de auditoria sem falhas.
+   **129/129** Áudio, **50/50** Economia, **15/15** Moedas, **4/4** Conta,
+   **22/22** Desafios, **1802/1802** Revista, **13/13** Tráfego e **52 semanas** de
+   auditoria sem falhas.
 7. Os commits foram enviados para `origin/main`; o workflow **Publicar no Vercel**
    concluiu com sucesso e a branch `deploy` foi atualizada. O build local também está
    em `exports/web/` para revisão.
@@ -297,6 +298,7 @@ que já documenta 1600 px como largura recomendada.
 - `scripts/lancar_nota_siga.py` — lançamento seguro, dry-run, backup, máscara.
 - `docs/SUPABASE_NOTA.sql` — coluna gerada e view.
 - `tests/TestEconomia.gd`, `tests/TestMoedas.gd` — provas da regra.
+- `tests/TestConta.gd` — regressão da requisição de progresso perdida no login.
 - `scripts/ui/panels/PanelBoasVindas.gd`, `scripts/game/Main.gd` — aviso compacto
   pós-login, sem toast sobre os botões.
 - `scripts/ui/panels/PanelBioLab.gd`, `scripts/ui/StatChartCanvas.gd` — ajustes de
@@ -316,4 +318,32 @@ que já documenta 1600 px como largura recomendada.
 - [x] 24 capturas em 1600×900 e manual com 0 links/imagens quebrados.
 - [x] Build web local abre, login local funciona e o mapa carrega.
 - [x] Commit e push para `origin/main`; workflow e Vercel com sucesso.
+- [x] Login com Supabase validado no Chromium; painel fecha após baixar o progresso.
 - [ ] Medição de RMS de áudio no navegador (recomendada antes de publicar).
+
+---
+
+## 10. Correção pós-publicação: login parado em "Carregando..."
+
+O aluno autenticava, via "Login realizado. Carregando o progresso...", mas o jogo
+não abria. A causa não era a senha nem o Supabase Auth: `ContaManager._ao_http()`
+limpava `_atual` depois de processar a resposta. O sinal de login dispara
+`baixar_progresso()` de forma síncrona; essa chamada já iniciava a requisição
+seguinte, e a limpeza posterior apagava a tag dela. A resposta do progresso chegava
+sem tag, não era tratada e a tela ficava presa.
+
+A correção guarda a requisição concluída em uma variável local e limpa `_atual`
+**antes** dos callbacks. Assim, a requisição de progresso disparada pelo login (e o
+upload disparado por uma conta nova) continuam com sua tag. `TestConta` cobre o
+encadeamento `carregar -> salvar` com 4 verificações.
+
+Validação no Chromium, com build web e o mesmo Supabase de produção:
+
+| Cenário | Resultado |
+|---|---|
+| Conta sintética nova | login concluiu, conta foi criada no servidor e o save inicial subiu |
+| Segundo acesso, progresso já existente | login concluiu e carregou a semana 7 gravada no servidor |
+| Conta e dados sintéticos | removidos ao final; nenhum dado de aluno real foi usado |
+
+O login manual também foi conferido com o botão **ENTRAR** (não apenas com a tecla
+Enter). O teste de regressão roda no workflow de publicação.

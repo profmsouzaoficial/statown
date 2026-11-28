@@ -370,9 +370,16 @@ func _bombear() -> void:
 
 func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: PackedByteArray) -> void:
 	_ocupado = false
+	# Guarde a requisicao que terminou e limpe `_atual` ANTES dos callbacks.
+	# Um callback sincrono (login_concluido -> baixar_progresso) pode enfileirar
+	# a proxima requisicao e `_bombear()` ja a coloca em `_atual`. Se limpar
+	# depois, a resposta dessa proxima requisicao chega sem tag e o login fica
+	# preso em "Carregando o progresso..." para sempre.
+	var req: Dictionary = _atual
+	_atual = {}
 	var txt := corpo.get_string_from_utf8()
 	var dados = JSON.parse_string(txt) if txt != "" else {}
-	var tag := str(_atual.get("tag", ""))
+	var tag := str(req.get("tag", ""))
 	if result != HTTPRequest.RESULT_SUCCESS:
 		var msg_rede := "Sem conexao com o servidor (resultado %d)." % result
 		if tag == "senha":
@@ -384,7 +391,6 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 			progresso_carregado.emit(false, msg_rede)
 		else:
 			_erro_rede(msg_rede)
-		_atual.clear()
 		_bombear()
 		return
 	if codigo >= 200 and codigo < 300:
@@ -419,9 +425,8 @@ func _ao_http(result: int, codigo: int, _headers: PackedStringArray, corpo: Pack
 			senha_alterada.emit(false, msg)
 		else:
 			push_warning("Conta/%s: HTTP %d %s" % [tag, codigo, msg])
-	# A requisicao pode ter carregado uma senha; nao a mantenha em memoria depois
-	# de a resposta chegar (o corpo so existe enquanto o HTTPRequest esta ativo).
-	_atual.clear()
+	# A requisicao ja foi retirada de `_atual` no inicio; um callback pode ter
+	# iniciado a proxima. Basta tentar bombear caso ainda haja fila.
 	_bombear()
 
 
