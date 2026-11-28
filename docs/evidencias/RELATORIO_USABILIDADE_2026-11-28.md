@@ -425,6 +425,7 @@ mais distante para o planador mais alto e a nova composição.
 | SIGA `GET /api/notas` | 200, exatamente uma `Game Educativo Statown`, peso 40,0; **0 nota no alvo** na reconsulta |
 | Build web local | painel CONTA abriu, mostrou `Projetada: 0,0 / 40,0` e confirmou no primeiro clique |
 | GitHub Actions `46172949371` | sucesso; etapa Deno `3/3` e todos os testes Godot passaram |
+| Perfis no Supabase | 61 linhas; **60** com matrícula + turma + período; 1 incompleta (sem PII) |
 | Produção `https://statown.vercel.app` | login sintético, CONTA e confirmação em dois cliques; console sem erro |
 
 Capturas (conta sintética, sem dado real):
